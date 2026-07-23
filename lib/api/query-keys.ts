@@ -24,4 +24,19 @@ export const queryKeys = {
     adminAll: ["coupons", "admin"] as const,
     adminDetail: (id: number) => ["coupons", "admin", id] as const,
   },
+
+  enrollments: {
+    all: (filters?: Record<string, unknown>) =>
+      ["enrollments", filters] as const,
+    detail: (id: number) => ["enrollments", id] as const,
+    receipt: (id: number) => ["enrollments", id, "receipt"] as const,
+  },
+
+  cohorts: {
+    all: ["cohorts"] as const,
+    detail: (id: number) => ["cohorts", id] as const,
+    sessions: (cohortId: number) => ["cohorts", cohortId, "sessions"] as const,
+    sessionDetail: (cohortId: number, id: number) =>
+      ["cohorts", cohortId, "sessions", id] as const,
+  },
 } as const;

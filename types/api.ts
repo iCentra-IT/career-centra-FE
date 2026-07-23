@@ -34,3 +34,13 @@ export function normalizeError(error: unknown): NormalizedError {
   }
   return new NormalizedError('An unexpected error occurred');
 }
+
+// pagination
+export interface PaginatedResponse<T> {
+  success: boolean;
+  count: number;
+  total_pages: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
