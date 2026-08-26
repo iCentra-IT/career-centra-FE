@@ -39,4 +39,13 @@ export const queryKeys = {
     sessionDetail: (cohortId: number, id: number) =>
       ["cohorts", cohortId, "sessions", id] as const,
   },
+
+  studentDashboard: {
+    overview: ["student-dashboard", "overview"] as const,
+    courses: ["student-dashboard", "courses"] as const,
+    enrollments: ["student-dashboard", "enrollments"] as const,
+    schedule: ["student-dashboard", "schedule"] as const,
+    certificates: ["student-dashboard", "certificates"] as const,
+    purchaseHistory: ["student-dashboard", "purchase-history"] as const,
+  },
 } as const;

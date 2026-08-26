@@ -1,27 +1,28 @@
 // lib/api/types/program.ts
 
-export type ProgramType = 'Certifications' | string; 
-// ^ only one value seen so far — send the full choices list when you have it (e.g. Bootcamp, Course?)
+// Free-text category, not an enum — confirmed values so far: "Agile, Product & Business Analysis",
+// "Project & Portfolio Management", "Workforce Capability"
+export type ProgramType = string;
 
-export type ProgramLevel = 'foundation' | string; 
-// ^ same — placeholder until full choices list (foundation/intermediate/advanced?)
+export type ProgramLevel = 'foundation' | 'practitioner' | 'advanced' | string;
 
-export type ProgramAudience = 'individual' | string; 
-// ^ placeholder (individual/corporate/group?)
+export type ProgramAudience = 'individual' | 'corporate' | string;
 
-export type PurchaseMode = 'direct' | string; 
-// ^ placeholder (direct/installment/subscription?)
+export type PurchaseMode = 'direct' | 'quote' | string;
 
 // List view — lighter payload, no "outline"
 export interface ProgramListItem {
   id: number;
   title: string;
   slug: string;
+  code: string;
   program_type: ProgramType;
   level: ProgramLevel;
   level_display: string;
   audience: ProgramAudience;
   audience_display: string;
+  platform: string; // e.g. "careercentra"
+  platform_display: string; // e.g. "careercentra.icentra.com"
   purchase_mode: PurchaseMode;
   purchase_mode_display: string;
   summary: string;
@@ -29,6 +30,7 @@ export interface ProgramListItem {
   base_price_ngn: string;
   has_pmi_badge: boolean;
   has_pecb_badge: boolean;
+  cover_image_url: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

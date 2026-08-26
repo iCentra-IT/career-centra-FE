@@ -6,10 +6,11 @@ import {
   UpdateProgramRequest,
   PatchProgramRequest,
 } from "@/types/programs";
+import { PaginatedResponse } from "@/types/api";
 import { apiClient } from "../client";
 
-export async function getPrograms(): Promise<ProgramListItem[]> {
-  const { data } = await apiClient.get<ProgramListItem[]>("/api/programs/");
+export async function getPrograms(): Promise<PaginatedResponse<ProgramListItem>> {
+  const { data } = await apiClient.get<PaginatedResponse<ProgramListItem>>("/api/programs/");
   return data;
 }
 

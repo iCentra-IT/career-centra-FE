@@ -6,20 +6,24 @@ import {
   LoginResponse,
   PasswordResetConfirmRequest,
   PasswordResetRequest,
+  PatchProfileRequest,
   RegisterRequest,
   RegisterResponse,
+  UpdateProfileResponse,
 } from "@/types/auth";
 import {
   changePassword,
   confirmPasswordReset,
   loginUser,
   logoutUser,
+  patchProfile,
   registerStudent,
   requestPasswordReset,
 } from "@/lib/api/auth";
 import { NormalizedError } from "@/types/api";
+import { queryKeys } from "@/lib/api/query-keys";
 import { getRefreshToken, useAuthStore } from "@/lib/store/authStore";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export function useRegister() {
   return useMutation<RegisterResponse, NormalizedError, RegisterRequest>({
@@ -35,9 +39,7 @@ export function useLogin() {
     mutationFn: loginUser,
     onSuccess: (data) => {
       setAuth({ user: data.user, access: data.access, refresh: data.refresh });
-      router.push(
-        data.user.role === "admin" ? "/admin/dashboard" : "/student/dashboard",
-      );
+      router.push(data.user.role === "admin" || data.user.role === "staff" ? "/admin" : "/students");
     },
   });
 }
@@ -57,7 +59,7 @@ export function useLogout() {
       // clear regardless of API success/failure — don't trap user in a logged-in UI
       clearAuth();
       queryClient.clear();
-      router.push("/signin");
+      router.push("/login");
     },
   });
 }
@@ -77,5 +79,16 @@ export function usePasswordReset() {
 export function usePasswordResetConfirm() {
   return useMutation<null, NormalizedError, PasswordResetConfirmRequest>({
     mutationFn: confirmPasswordReset,
+  });
+}
+
+export function usePatchProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation<UpdateProfileResponse, NormalizedError, PatchProfileRequest>({
+    mutationFn: patchProfile,
+    onSuccess: (user) => {
+      queryClient.setQueryData(queryKeys.auth.me, user);
+    },
   });
 }

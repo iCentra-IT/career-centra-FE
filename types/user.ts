@@ -1,5 +1,5 @@
 // lib/api/types/user.ts
-export type UserRole = 'admin' | 'student';
+export type UserRole = 'admin' | 'student' | 'staff' | 'facilitator';
 
 export type UserStatus = 'pending_verification' | 'active' | 'suspended' | 'inactive'; 
 // ^ confirm the full list when you send the admin/status-related API — 

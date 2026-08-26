@@ -1,5 +1,7 @@
 // lib/api/types/enrollment.ts
 
+import { DashboardStats, StudentCourse } from "./student";
+
 export type EnrollmentStatus = 'pending' | string; 
 // ^ only one value seen — likely also "active"/"completed"/"failed"/"cancelled", send full list when known
 
@@ -77,6 +79,11 @@ export interface CheckoutVerifyRequest {
   payment_reference: string;
   transaction_id: string;
   session_id: string;
+}
+
+export interface StudentEnrollmentsResponse {
+  stats: DashboardStats;
+  results: StudentCourse[];
 }
 
 // PLACEHOLDER — no response sample given, likely returns the Enrollment or a status object

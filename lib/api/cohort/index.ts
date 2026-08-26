@@ -1,9 +1,12 @@
 // lib/api/cohorts/get-cohorts.ts
 import { Cohort, CohortDetail, CreateCohortRequest, UpdateCohortRequest, PatchCohortRequest, CohortSession, CreateCohortSessionRequest, PatchCohortSessionRequest, UpdateCohortSessionRequest } from '@/types/cohort';
+import { PaginatedResponse } from '@/types/api';
 import { apiClient } from '../client';
 
-export async function getCohorts(): Promise<Cohort[]> {
-  const { data } = await apiClient.get<Cohort[]>('/api/cohorts/');
+// NOTE: assumed paginated like /api/programs/ (confirmed) — same {success, count, results} envelope.
+// Not yet confirmed against a real /api/cohorts/ response; fix this if that turns out wrong.
+export async function getCohorts(): Promise<PaginatedResponse<Cohort>> {
+  const { data } = await apiClient.get<PaginatedResponse<Cohort>>('/api/cohorts/');
   return data;
 }
 

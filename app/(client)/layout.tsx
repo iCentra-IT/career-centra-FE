@@ -1,9 +1,17 @@
-import React from 'react'
+import React from "react";
+import { MarketingHeader } from "@/components/marketing/header";
+import { MarketingFooter } from "@/components/marketing/footer";
 
-const layout = () => {
+export default function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div>layout</div>
-  )
+    <div className="flex min-h-screen flex-col">
+      <MarketingHeader />
+      <main className="flex-1">{children}</main>
+      <MarketingFooter />
+    </div>
+  );
 }
-
-export default layout

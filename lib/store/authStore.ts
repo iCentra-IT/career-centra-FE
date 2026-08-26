@@ -33,5 +33,5 @@ export const getAccessToken = () => useAuthStore.getState().accessToken;
 export const getRefreshToken = () => useAuthStore.getState().refreshToken;
 export const handleUnauthorized = () => {
   useAuthStore.getState().clearAuth();
-  if (typeof window !== "undefined") window.location.href = "/signin";
+  if (typeof window !== "undefined") window.location.href = "/login";
 };

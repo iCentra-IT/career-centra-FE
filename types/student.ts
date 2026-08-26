@@ -36,4 +36,151 @@ export interface UpdateStudentProfileRequest {
   referral_source: ReferralSource;
 }
 
+// lib/api/types/student-dashboard.ts
+
+export interface ProgramAccreditation {
+  issuer: string;
+  label: string;
+}
+
+// This is the "rich" program summary used across dashboard/courses/schedule/certificates —
+// distinct from CohortProgramSummary (cohorts.ts) and EnrollmentProgramSummary (enrollment.ts)
+export interface DashboardProgramSummary {
+  id: number;
+  title: string;
+  slug: string;
+  program_type: string; // reuse ProgramType union from program.ts if you want strict typing later
+  summary: string;
+  cover_image_url: string;
+  accreditations: ProgramAccreditation[];
+}
+
+export interface DashboardCohortSummary {
+  id: number;
+  starts_on: string;
+  duration_weeks: number;
+  ends_on: string;
+  delivery_mode: string; // likely "online" | "in_person" | "hybrid" — confirm full choices
+  location: string;
+  facilitator_name: string;
+  facilitator: string; // unclear how this differs from facilitator_name — confirm with backend
+}
+
+export interface CourseProgress {
+  basis: string; // "sessions" seen — likely also could vary, confirm if other bases exist
+  total: number;
+  completed: number;
+  percent: number;
+  started: boolean;
+  completed_all: boolean;
+}
+
+export interface CourseCertificateSummary {
+  certificate_number: string;
+  file_url: string;
+  issued_at: string;
+}
+
+// Shared "enrolled course" shape used in dashboard.active_courses / completed_courses,
+// students/courses active_courses, and students/enrollments results
+export interface StudentCourse {
+  id: number;
+  program: DashboardProgramSummary;
+  cohort: DashboardCohortSummary;
+  progress: CourseProgress;
+  certificate?: CourseCertificateSummary | null; // present on dashboard/enrollments, absent on plain /courses/ sample — confirm optionality
+  amount_paid?: string; // present on dashboard/enrollments, absent on plain /courses/ sample
+  currency?: string;
+  status?: string; // "pending" seen — likely "active" | "completed" | "cancelled" too, confirm full set
+  created_at?: string;
+}
+
+export interface UpcomingSession {
+  id: number;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  meeting_url: string;
+  program_title: string;
+  cohort_id: number;
+}
+
+export interface ClassUpdate {
+  id: number;
+  kind: string; // "reschedule" seen — likely also "cancellation" | "announcement", confirm full set
+  title: string;
+  body: string;
+  session: number; // session ID
+  program_title: string;
+  program_slug: string;
+  created_at: string;
+}
+
+export interface DashboardStats {
+  purchased: number;
+  active: number;
+  completed: number;
+  certificates: number;
+}
+
+export interface CertificateProgramSummary {
+  id: number;
+  title: string;
+  slug: string;
+  program_type: string;
+  summary: string;
+  cover_image_url: string;
+  accreditations: ProgramAccreditation[];
+}
+
+export interface StudentCertificate {
+  id: number;
+  certificate_number: string;
+  status: string; // confirm full choices — "issued" | "revoked" | "pending"?
+  issued_at: string;
+  file_url: string;
+  program: CertificateProgramSummary;
+}
+
+export interface CertificatesResponse {
+  certificates: StudentCertificate[];
+}
+
+export interface StudentCoursesResponse {
+  active_courses: StudentCourse[];
+}
+
+
+export interface StudentDashboardResponse {
+  stats: DashboardStats;
+  active_courses: StudentCourse[];
+  upcoming_sessions: UpcomingSession[];
+  class_updates: ClassUpdate[];
+  completed_courses: StudentCourse[];
+}
+
+export interface ScheduleSession {
+  id: number;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  meeting_url: string;
+  program_title: string;
+  cohort_id: number;
+}
+
+export interface ScheduleItem {
+  progress: CourseProgress;
+  id: number;
+  program: DashboardProgramSummary;
+  cohort: DashboardCohortSummary;
+  sessions: ScheduleSession[];
+}
+
+export interface StudentScheduleResponse {
+  schedule: ScheduleItem[];
+}
+
 export type PatchStudentProfileRequest = Partial<UpdateStudentProfileRequest>;

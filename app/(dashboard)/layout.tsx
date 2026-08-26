@@ -1,9 +1,9 @@
-import React from 'react'
+import React from "react";
 
-const layout = () => {
-  return (
-    <div>layout</div>
-  )
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return children;
 }
-
-export default layout
