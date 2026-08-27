@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePrograms } from "@/hooks/queries/programs";
-import { formatUsd } from "@/lib/format";
+import { useCareerPaths } from "@/hooks/queries/career-paths";
+import { ProgramCard } from "@/components/marketing/program-card";
 
 function BriefcaseIcon() {
   return (
@@ -53,36 +54,48 @@ function StarIcon() {
   );
 }
 
-const PATHWAYS = [
-  {
-    title: "Project & Portfolio Management",
-    description:
-      "Lead projects, programs, and portfolios with globally recognized certifications designed for modern execution and strategic leadership.",
-    icon: BriefcaseIcon,
-    programType: "Project & Portfolio Management",
-  },
-  {
-    title: "Agile, Product & Business Analysis",
-    description:
-      "Develop agile delivery, product thinking, and business analysis capabilities that drive faster execution and smarter business outcomes.",
-    icon: LayersIcon,
-    programType: "Agile, Product & Business Analysis",
-  },
-  {
-    title: "Cybersecurity & Risk",
-    description:
-      "Build expertise in cybersecurity, compliance, governance and risk management to strengthen organizational resilience.",
-    icon: ShieldIcon,
-    programType: "Cybersecurity & Risk",
-  },
-  {
-    title: "AI & Digital Transformation",
-    description:
-      "Gain the capabilities to lead digital transformation initiatives and apply AI to real-world business and operational challenges.",
-    icon: SparkleIcon,
-    programType: "AI & Digital Transformation",
-  },
-];
+function PathIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="4" cy="16" r="1.8" stroke="white" strokeWidth="1.4" />
+      <circle cx="16" cy="4" r="1.8" stroke="white" strokeWidth="1.4" />
+      <path d="M5.5 15c3-1 3-5 5.5-6s3.5-3.5 3.5-4.5" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function GlobeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="7" stroke="white" strokeWidth="1.4" />
+      <path d="M3 10h14M10 3c2 2 2.8 4.5 2.8 7s-.8 5-2.8 7c-2-2-2.8-4.5-2.8-7s.8-5 2.8-7z" stroke="white" strokeWidth="1.2" />
+    </svg>
+  );
+}
+
+function InstructorIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="6.5" r="3" stroke="white" strokeWidth="1.4" />
+      <path d="M4 17c.9-3.3 3.3-5 6-5s5.1 1.7 6 5" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AdvisorIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M3 5.5A1.5 1.5 0 014.5 4h11A1.5 1.5 0 0117 5.5v6a1.5 1.5 0 01-1.5 1.5H9l-3.5 3v-3H4.5A1.5 1.5 0 013 11.5v-6z"
+        stroke="white"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const PATHWAY_ICONS = [BriefcaseIcon, LayersIcon, ShieldIcon, SparkleIcon];
 
 const PROCESS_STEPS = [
   "Choose a career track",
@@ -91,24 +104,33 @@ const PROCESS_STEPS = [
   "Earn certifications and advance",
 ];
 
-const LEVELS = ["Foundation", "Professional", "Advanced", "Specialised"];
+const LEVELS = [
+  { number: "01", label: "Foundation", description: "Core concepts, terminology" },
+  { number: "02", label: "Professional", description: "Applied practice, certification" },
+  { number: "03", label: "Advanced", description: "Leadership, advanced delivery" },
+  { number: "04", label: "Specialised", description: "Strategic, niche expertise" },
+];
 
 const REASONS = [
   {
     title: "Structured Learning Paths",
     description: "Every pathway is designed with clear progression from foundation to expert.",
+    icon: PathIcon,
   },
   {
     title: "Globally Recognised Certifications",
     description: "PMI, ISO, and industry-standard credentials accepted worldwide.",
+    icon: GlobeIcon,
   },
   {
     title: "Expert Instructors",
     description: "Learn from practitioners with real-world experience in your chosen field.",
+    icon: InstructorIcon,
   },
   {
     title: "Career Advisory Support",
     description: "1-on-1 advisor sessions to help you choose the right pathway.",
+    icon: AdvisorIcon,
   },
 ];
 
@@ -129,6 +151,7 @@ const TESTIMONIALS = [
 
 const HomePage = () => {
   const { data: programs, isLoading: programsLoading } = usePrograms();
+  const { data: pathways, isLoading: pathwaysLoading } = useCareerPaths();
   const featured = programs?.results?.slice(0, 4) ?? [];
 
   return (
@@ -149,7 +172,7 @@ const HomePage = () => {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="#pathways"
+                href="/career-paths"
                 className="rounded-full bg-glass px-6 py-3 text-sm font-medium text-deep-blue hover:opacity-90"
               >
                 Explore Career Paths →
@@ -185,13 +208,15 @@ const HomePage = () => {
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {PATHWAYS.map((pathway) => {
-            const Icon = pathway.icon;
-            const matches =
-              programs?.results?.filter((p) => p.program_type === pathway.programType) ?? [];
+          {pathwaysLoading && <p className="text-sm text-gray-400">Loading…</p>}
+          {!pathwaysLoading && pathways?.length === 0 && (
+            <p className="text-sm text-gray-400">No career paths published yet.</p>
+          )}
+          {pathways?.map((pathway, i) => {
+            const Icon = PATHWAY_ICONS[i % PATHWAY_ICONS.length];
 
             return (
-              <div key={pathway.title} className="rounded-2xl bg-secondary/5 p-6">
+              <div key={pathway.id} className="rounded-2xl bg-secondary/5 p-6">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-main">
                   <Icon />
                 </div>
@@ -202,22 +227,18 @@ const HomePage = () => {
                   Programs include
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {matches.length > 0 ? (
-                    matches.map((p) => (
-                      <span
-                        key={p.id}
-                        className="rounded-full bg-white px-3 py-1 text-xs font-medium text-secondary"
-                      >
-                        {p.code}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-gray-400">New programs coming soon</span>
-                  )}
+                  {pathway.certifications.map((cert) => (
+                    <span
+                      key={cert}
+                      className="rounded-full bg-white px-3 py-1 text-xs font-medium text-secondary"
+                    >
+                      {cert}
+                    </span>
+                  ))}
                 </div>
 
                 <Link
-                  href={`/programms?track=${encodeURIComponent(pathway.programType)}`}
+                  href={`/career-paths/${pathway.slug}`}
                   className="mt-5 inline-flex rounded-md border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   View Path →
@@ -233,15 +254,18 @@ const HomePage = () => {
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">The Process</p>
         <h2 className="mt-2 text-3xl font-semibold text-gray-900">How It Works</h2>
 
-        <div className="mt-12 grid grid-cols-2 gap-y-8 sm:grid-cols-4 sm:gap-y-0">
-          {PROCESS_STEPS.map((step, i) => (
-            <div key={step} className="flex flex-col items-center gap-3 px-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-main text-sm font-semibold text-main">
-                {i + 1}
+        <div className="relative mt-12">
+          <div className="absolute left-0 right-0 top-5 hidden h-px bg-gray-200 sm:block" aria-hidden="true" />
+          <div className="relative grid grid-cols-2 gap-y-8 sm:grid-cols-4 sm:gap-y-0">
+            {PROCESS_STEPS.map((step, i) => (
+              <div key={step} className="flex flex-col items-center gap-3 px-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-main bg-white text-sm font-semibold text-main">
+                  {i + 1}
+                </div>
+                <p className="text-sm text-gray-600">{step}</p>
               </div>
-              <p className="text-sm text-gray-600">{step}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
@@ -265,37 +289,13 @@ const HomePage = () => {
           {!programsLoading && featured.length === 0 && (
             <p className="text-sm text-gray-400">No programs published yet.</p>
           )}
-          {featured.map((program) => {
-            const badge = program.has_pmi_badge
-              ? "PMI Authorized"
-              : program.has_pecb_badge
-                ? "PECB Authorized"
-                : program.level_display;
-
-            return (
-              <div
-                key={program.id}
-                className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-main to-deep-blue p-5 text-white"
-              >
-                <div>
-                  <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
-                    {badge}
-                  </span>
-                  <h3 className="mt-4 text-base font-semibold">{program.title}</h3>
-                  <p className="mt-2 text-sm text-white/70 line-clamp-3">{program.summary}</p>
-                </div>
-                <div className="mt-6 flex items-center justify-between">
-                  <span className="text-sm font-semibold">{formatUsd(program.base_price_usd)}</span>
-                  <Link
-                    href={`/programms/${program.slug}`}
-                    className="rounded-full bg-glass px-4 py-2 text-xs font-medium text-deep-blue hover:opacity-90"
-                  >
-                    Learn More →
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+          {featured.map((program) => (
+            <ProgramCard
+              key={program.id}
+              program={program}
+              buttonTone="cyan"
+            />
+          ))}
         </div>
       </section>
 
@@ -307,15 +307,28 @@ const HomePage = () => {
           Progress from foundation to specialised expertise at your own pace.
         </p>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          {LEVELS.map((level, i) => (
-            <div key={level} className="flex items-center gap-3">
-              <div className="rounded-xl border border-gray-200 px-6 py-4 text-sm font-medium text-gray-700">
-                {level}
+        <div className="mt-12 flex flex-wrap items-start justify-center gap-4">
+          {LEVELS.map((level, i) => {
+            const active = i === 1;
+            return (
+              <div key={level.label} className="flex items-center gap-4">
+                <div
+                  className={`relative rounded-xl border px-6 py-4 text-left ${
+                    active ? "border-main bg-main text-white" : "border-gray-200 bg-white text-gray-700"
+                  }`}
+                >
+                  <span className="absolute -left-3 -top-3 flex h-7 w-7 items-center justify-center rounded-full bg-main text-xs font-semibold text-white">
+                    {level.number}
+                  </span>
+                  <p className="text-sm font-semibold uppercase tracking-wide">{level.label}</p>
+                  <p className={`mt-1 text-xs ${active ? "text-white/70" : "text-gray-400"}`}>
+                    {level.description}
+                  </p>
+                </div>
+                {i < LEVELS.length - 1 && <span className="text-gray-300">›</span>}
               </div>
-              {i < LEVELS.length - 1 && <span className="text-gray-300">→</span>}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -324,15 +337,18 @@ const HomePage = () => {
         <div className="mx-auto max-w-6xl text-center">
           <h2 className="text-2xl font-semibold">Why CareerCentra</h2>
           <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {REASONS.map((reason) => (
-              <div key={reason.title} className="flex flex-col items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
-                  <SparkleIcon />
+            {REASONS.map((reason) => {
+              const Icon = reason.icon;
+              return (
+                <div key={reason.title} className="flex flex-col items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
+                    <Icon />
+                  </div>
+                  <p className="text-sm font-semibold">{reason.title}</p>
+                  <p className="text-xs text-white/60">{reason.description}</p>
                 </div>
-                <p className="text-sm font-semibold">{reason.title}</p>
-                <p className="text-xs text-white/60">{reason.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -351,7 +367,12 @@ const HomePage = () => {
                 ))}
               </div>
               <p className="mt-4 text-sm text-gray-600">&ldquo;{t.quote}&rdquo;</p>
-              <p className="mt-4 text-xs font-medium text-gray-400">{t.role}</p>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary/20">
+                  <InstructorIcon />
+                </div>
+                <p className="text-xs font-medium text-gray-400">{t.role}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -367,7 +388,7 @@ const HomePage = () => {
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
-              href="#pathways"
+              href="/career-paths"
               className="rounded-full bg-glass px-6 py-3 text-sm font-medium text-deep-blue hover:opacity-90"
             >
               Explore Career Paths →

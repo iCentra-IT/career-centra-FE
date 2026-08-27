@@ -16,7 +16,16 @@ export function formatOrdinalDateTime(iso: string) {
   return `${day}${suffix} ${month}, ${year} • ${time}`;
 }
 
+export function formatShortDate(iso: string) {
+  const date = new Date(iso);
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 export function formatUsd(value: string | number) {
   const num = typeof value === "string" ? parseFloat(value) : value;
-  return `$${num.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  return `$${num?.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+}
+
+export function displayTitle(title: string) {
+  return title?.replace(/^Seed\s*[—-]?\s*/i, "");
 }

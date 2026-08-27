@@ -5,9 +5,9 @@ const COLUMNS = [
     title: "Quick Link",
     links: [
       { label: "Home", href: "/" },
-      { label: "Career Paths", href: "/#pathways" },
-      { label: "All Programs", href: "/programms" },
-      { label: "Speak to Advisor", href: "/contact" },
+      { label: "About Us", href: "/about" },
+      { label: "Contact Us", href: "/contact" },
+      { label: "Media Room", href: "/about" },
     ],
   },
   {

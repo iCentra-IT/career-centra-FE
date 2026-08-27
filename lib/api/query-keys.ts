@@ -20,6 +20,12 @@ export const queryKeys = {
     detail: (slug: string) => ["programs", slug] as const,
   },
 
+  careerPaths: {
+    all: ["career-paths"] as const,
+    detail: (slug: string) => ["career-paths", slug] as const,
+    programs: (slug: string) => ["career-paths", slug, "programs"] as const,
+  },
+
   coupons: {
     adminAll: ["coupons", "admin"] as const,
     adminDetail: (id: number) => ["coupons", "admin", id] as const,

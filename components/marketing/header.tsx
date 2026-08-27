@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 function CartIcon() {
   return (
@@ -45,13 +48,16 @@ function Logo() {
 }
 
 const NAV_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "Career Paths", href: "/#pathways" },
+  { label: "Home", href: "/", exact: true },
+  { label: "Career Paths", href: "/career-paths" },
+  { label: "Programs", href: "/programms" },
+  { label: "Facilitator", href: "/facilitator" },
   { label: "Speak to Advisor", href: "/contact" },
-  { label: "About", href: "/about" },
 ];
 
 export function MarketingHeader() {
+  const pathname = usePathname();
+
   return (
     <header className="sticky top-0 z-30 bg-white">
       <div className="bg-secondary/5 px-6 py-2">
@@ -73,12 +79,19 @@ export function MarketingHeader() {
 
       <div className="border-b border-gray-100 px-6 py-3">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
-          <nav className="flex items-center gap-6 text-sm text-gray-600">
-            {NAV_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} className="hover:text-main">
-                {link.label}
-              </Link>
-            ))}
+          <nav className="flex items-center gap-6 text-sm">
+            {NAV_LINKS.map((link) => {
+              const isActive = link.exact ? pathname === link.href : pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={isActive ? "font-semibold text-gray-900" : "text-gray-600 hover:text-main"}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
           <div className="relative w-full max-w-xs">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">

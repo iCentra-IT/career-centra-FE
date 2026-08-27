@@ -1,9 +1,10 @@
-import React from 'react'
+import { ProgramDetailContent } from "@/components/marketing/program-detail-content";
 
-const page = () => {
-  return (
-    <div>page</div>
-  )
+export default async function ProgramDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <ProgramDetailContent slug={id} />;
 }
-
-export default page

@@ -6,7 +6,7 @@ import {
   UpdateProgramRequest,
   PatchProgramRequest,
 } from "@/types/programs";
-import { PaginatedResponse } from "@/types/api";
+import { ApiResponse, PaginatedResponse } from "@/types/api";
 import { apiClient } from "../client";
 
 export async function getPrograms(): Promise<PaginatedResponse<ProgramListItem>> {
@@ -15,8 +15,8 @@ export async function getPrograms(): Promise<PaginatedResponse<ProgramListItem>>
 }
 
 export async function getProgram(slug: string): Promise<Program> {
-  const { data } = await apiClient.get<Program>(`/api/programs/${slug}/`);
-  return data;
+  const { data } = await apiClient.get<ApiResponse<Program>>(`/api/programs/${slug}/`);
+  return data.data;
 }
 
 export async function createProgram(
