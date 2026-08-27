@@ -31,7 +31,7 @@ export function useRegister() {
   });
 }
 
-export function useLogin() {
+export function useLogin(next?: string | null) {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
 
@@ -39,7 +39,9 @@ export function useLogin() {
     mutationFn: loginUser,
     onSuccess: (data) => {
       setAuth({ user: data.user, access: data.access, refresh: data.refresh });
-      router.push(data.user.role === "admin" || data.user.role === "staff" ? "/admin" : "/students");
+      const dashboardHref = data.user.role === "admin" || data.user.role === "staff" ? "/admin" : "/students";
+      // Only students get sent back to where they left off — everyone else always lands on their dashboard.
+      router.push(data.user.role === "student" && next ? next : dashboardHref);
     },
   });
 }

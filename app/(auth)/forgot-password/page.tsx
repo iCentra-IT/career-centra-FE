@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { usePasswordReset, usePasswordResetConfirm } from "@/hooks/mutations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -73,12 +74,19 @@ const ForgotPasswordPage = () => {
         setSecondsLeft(RESEND_SECONDS);
         setOtpOpen(true);
       },
+      onError: (err) => toast.error(err.message),
     });
   };
 
   const onResend = () => {
     if (secondsLeft > 0) return;
-    passwordReset.mutate({ email });
+    passwordReset.mutate(
+      { email },
+      {
+        onSuccess: () => toast.success("Recovery code resent."),
+        onError: (err) => toast.error(err.message),
+      },
+    );
     setOtp("");
     setSecondsLeft(RESEND_SECONDS);
   };
@@ -91,7 +99,13 @@ const ForgotPasswordPage = () => {
   const onResetSubmit = (values: ResetFormValues) => {
     passwordResetConfirm.mutate(
       { token: otp, ...values },
-      { onSuccess: () => router.push("/login") },
+      {
+        onSuccess: () => {
+          toast.success("Password reset. You can now log in.");
+          router.push("/login");
+        },
+        onError: (err) => toast.error(err.message),
+      },
     );
   };
 
@@ -111,11 +125,6 @@ const ForgotPasswordPage = () => {
             onSubmit={emailForm.handleSubmit(onRequestSubmit)}
             className="mt-8 flex flex-col gap-5"
           >
-            {passwordReset.error && (
-              <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
-                {passwordReset.error.message}
-              </p>
-            )}
             <Input
               label="Email Address"
               type="email"
@@ -154,11 +163,6 @@ const ForgotPasswordPage = () => {
             onSubmit={resetForm.handleSubmit(onResetSubmit)}
             className="mt-8 flex flex-col gap-5"
           >
-            {passwordResetConfirm.error && (
-              <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
-                {passwordResetConfirm.error.message}
-              </p>
-            )}
 
             <div className="flex flex-col gap-3">
               <Input

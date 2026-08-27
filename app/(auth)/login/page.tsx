@@ -1,10 +1,12 @@
 "use client";
 
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { useLogin } from "@/hooks/mutations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,7 +18,9 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-const LoginPage = () => {
+const LoginForm = () => {
+  const next = useSearchParams().get("next");
+
   const {
     register,
     handleSubmit,
@@ -24,10 +28,14 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
 
-  const { mutate, isPending, error } = useLogin();
+  const { mutate, isPending, error } = useLogin(next);
 
   useEffect(() => {
-    if (!error?.errors) return;
+    if (!error) return;
+    if (!error.errors) {
+      toast.error(error.message);
+      return;
+    }
     for (const [field, messages] of Object.entries(error.errors)) {
       if (field === "email" || field === "password") {
         setError(field, { message: messages[0] });
@@ -47,12 +55,6 @@ const LoginPage = () => {
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-5">
-        {error && !error.errors && (
-          <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
-            {error.message}
-          </p>
-        )}
-
         <Input
           label="Email Address"
           type="email"
@@ -99,5 +101,11 @@ const LoginPage = () => {
     </div>
   );
 };
+
+const LoginPage = () => (
+  <Suspense fallback={null}>
+    <LoginForm />
+  </Suspense>
+);
 
 export default LoginPage;

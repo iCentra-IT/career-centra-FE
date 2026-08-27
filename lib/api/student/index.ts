@@ -41,31 +41,31 @@ export async function patchStudentProfile(
 }
 
 export async function getStudentDashboard(): Promise<StudentDashboardResponse> {
-  const { data } = await apiClient.get<StudentDashboardResponse>('/api/students/dashboard/');
-  return data;
+  const { data } = await apiClient.get<ApiResponse<StudentDashboardResponse>>('/api/students/dashboard/');
+  return data.data;
 }
 
 export async function getStudentCourses(): Promise<StudentCoursesResponse> {
-  const { data } = await apiClient.get<StudentCoursesResponse>('/api/students/courses/');
-  return data;
+  const { data } = await apiClient.get<ApiResponse<StudentCoursesResponse>>('/api/students/courses/');
+  return data.data;
 }
 
 export async function getStudentEnrollments(): Promise<StudentEnrollmentsResponse> {
-  const { data } = await apiClient.get<StudentEnrollmentsResponse>('/api/students/enrollments/');
-  return data;
+  const { data } = await apiClient.get<ApiResponse<StudentEnrollmentsResponse>>('/api/students/enrollments/');
+  return data.data;
 }
 
 export async function getStudentSchedule(): Promise<StudentScheduleResponse> {
-  const { data } = await apiClient.get<StudentScheduleResponse>('/api/students/schedule/');
-  return data;
+  const { data } = await apiClient.get<ApiResponse<StudentScheduleResponse>>('/api/students/schedule/');
+  return data.data;
 }
 
 export async function getStudentCertificates(): Promise<CertificatesResponse> {
-  const { data } = await apiClient.get<CertificatesResponse>('/api/students/certificates/');
-  return data;
+  const { data } = await apiClient.get<ApiResponse<CertificatesResponse>>('/api/students/certificates/');
+  return data.data;
 }
 
 export async function getPurchaseHistory(): Promise<PurchaseHistoryResponse> {
-  const { data } = await apiClient.get<PurchaseHistoryResponse>('/api/students/purchase-history/');
-  return data;
+  const { data } = await apiClient.get<ApiResponse<PurchaseHistoryResponse>>('/api/students/purchase-history/');
+  return data.data;
 }

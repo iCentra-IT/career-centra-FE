@@ -10,7 +10,8 @@ export interface ApiResponse<T> {
 
 export interface ApiErrorResponse {
   success: false;
-  message: string;
+  message?: string;
+  detail?: string; // DRF's own framework-level errors use this instead of "message" — confirmed real
   errors?: Record<string, string[]>; // e.g. { non_field_errors: [...], email: [...] }
 }
 
@@ -27,7 +28,7 @@ export class NormalizedError extends Error {
 export function normalizeError(error: unknown): NormalizedError {
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
     return new NormalizedError(
-      error.response?.data?.message ?? error.message,
+      error.response?.data?.message ?? error.response?.data?.detail ?? error.message,
       error.response?.status,
       error.response?.data?.errors
     );

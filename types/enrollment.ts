@@ -65,14 +65,12 @@ export interface CheckoutInitiateRequest {
   coupon_code: string; // empty string if none applied
 }
 
-// PLACEHOLDER — no response sample given. Given payment_gateway values seen elsewhere
-// (flutterwave), this likely returns a redirect/authorization URL. Send the actual
-// response before I build the hook meaningfully — this one really matters since it
-// drives the redirect-to-payment-gateway UX.
+// Confirmed real shape from a live /api/checkout/initiate/ response.
 export interface CheckoutInitiateResponse {
-  authorization_url?: string;
-  payment_reference?: string;
-  [key: string]: unknown;
+  enrollment_id: number;
+  payment_reference: string;
+  gateway: PaymentGateway;
+  gateway_url: string; // redirect target for the payment gateway checkout page
 }
 
 export interface CheckoutVerifyRequest {

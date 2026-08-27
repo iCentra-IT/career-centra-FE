@@ -7,6 +7,7 @@ import { useCohorts } from "@/hooks/queries/cohort";
 import { displayTitle, formatShortDate, formatUsd } from "@/lib/format";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { EnrolButton } from "@/components/marketing/enrol-button";
 
 const TABS = [
   { label: "Learning Outcome", id: "learning-outcomes" },
@@ -159,12 +160,13 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
             </div>
 
             <div className="mt-5 flex flex-col gap-2">
-              <Link
-                href="/login"
-                className="rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue"
+              <EnrolButton
+                cohortId={currentCohort?.id}
+                enrollmentOpen={currentCohort?.is_enrollment_open}
+                className="w-full rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Enrol Now
-              </Link>
+              </EnrolButton>
               <Link
                 href="/contact"
                 className="rounded-md border border-gray-200 px-4 py-3 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -357,12 +359,13 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                       </td>
                       <td className="px-5 py-4 text-gray-900">{formatUsd(cohort.effective_price_usd)}</td>
                       <td className="px-5 py-4">
-                        <Link
-                          href="/login"
-                          className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        <EnrolButton
+                          cohortId={cohort.id}
+                          enrollmentOpen={cohort.is_enrollment_open}
+                          className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Enrol
-                        </Link>
+                        </EnrolButton>
                       </td>
                     </tr>
                   ))}

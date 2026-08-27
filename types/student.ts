@@ -91,7 +91,7 @@ export interface StudentCourse {
   certificate?: CourseCertificateSummary | null; // present on dashboard/enrollments, absent on plain /courses/ sample — confirm optionality
   amount_paid?: string; // present on dashboard/enrollments, absent on plain /courses/ sample
   currency?: string;
-  status?: string; // "pending" seen — likely "active" | "completed" | "cancelled" too, confirm full set
+  status?: string; // "confirmed" seen — likely "pending" | "active" | "completed" | "cancelled" too, confirm full set
   created_at?: string;
 }
 
@@ -108,10 +108,10 @@ export interface UpcomingSession {
 
 export interface ClassUpdate {
   id: number;
-  kind: string; // "reschedule" seen — likely also "cancellation" | "announcement", confirm full set
+  kind: "reschedule" | "resource" | "announcement" | string; // confirmed values so far
   title: string;
   body: string;
-  session: number; // session ID
+  session: number | null; // session ID, null seen when not tied to a specific session
   program_title: string;
   program_slug: string;
   created_at: string;

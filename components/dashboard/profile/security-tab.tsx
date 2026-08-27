@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { useChangePassword } from "@/hooks/mutations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -95,7 +96,10 @@ export function SecurityTab() {
         setSuccessOpen(true);
         form.reset();
       },
-      onError: () => setConfirmOpen(false),
+      onError: (err) => {
+        setConfirmOpen(false);
+        toast.error(err.message);
+      },
     });
   };
 
@@ -116,12 +120,6 @@ export function SecurityTab() {
       </p>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 flex max-w-md flex-col gap-5">
-        {changePassword.error && (
-          <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
-            {changePassword.error.message}
-          </p>
-        )}
-
         <Input
           label="Current Password"
           type="password"

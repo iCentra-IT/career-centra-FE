@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { useProfile } from "@/hooks/queries/auth";
 import { usePatchProfile } from "@/hooks/mutations/auth";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,11 @@ export function ProfileTab() {
     }
   }, [profile, form]);
 
-  const onSubmit = (values: ProfileFormValues) => patchProfile.mutate(values);
+  const onSubmit = (values: ProfileFormValues) =>
+    patchProfile.mutate(values, {
+      onSuccess: () => toast.success("Profile updated."),
+      onError: (err) => toast.error(err.message),
+    });
 
   return (
     <div>
@@ -64,17 +69,6 @@ export function ProfileTab() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="mt-6 flex max-w-md flex-col gap-5"
       >
-        {patchProfile.error && (
-          <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
-            {patchProfile.error.message}
-          </p>
-        )}
-        {patchProfile.isSuccess && (
-          <p className="rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700">
-            Profile updated.
-          </p>
-        )}
-
         <Input
           label="First Name"
           required
