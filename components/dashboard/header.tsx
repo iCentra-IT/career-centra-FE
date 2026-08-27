@@ -1,8 +1,38 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
+
+const PAGE_TITLES: { pattern: string; title: string }[] = [
+  { pattern: "/admin/profile", title: "Profile" },
+  { pattern: "/admin/programs", title: "Programs" },
+  { pattern: "/admin/cohorts", title: "Cohorts" },
+  { pattern: "/admin", title: "Overview" },
+  { pattern: "/students/enrolments", title: "My Enrolments" },
+  { pattern: "/students/schedules", title: "Class Schedules" },
+  { pattern: "/students/certificates", title: "Certificates" },
+  { pattern: "/students/purchase-history", title: "Purchase History" },
+  { pattern: "/students/profile", title: "Profile" },
+  { pattern: "/students", title: "Overview" },
+];
+
+function pageTitleFor(pathname: string) {
+  const match = PAGE_TITLES.filter((p) => pathname.startsWith(p.pattern)).sort(
+    (a, b) => b.pattern.length - a.pattern.length,
+  )[0];
+  return match?.title ?? "Dashboard";
+}
+
+function SearchIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M13 13l-2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 function BellIcon() {
   return (
@@ -20,6 +50,7 @@ function BellIcon() {
 
 export function Header() {
   const user = useAuthStore((s) => s.user);
+  const pathname = usePathname();
   const initials = user
     ? `${user.first_name[0] ?? ""}${user.last_name[0] ?? ""}`.toUpperCase()
     : "";
@@ -46,10 +77,23 @@ export function Header() {
   }, [notificationsOpen]);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-100 bg-white px-8">
-      <h1 className="text-lg font-semibold text-gray-900">Dashboard</h1>
+    <header className="flex h-16 shrink-0 items-center justify-between gap-6 border-b border-gray-100 bg-white px-8">
+      <h1 className="shrink-0 text-lg font-semibold text-gray-900">{pageTitleFor(pathname)}</h1>
 
-      <div className="flex items-center gap-4">
+      <div className="relative hidden max-w-xs flex-1 sm:block">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <SearchIcon />
+        </span>
+        <input
+          placeholder="Search here for anything..."
+          className="w-full rounded-md border border-gray-200 py-2 pl-9 pr-14 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+        />
+        <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-medium text-gray-400">
+          ⌘K
+        </kbd>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-4">
         <div ref={containerRef} className="relative">
           <button
             type="button"

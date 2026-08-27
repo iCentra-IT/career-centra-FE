@@ -26,6 +26,11 @@ export function formatUsd(value: string | number) {
   return `$${num?.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
+export function formatMoney(value: string | number, currency: string) {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  return `${currency} ${num.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+}
+
 export function displayTitle(title: string) {
   return title?.replace(/^Seed\s*[—-]?\s*/i, "");
 }
