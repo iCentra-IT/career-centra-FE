@@ -158,7 +158,7 @@ export function MarketingHeader() {
   const dashboardHref = user ? (user.role === "admin" ? "/admin" : "/students") : null;
 
   return (
-    <header className="sticky top-0 z-30 bg-white">
+    <header className="sticky top-0 z-30 bg-white relative">
       <div className="bg-secondary/5 px-6 py-2">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Logo />
@@ -214,7 +214,7 @@ export function MarketingHeader() {
       </div>
 
       {mobileOpen && (
-        <div className="border-b border-gray-100 px-6 py-4 md:hidden">
+        <div className="absolute left-0 right-0 top-full z-40 max-h-[calc(100vh-56px)] overflow-y-auto border-b border-gray-100 bg-white px-6 py-4 shadow-lg md:hidden">
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
               <SearchIcon />
