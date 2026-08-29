@@ -1,13 +1,33 @@
 import React from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
-import { OverviewIcon, ProgramsIcon, CohortsIcon, ProfileIcon } from "@/components/dashboard/nav-icons";
+import {
+  DashboardIcon,
+  EnrolmentsHistoryIcon,
+  PlayCircleIcon,
+  TicketIcon,
+  FacilitatorGroupIcon,
+  TagIcon,
+  ProfileIcon,
+  CouponsIcon,
+  SettingsIcon,
+} from "@/components/dashboard/nav-icons";
 
 const NAV_ITEMS = [
-  { label: "Overview", href: "/admin", icon: <OverviewIcon />, exact: true },
-  { label: "Programs", href: "/admin/programs", icon: <ProgramsIcon /> },
-  { label: "Cohorts", href: "/admin/cohorts", icon: <CohortsIcon /> },
-  { label: "Profile", href: "/admin/profile", icon: <ProfileIcon /> },
+  { label: "Dashboard", href: "/admin", icon: <DashboardIcon />, exact: true },
+  { label: "Enrolments History", href: "/admin/enrollments", icon: <EnrolmentsHistoryIcon /> },
+  { label: "Program", href: "/admin/programs", icon: <PlayCircleIcon /> },
+  { label: "Career Path", href: "/admin/career-paths", icon: <TicketIcon /> },
+  { label: "Facilitator", href: "/admin/facilitators", icon: <FacilitatorGroupIcon /> },
+  { label: "Cohorts", href: "/admin/cohorts", icon: <TagIcon /> },
+  { label: "Users", href: "/admin/users", icon: <ProfileIcon /> },
+  { label: "Coupons", href: "/admin/coupons", icon: <CouponsIcon /> },
+  {
+    label: "Settings",
+    href: "/admin/settings",
+    icon: <SettingsIcon />,
+    children: [{ label: "Profile", href: "/admin/profile" }],
+  },
 ];
 
 export default function AdminLayout({

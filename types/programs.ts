@@ -96,6 +96,7 @@ export interface Program extends ProgramListItem {
 
 export interface CreateProgramRequest {
   title: string;
+  code: string;
   program_type: ProgramType;
   level: ProgramLevel;
   audience: ProgramAudience;
@@ -106,6 +107,11 @@ export interface CreateProgramRequest {
   base_price_ngn: string;
   has_pmi_badge: boolean;
   has_pecb_badge: boolean;
+  cover_image?: string; // confirmed field name on write, distinct from the read model's cover_image_url
+  learning_outcomes?: string[];
+  who_should_attend?: string[];
+  faqs?: ProgramFaq[];
+  prerequisites?: { kind: ProgramPrerequisite["kind"]; text: string; order: number }[];
   is_active: boolean;
 }
 

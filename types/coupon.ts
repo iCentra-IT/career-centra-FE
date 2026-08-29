@@ -1,7 +1,6 @@
 // lib/api/types/coupon.ts
 
-export type DiscountType = 'percentage' | string; 
-// ^ only one value seen — likely also "fixed_amount" or similar, send full choices when available
+export type DiscountType = 'percentage' | 'fixed_amount' | string;
 
 export interface Coupon {
   id: number;
@@ -9,13 +8,13 @@ export interface Coupon {
   description: string;
   discount_type: DiscountType;
   discount_value: string; // decimal-as-string, same pattern as program prices — keep as string
-  currency: string; // e.g. "NGN" — confirm if this is a fixed set (NGN/USD) or free text
-  max_uses: number;
+  currency: string; // empty string for percentage coupons; "USD"/"NGN" etc for fixed_amount ones
+  max_uses: number | null; // null seen — unlimited uses
   uses_count: number;
-  valid_from: string; // ISO datetime
-  valid_until: string; // ISO datetime
+  valid_from: string | null; // ISO datetime, null seen — no start restriction
+  valid_until: string | null; // ISO datetime, null seen — no expiry
   is_active: boolean;
-  applicable_program_ids: number[];
+  applicable_program_ids: number[]; // empty array seen — applies to all programs
   created_at: string;
   updated_at: string;
 }

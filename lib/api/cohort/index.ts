@@ -1,6 +1,6 @@
 // lib/api/cohorts/get-cohorts.ts
 import { Cohort, CohortDetail, CreateCohortRequest, UpdateCohortRequest, PatchCohortRequest, CohortSession, CreateCohortSessionRequest, PatchCohortSessionRequest, UpdateCohortSessionRequest } from '@/types/cohort';
-import { PaginatedResponse } from '@/types/api';
+import { ApiResponse, PaginatedResponse } from '@/types/api';
 import { apiClient } from '../client';
 
 // NOTE: assumed paginated like /api/programs/ (confirmed) — same {success, count, results} envelope.
@@ -11,29 +11,29 @@ export async function getCohorts(): Promise<PaginatedResponse<Cohort>> {
 }
 
 export async function getCohort(id: number): Promise<CohortDetail> {
-  const { data } = await apiClient.get<CohortDetail>(`/api/cohorts/${id}/`);
-  return data;
+  const { data } = await apiClient.get<ApiResponse<CohortDetail>>(`/api/cohorts/${id}/`);
+  return data.data;
 }
 
 export async function createCohort(payload: CreateCohortRequest): Promise<CohortDetail> {
-  const { data } = await apiClient.post<CohortDetail>('/api/cohorts/', payload);
-  return data;
+  const { data } = await apiClient.post<ApiResponse<CohortDetail>>('/api/cohorts/', payload);
+  return data.data;
 }
 
 export async function updateCohort(
   id: number,
   payload: UpdateCohortRequest
 ): Promise<CohortDetail> {
-  const { data } = await apiClient.put<CohortDetail>(`/api/cohorts/${id}/`, payload);
-  return data;
+  const { data } = await apiClient.put<ApiResponse<CohortDetail>>(`/api/cohorts/${id}/`, payload);
+  return data.data;
 }
 
 export async function patchCohort(
   id: number,
   payload: PatchCohortRequest
 ): Promise<CohortDetail> {
-  const { data } = await apiClient.patch<CohortDetail>(`/api/cohorts/${id}/`, payload);
-  return data;
+  const { data } = await apiClient.patch<ApiResponse<CohortDetail>>(`/api/cohorts/${id}/`, payload);
+  return data.data;
 }
 
 export async function deleteCohort(id: number): Promise<void> {

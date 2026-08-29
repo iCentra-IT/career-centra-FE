@@ -22,30 +22,30 @@ export async function getProgram(slug: string): Promise<Program> {
 export async function createProgram(
   payload: CreateProgramRequest,
 ): Promise<Program> {
-  const { data } = await apiClient.post<Program>("/api/programs/", payload);
-  return data;
+  const { data } = await apiClient.post<ApiResponse<Program>>("/api/programs/", payload);
+  return data.data;
 }
 
 export async function updateProgram(
   slug: string,
   payload: UpdateProgramRequest,
 ): Promise<Program> {
-  const { data } = await apiClient.put<Program>(
+  const { data } = await apiClient.put<ApiResponse<Program>>(
     `/api/programs/${slug}/`,
     payload,
   );
-  return data;
+  return data.data;
 }
 
 export async function patchProgram(
   slug: string,
   payload: PatchProgramRequest,
 ): Promise<Program> {
-  const { data } = await apiClient.patch<Program>(
+  const { data } = await apiClient.patch<ApiResponse<Program>>(
     `/api/programs/${slug}/`,
     payload,
   );
-  return data;
+  return data.data;
 }
 
 export async function deleteProgram(slug: string): Promise<void> {

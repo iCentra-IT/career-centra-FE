@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePrograms } from "@/hooks/queries/programs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PencilIcon } from "@/components/ui/pencil-icon";
@@ -17,14 +18,12 @@ const AdminProgramsPage = () => {
           <h1 className="text-3xl font-semibold text-gray-900">Programs</h1>
           <p className="mt-1 text-sm text-gray-500">Create, edit and publish certification programs.</p>
         </div>
-        <button
-          type="button"
-          disabled
-          title="Coming soon"
-          className="rounded-full bg-main px-5 py-2.5 text-sm font-medium text-white opacity-90 disabled:cursor-not-allowed"
+        <Link
+          href="/admin/programs/create"
+          className="rounded-full bg-main px-5 py-2.5 text-sm font-medium text-white hover:bg-deep-blue"
         >
           Add Program
-        </button>
+        </Link>
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-gray-100 bg-white">
@@ -75,9 +74,13 @@ const AdminProgramsPage = () => {
                   </td>
                   <td className="px-5 py-4 text-gray-600">{formatOrdinalDateTime(program.updated_at)}</td>
                   <td className="px-5 py-4">
-                    <button type="button" disabled title="Editing coming soon" className="text-gray-400">
+                    <Link
+                      href={`/admin/programs/${program.slug}/edit`}
+                      className="text-gray-400 hover:text-gray-600"
+                      aria-label="Edit program"
+                    >
                       <PencilIcon />
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               );

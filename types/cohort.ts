@@ -1,5 +1,5 @@
 // lib/api/types/cohort.ts
-import { EnrollmentProgramSummary } from './enrollment'; // reuse if identical shape, see note below
+import { ProgramFacilitator } from "./programs";
 
 // Program summary as embedded in cohort — richer than the enrollment's version (adds pricing/level)
 export interface CohortProgramSummary {
@@ -18,6 +18,17 @@ export interface CohortSession {
   date: string; // date only
   start_time: string; // NOTE: sample shows "10:56:15.386Z" — looks like a full ISO datetime
   end_time: string;   // was serialized into a time field. Flag below.
+  description: string;
+  meeting_url: string;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Cohort-level module (distinct from the program's own modules) — confirmed real shape
+export interface CohortModule {
+  id: number;
+  title: string;
   description: string;
   order: number;
   created_at: string;
@@ -56,9 +67,19 @@ export interface Cohort {
   updated_at: string;
 }
 
-// Cohort detail — adds nested sessions array
+// Cohort detail — adds nested sessions/modules and fields not present on the list item.
+// NOTE: the detail response's "program" is actually much richer than CohortProgramSummary
+// (adds outline-style fields like learning_outcomes, faqs, prerequisites, certification, and
+// uses "program_modules" instead of "modules" for the program's own modules) — not modelled
+// here since nothing in the UI reads those yet.
 export interface CohortDetail extends Cohort {
+  platform: string;
+  duration_weeks: number;
+  delivery_mode: string; // "online" confirmed; likely also "hybrid" | "in_person"
+  location: string;
+  facilitator_display: ProgramFacilitator[]; // richer facilitator objects, distinct from facilitator_name
   sessions: CohortSession[];
+  modules: CohortModule[];
 }
 
 export interface CreateCohortRequest {

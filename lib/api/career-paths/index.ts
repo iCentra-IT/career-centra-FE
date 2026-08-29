@@ -43,24 +43,24 @@ export async function getCareerPathPrograms(slug: string): Promise<CareerPathPro
 export async function createCareerPath(
   payload: CreateCareerPathRequest,
 ): Promise<CareerPathDetail> {
-  const { data } = await apiClient.post<CareerPathDetail>("/api/career-paths/", payload);
-  return data;
+  const { data } = await apiClient.post<ApiResponse<CareerPathDetail>>("/api/career-paths/", payload);
+  return data.data;
 }
 
 export async function updateCareerPath(
   slug: string,
   payload: UpdateCareerPathRequest,
 ): Promise<CareerPathDetail> {
-  const { data } = await apiClient.put<CareerPathDetail>(`/api/career-paths/${slug}/`, payload);
-  return data;
+  const { data } = await apiClient.put<ApiResponse<CareerPathDetail>>(`/api/career-paths/${slug}/`, payload);
+  return data.data;
 }
 
 export async function patchCareerPath(
   slug: string,
   payload: PatchCareerPathRequest,
 ): Promise<CareerPathDetail> {
-  const { data } = await apiClient.patch<CareerPathDetail>(`/api/career-paths/${slug}/`, payload);
-  return data;
+  const { data } = await apiClient.patch<ApiResponse<CareerPathDetail>>(`/api/career-paths/${slug}/`, payload);
+  return data.data;
 }
 
 export async function deleteCareerPath(slug: string): Promise<void> {

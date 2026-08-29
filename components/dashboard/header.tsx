@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
@@ -7,9 +8,14 @@ import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
 
 const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/admin/profile", title: "Profile" },
-  { pattern: "/admin/programs", title: "Programs" },
+  { pattern: "/admin/programs", title: "Program" },
+  { pattern: "/admin/career-paths", title: "Career Path" },
+  { pattern: "/admin/facilitators", title: "Facilitator" },
   { pattern: "/admin/cohorts", title: "Cohorts" },
-  { pattern: "/admin", title: "Overview" },
+  { pattern: "/admin/users", title: "Users" },
+  { pattern: "/admin/coupons", title: "Coupons" },
+  { pattern: "/admin/enrollments", title: "Enrolments History" },
+  { pattern: "/admin", title: "Dashboard" },
   { pattern: "/students/enrolments", title: "My Enrolments" },
   { pattern: "/students/schedules", title: "Class Schedules" },
   { pattern: "/students/certificates", title: "Certificates" },
@@ -17,6 +23,14 @@ const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/students/profile", title: "Profile" },
   { pattern: "/students", title: "Overview" },
 ];
+
+const CREATE_PAGE_BREADCRUMBS: Record<
+  string,
+  { parent: string; parentHref: string; current: string }
+> = {
+  "/admin/cohorts/create": { parent: "Cohorts", parentHref: "/admin/cohorts", current: "Create Cohorts" },
+  "/admin/coupons/create": { parent: "Coupon", parentHref: "/admin/coupons", current: "Create Coupons" },
+};
 
 function pageTitleFor(pathname: string) {
   const match = PAGE_TITLES.filter((p) => pathname.startsWith(p.pattern)).sort(
@@ -76,9 +90,25 @@ export function Header() {
     };
   }, [notificationsOpen]);
 
+  const breadcrumb = CREATE_PAGE_BREADCRUMBS[pathname];
+
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-6 border-b border-gray-100 bg-white px-8">
-      <h1 className="shrink-0 text-lg font-semibold text-gray-900">{pageTitleFor(pathname)}</h1>
+      {breadcrumb ? (
+        <div className="flex shrink-0 items-center gap-2 text-sm">
+          <Link href={breadcrumb.parentHref} className="flex items-center gap-1 font-medium text-secondary hover:underline">
+            ← Back
+          </Link>
+          <span className="text-gray-300">|</span>
+          <Link href={breadcrumb.parentHref} className="text-gray-400 hover:text-gray-600">
+            {breadcrumb.parent}
+          </Link>
+          <span className="text-gray-300">/</span>
+          <span className="font-semibold text-gray-900">{breadcrumb.current}</span>
+        </div>
+      ) : (
+        <h1 className="shrink-0 text-lg font-semibold text-gray-900">{pageTitleFor(pathname)}</h1>
+      )}
 
       <div className="relative hidden max-w-xs flex-1 sm:block">
         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
