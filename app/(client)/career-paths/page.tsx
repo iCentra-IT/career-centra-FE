@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCareerPaths, useCareerPathPrograms } from "@/hooks/queries/career-paths";
+import { RowCardSkeleton } from "@/components/ui/skeleton";
 import type { CareerPath } from "@/types/career-paths";
 
 function BriefcaseIcon() {
@@ -172,7 +173,8 @@ const CareerPathsPage = () => {
 
       <section className="mx-auto max-w-6xl px-6 py-14">
         <div className="flex flex-col gap-6">
-          {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+          {isLoading &&
+            Array.from({ length: 4 }).map((_, i) => <RowCardSkeleton key={i} />)}
           {!isLoading && pathways?.length === 0 && (
             <p className="text-sm text-gray-400">No career paths published yet.</p>
           )}

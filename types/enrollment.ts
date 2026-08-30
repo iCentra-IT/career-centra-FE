@@ -86,3 +86,18 @@ export interface StudentEnrollmentsResponse {
 
 // PLACEHOLDER — no response sample given, likely returns the Enrollment or a status object
 export type CheckoutVerifyResponse = Enrollment | { status: EnrollmentStatus; [key: string]: unknown };
+
+// lib/api/types/admin-enrollment.ts — confirmed real shape from GET /api/admin/enrollments/
+
+export interface AdminEnrollment {
+  id: number;
+  learner_name: string;
+  learner_email: string;
+  program_title: string;
+  cohort_starts_on: string;
+  amount_paid: string;
+  currency: string;
+  status: EnrollmentStatus;
+  payment_gateway: PaymentGateway;
+  created_at: string;
+}

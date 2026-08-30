@@ -1,17 +1,17 @@
 // lib/api/programs/get-programs.ts
 import {
-  ProgramListItem,
   Program,
   CreateProgramRequest,
   UpdateProgramRequest,
   PatchProgramRequest,
+  PublicProgramListing,
 } from "@/types/programs";
-import { ApiResponse, PaginatedResponse } from "@/types/api";
+import { ApiResponse, unwrapList } from "@/types/api";
 import { apiClient } from "../client";
 
-export async function getPrograms(): Promise<PaginatedResponse<ProgramListItem>> {
-  const { data } = await apiClient.get<PaginatedResponse<ProgramListItem>>("/api/programs/");
-  return data;
+export async function getPrograms(): Promise<PublicProgramListing[]> {
+  const { data } = await apiClient.get<PublicProgramListing[]>("/api/programs/");
+  return unwrapList<PublicProgramListing>(data);
 }
 
 export async function getProgram(slug: string): Promise<Program> {

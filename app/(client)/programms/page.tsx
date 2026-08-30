@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { usePrograms } from "@/hooks/queries/programs";
 import { ProgramCard } from "@/components/marketing/program-card";
+import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 
 const PAGE_SIZE = 9;
@@ -67,30 +68,36 @@ function ProgramsPageContent() {
   const [page, setPage] = useState(1);
 
   const levelOptions = useMemo(() => {
-    const values = new Set((programs?.results ?? []).map((p) => p.level_display));
+    const values = new Set((programs ?? []).map((p) => p.program.level));
     return Array.from(values);
   }, [programs]);
 
   const filtered = useMemo(() => {
-    let list = programs?.results ?? [];
+    let list = programs ?? [];
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.summary.toLowerCase().includes(q),
+        (p) => p.program.title.toLowerCase().includes(q) || p.program.summary.toLowerCase().includes(q),
       );
     }
-    if (category) list = list.filter((p) => p.program_type === category);
-    if (level) list = list.filter((p) => p.level_display === level);
-    if (certBody === "pmi") list = list.filter((p) => p.has_pmi_badge);
-    if (certBody === "pecb") list = list.filter((p) => p.has_pecb_badge);
-    if (minPrice) list = list.filter((p) => parseFloat(p.base_price_usd) >= parseFloat(minPrice));
-    if (maxPrice) list = list.filter((p) => parseFloat(p.base_price_usd) <= parseFloat(maxPrice));
+    if (category) list = list.filter((p) => p.program.program_type === category);
+    if (level) list = list.filter((p) => p.program.level === level);
+    if (certBody) {
+      list = list.filter((p) =>
+        p.program.accreditations.some((a) => a.issuer.toLowerCase() === certBody),
+      );
+    }
+    if (minPrice) list = list.filter((p) => parseFloat(p.effective_price_usd) >= parseFloat(minPrice));
+    if (maxPrice) list = list.filter((p) => parseFloat(p.effective_price_usd) <= parseFloat(maxPrice));
 
     list = [...list];
-    if (sort === "price_asc") list.sort((a, b) => parseFloat(a.base_price_usd) - parseFloat(b.base_price_usd));
-    if (sort === "price_desc") list.sort((a, b) => parseFloat(b.base_price_usd) - parseFloat(a.base_price_usd));
-    if (sort === "newest") list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    if (sort === "price_asc")
+      list.sort((a, b) => parseFloat(a.effective_price_usd) - parseFloat(b.effective_price_usd));
+    if (sort === "price_desc")
+      list.sort((a, b) => parseFloat(b.effective_price_usd) - parseFloat(a.effective_price_usd));
+    if (sort === "newest")
+      list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return list;
   }, [programs, search, category, level, certBody, minPrice, maxPrice, sort]);
@@ -139,7 +146,10 @@ function ProgramsPageContent() {
                 setLevel(v);
                 setPage(1);
               }}
-              options={[{ label: "All Levels", value: "" }, ...levelOptions.map((l) => ({ label: l, value: l }))]}
+              options={[
+                { label: "All Levels", value: "" },
+                ...levelOptions.map((l) => ({ label: l.charAt(0).toUpperCase() + l.slice(1), value: l })),
+              ]}
             />
             <Select label="Delivery Format" value="" options={[{ label: "All Formats", value: "" }]} disabled />
             <Select label="Duration" value="" options={[{ label: "Any Duration", value: "" }]} disabled />
@@ -254,11 +264,14 @@ function ProgramsPageContent() {
               ))}
             </div>
 
-            <p className="mt-4 text-sm text-gray-400">
-              {isLoading ? "Loading…" : `${filtered.length} program${filtered.length === 1 ? "" : "s"} found`}
-            </p>
+            {!isLoading && (
+              <p className="mt-4 text-sm text-gray-400">
+                {filtered.length} program{filtered.length === 1 ? "" : "s"} found
+              </p>
+            )}
 
             <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {isLoading && <CardGridSkeleton count={9} />}
               {!isLoading && pageItems.length === 0 && (
                 <p className="text-sm text-gray-400">No programs match these filters.</p>
               )}

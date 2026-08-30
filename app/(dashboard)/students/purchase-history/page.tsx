@@ -3,6 +3,7 @@
 import { usePurchaseHistory } from "@/hooks/queries/students";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { formatMoney, formatOrdinalDateTime } from "@/lib/format";
 
 const STATUS_TONES: Record<string, "green" | "yellow" | "red" | "purple" | "gray"> = {
@@ -46,13 +47,7 @@ const PurchaseHistoryPage = () => {
             </tr>
           </thead>
           <tbody>
-            {isLoading && (
-              <tr>
-                <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">
-                  Loading…
-                </td>
-              </tr>
-            )}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && results.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">

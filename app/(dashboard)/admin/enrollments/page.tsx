@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useAdminEnrollments } from "@/hooks/queries/admin-enrollments";
 import { StatCard } from "@/components/ui/stat-card";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyTableState } from "@/components/ui/empty-table";
+import { TableSkeleton } from "@/components/ui/skeleton";
+import { formatShortDate } from "@/lib/format";
 
-const COLUMNS = ["User Name", "Program", "Amount Paid", "Payment Provider", "Coupon", "Date", "Status"];
+const COLUMNS = ["User Name", "Program", "Amount Paid", "Payment Provider", "Date", "Status"];
 
 function SearchIcon() {
   return (
@@ -15,16 +19,31 @@ function SearchIcon() {
   );
 }
 
-function FilterIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M2 3h12M4.5 8h7M7 13h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
+function statusTone(status: string): "green" | "yellow" | "red" | "gray" {
+  const s = status.toLowerCase();
+  if (s === "successful" || s === "confirmed" || s === "completed") return "green";
+  if (s === "pending") return "yellow";
+  if (s === "failed" || s === "cancelled") return "red";
+  return "gray";
 }
 
 const AdminEnrollmentsPage = () => {
   const [search, setSearch] = useState("");
+  const { data, isLoading } = useAdminEnrollments();
+
+  const filtered = useMemo(() => {
+    const results = data?.results ?? [];
+    if (!search.trim()) return results;
+    const q = search.trim().toLowerCase();
+    return results.filter(
+      (e) => e.learner_name.toLowerCase().includes(q) || e.program_title.toLowerCase().includes(q),
+    );
+  }, [data, search]);
+
+  // Approximation: derived from the currently loaded page, not a dedicated stats endpoint.
+  const successful = (data?.results ?? []).filter((e) => statusTone(e.status) === "green").length;
+  const pending = (data?.results ?? []).filter((e) => statusTone(e.status) === "yellow").length;
+  const failed = (data?.results ?? []).filter((e) => statusTone(e.status) === "red").length;
 
   return (
     <div>
@@ -32,10 +51,10 @@ const AdminEnrollmentsPage = () => {
       <p className="mt-1 text-sm text-gray-500">Track enrolments and payments across the platform.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Enrolment" note="No admin-wide enrollments endpoint yet" />
-        <StatCard label="Successful" note="No admin-wide enrollments endpoint yet" />
-        <StatCard label="Pending" note="No admin-wide enrollments endpoint yet" />
-        <StatCard label="Failed" note="No admin-wide enrollments endpoint yet" />
+        <StatCard label="Total Enrolment" value={data?.count} loading={isLoading} />
+        <StatCard label="Successful" value={successful} loading={isLoading} note="From loaded page" />
+        <StatCard label="Pending" value={pending} loading={isLoading} note="From loaded page" />
+        <StatCard label="Failed" value={failed} loading={isLoading} note="From loaded page" />
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -50,22 +69,42 @@ const AdminEnrollmentsPage = () => {
             className="w-full rounded-md border border-gray-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
           />
         </div>
-        <button
-          type="button"
-          disabled
-          title="No data to filter yet"
-          className="flex items-center gap-2 rounded-md border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-400 disabled:cursor-not-allowed"
-        >
-          <FilterIcon />
-          Filter
-        </button>
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-gray-100 bg-white">
-        <EmptyTableState
-          columns={COLUMNS}
-          message="Not connected — the enrollments API has no student identity or confirmed admin-wide scope yet."
-        />
+        {isLoading ? (
+          <TableSkeleton columns={COLUMNS} />
+        ) : filtered.length === 0 ? (
+          <EmptyTableState columns={COLUMNS} message="No enrolments match yet." />
+        ) : (
+          <table className="w-full min-w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500">
+                {COLUMNS.map((col) => (
+                  <th key={col} className="px-5 py-3 font-medium">
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((enrollment) => (
+                <tr key={enrollment.id} className="border-b border-gray-50 last:border-0">
+                  <td className="px-5 py-4 text-gray-900">{enrollment.learner_name}</td>
+                  <td className="px-5 py-4 text-gray-600">{enrollment.program_title}</td>
+                  <td className="px-5 py-4 text-gray-600">
+                    {enrollment.currency} {parseFloat(enrollment.amount_paid).toLocaleString()}
+                  </td>
+                  <td className="px-5 py-4 capitalize text-gray-600">{enrollment.payment_gateway}</td>
+                  <td className="px-5 py-4 text-gray-600">{formatShortDate(enrollment.created_at)}</td>
+                  <td className="px-5 py-4">
+                    <StatusBadge label={enrollment.status} tone={statusTone(enrollment.status)} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

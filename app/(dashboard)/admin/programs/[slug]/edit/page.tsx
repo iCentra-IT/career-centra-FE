@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useProgram } from "@/hooks/queries/programs";
 import { usePatchProgram } from "@/hooks/mutations/programs";
 import { ProgramForm } from "@/components/dashboard/program-form";
+import { FormSkeleton } from "@/components/ui/skeleton";
 
 const EditProgramPage = () => {
   const params = useParams<{ slug: string }>();
@@ -12,7 +13,7 @@ const EditProgramPage = () => {
   const { data: program, isLoading } = useProgram(params.slug);
   const patchProgram = usePatchProgram(params.slug);
 
-  if (isLoading) return <p className="text-sm text-gray-400">Loading…</p>;
+  if (isLoading) return <FormSkeleton fields={8} />;
   if (!program) return <p className="text-sm text-gray-400">Program not found.</p>;
 
   return (

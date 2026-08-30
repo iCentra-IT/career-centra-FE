@@ -10,6 +10,7 @@ import { useCoupon } from "@/hooks/queries/coupon";
 import { usePatchCoupon } from "@/hooks/mutations/coupon";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FormSkeleton } from "@/components/ui/skeleton";
 
 const schema = z.object({
   code: z.string().min(1, "Code is required"),
@@ -64,7 +65,7 @@ const EditCouponPage = () => {
     );
   };
 
-  if (isLoading) return <p className="text-sm text-gray-400">Loading…</p>;
+  if (isLoading) return <FormSkeleton fields={6} />;
   if (!coupon) return <p className="text-sm text-gray-400">Coupon not found.</p>;
 
   return (

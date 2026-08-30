@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { ListRowSkeleton } from "@/components/ui/skeleton";
 import { formatDateRange } from "@/lib/format";
 
 function JoinIcon() {
@@ -45,7 +46,7 @@ const StudentOverviewPage = () => {
               </Link>
             </div>
             <div className="mt-4 flex flex-col gap-4">
-              {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+              {isLoading && <ListRowSkeleton rows={3} />}
               {!isLoading && data?.active_courses?.length === 0 && (
                 <p className="text-sm text-gray-400">No active courses yet.</p>
               )}
@@ -74,7 +75,7 @@ const StudentOverviewPage = () => {
               </Link>
             </div>
             <div className="mt-4 flex flex-col gap-3">
-              {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+              {isLoading && <ListRowSkeleton rows={3} />}
               {!isLoading && data?.upcoming_sessions?.length === 0 && (
                 <p className="text-sm text-gray-400">No upcoming sessions.</p>
               )}
@@ -86,7 +87,7 @@ const StudentOverviewPage = () => {
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{session.title}</p>
                     <p className="mt-1 text-sm text-gray-500">
-                      {session.program_title} · {session.date} · {session.start_time}—{session.end_time}
+                      {session.program_title} · {session.date} · {session.start_time}-{session.end_time}
                     </p>
                   </div>
                   {session.meeting_url ? (
@@ -115,7 +116,7 @@ const StudentOverviewPage = () => {
               </Link>
             </div>
             <div className="mt-4 flex flex-col gap-3">
-              {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+              {isLoading && <ListRowSkeleton rows={3} />}
               {!isLoading && data?.completed_courses?.length === 0 && (
                 <p className="text-sm text-gray-400">No completed courses yet.</p>
               )}
@@ -151,7 +152,7 @@ const StudentOverviewPage = () => {
         <div className="rounded-2xl border border-gray-100 bg-white p-5">
           <h2 className="text-base font-semibold text-gray-900">Class updates</h2>
           <div className="mt-4 flex flex-col divide-y divide-gray-50">
-            {isLoading && <p className="py-3 text-sm text-gray-400">Loading…</p>}
+            {isLoading && <ListRowSkeleton rows={3} />}
             {!isLoading && data?.class_updates?.length === 0 && (
               <p className="py-3 text-sm text-gray-400">No updates yet.</p>
             )}

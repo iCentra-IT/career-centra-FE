@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCareerPath } from "@/hooks/queries/career-paths";
-import { ProgramCard } from "@/components/marketing/program-card";
+import { CareerPathProgramCard } from "@/components/marketing/career-path-program-card";
+import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { displayTitle } from "@/lib/format";
 
 const TABS = [
@@ -38,7 +39,7 @@ export function CareerPathDetailContent({ slug }: { slug: string }) {
   const [levelFilter, setLevelFilter] = useState<string>("");
 
   if (isLoading) {
-    return <div className="px-6 py-20 text-center text-sm text-gray-400">Loading…</div>;
+    return <DetailPageSkeleton />;
   }
 
   if (!pathway) {
@@ -188,7 +189,7 @@ export function CareerPathDetailContent({ slug }: { slug: string }) {
               <p className="text-sm text-gray-400">No programs linked to this track yet.</p>
             )}
             {visiblePrograms.map((program) => (
-              <ProgramCard key={program.id} program={program} buttonTone="blue" />
+              <CareerPathProgramCard key={program.id} program={program} buttonTone="blue" />
             ))}
           </div>
         </section>
@@ -233,7 +234,7 @@ export function CareerPathDetailContent({ slug }: { slug: string }) {
           <SectionEyebrow>FAQs</SectionEyebrow>
           <h2 className="mt-1 text-2xl font-semibold text-gray-900">Frequently Asked Questions</h2>
           <p className="mt-5 text-sm text-gray-400">
-            No FAQs published for this pathway yet — see individual programs for their own FAQs.
+            No FAQs published for this pathway yet. See individual programs for their own FAQs.
           </p>
         </section>
       </div>

@@ -311,7 +311,7 @@ export function ProgramForm({
             <label className="text-sm text-gray-900">Facilitator</label>
             <select
               disabled
-              title="Programs don't have a facilitator field — facilitators are assigned per cohort"
+              title="Programs don't have a facilitator field. Facilitators are assigned per cohort."
               className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-500 disabled:cursor-not-allowed disabled:bg-gray-50"
             >
               <option>Select facilitator</option>

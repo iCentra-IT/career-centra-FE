@@ -11,6 +11,47 @@ export type ProgramAudience = 'individual' | 'corporate' | string;
 
 export type PurchaseMode = 'direct' | 'quote' | string;
 
+// Program summary embedded in GET /api/programs/ (public browse) — leaner than ProgramListItem,
+// paired with the cohort scheduling/pricing fields on PublicProgramListing below. Mirrors the same
+// "lightweight program embed" pattern used by DashboardProgramSummary and CohortProgramSummary.
+export interface PublicProgramSummary {
+  id: number;
+  title: string;
+  slug: string;
+  program_type: ProgramType;
+  level: ProgramLevel;
+  summary: string;
+  accreditations: ProgramAccreditation[];
+  cover_image_url: string;
+}
+
+// GET /api/programs/ list item — confirmed real shape: bundles a lightweight program summary with
+// its next/current cohort's scheduling, seats, and effective pricing. This is NOT one row per
+// catalog program — a program with more than one open cohort can appear more than once.
+export interface PublicProgramListing {
+  id: number;
+  program: PublicProgramSummary;
+  platform: string;
+  starts_on: string;
+  duration_weeks: number;
+  ends_on: string;
+  delivery_mode: string;
+  location: string;
+  seat_capacity: number;
+  seats_taken: number;
+  seats_remaining: number;
+  is_sold_out: boolean;
+  is_nearly_full: boolean;
+  is_enrollment_open: boolean;
+  effective_price_usd: string;
+  effective_price_ngn: string;
+  facilitator_name: string;
+  facilitator_display: Record<string, string>[]; // shape unconfirmed — sample showed generic placeholder keys
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // List view — lighter payload, no "outline"
 export interface ProgramListItem {
   id: number;

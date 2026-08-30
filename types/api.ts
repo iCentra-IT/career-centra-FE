@@ -45,3 +45,19 @@ export interface PaginatedResponse<T> {
   previous: string | null;
   results: T[];
 }
+
+// Defensive unwrapping for endpoints whose sample response looked like a generic Swagger
+// placeholder (bare array/object) rather than a real captured payload — this codebase's actual
+// convention has consistently turned out to wrap single objects in {success, message, data} and
+// lists in {success, count, ..., results}, even when the sample shown didn't show that wrapper.
+// These helpers accept either shape so a wrong guess here doesn't blank the page.
+export function unwrapList<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  const obj = data as { results?: T[]; data?: T[] } | null | undefined;
+  return obj?.results ?? obj?.data ?? [];
+}
+
+export function unwrapObject<T>(data: unknown): T {
+  const obj = data as { data?: T } | null | undefined;
+  return (obj?.data ?? (data as T));
+}

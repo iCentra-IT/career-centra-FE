@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useStudentEnrollments } from "@/hooks/queries/students";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { displayTitle, formatDateRange, formatMoney } from "@/lib/format";
 
 function capitalize(value: string) {
@@ -26,7 +27,7 @@ const MyEnrolmentsPage = () => {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+        {isLoading && <CardGridSkeleton count={4} />}
         {!isLoading && enrolments.length === 0 && (
           <p className="text-sm text-gray-400">No enrollments yet.</p>
         )}

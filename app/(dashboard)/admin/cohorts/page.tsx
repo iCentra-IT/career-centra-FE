@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCohorts } from "@/hooks/queries/cohort";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PencilIcon } from "@/components/ui/pencil-icon";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { formatDateRange } from "@/lib/format";
 
 const COLUMNS = [
@@ -156,13 +157,7 @@ const AdminCohortsPage = () => {
             </tr>
           </thead>
           <tbody>
-            {isLoading && (
-              <tr>
-                <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">
-                  Loading…
-                </td>
-              </tr>
-            )}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && filtered.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">

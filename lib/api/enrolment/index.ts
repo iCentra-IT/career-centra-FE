@@ -8,8 +8,19 @@ import {
   CheckoutInitiateResponse,
   CheckoutVerifyRequest,
   CheckoutVerifyResponse,
+  AdminEnrollment,
 } from "@/types/enrollment";
 import { apiClient } from "../client";
+
+export async function getAdminEnrollments(params?: {
+  page?: number;
+}): Promise<PaginatedResponse<AdminEnrollment>> {
+  const { data } = await apiClient.get<PaginatedResponse<AdminEnrollment>>(
+    "/api/admin/enrollments/",
+    { params },
+  );
+  return data;
+}
 
 export async function initiateCheckout(
   payload: CheckoutInitiateRequest,

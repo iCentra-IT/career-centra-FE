@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useLogout } from "@/hooks/mutations/auth";
+import { SiteSearch } from "@/components/marketing/site-search";
 
 function CartIcon() {
   return (
@@ -18,15 +19,6 @@ function CartIcon() {
       />
       <circle cx="6.5" cy="15" r="1.1" fill="currentColor" />
       <circle cx="13" cy="15" r="1.1" fill="currentColor" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M13 13l-2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -54,7 +46,7 @@ function ChevronIcon() {
 function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2">
-      <svg width="22" height="22" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      {/* <svg width="22" height="22" viewBox="0 0 28 28" fill="none" aria-hidden="true">
         <circle cx="14" cy="14" r="12" stroke="#0c236c" strokeWidth="3" />
         <circle cx="14" cy="10" r="2.5" fill="#1875f0" />
         <path
@@ -64,8 +56,8 @@ function Logo() {
           strokeLinecap="round"
           fill="none"
         />
-      </svg>
-      <span className="text-lg font-semibold text-main">iCentra</span>
+      </svg> */}
+      <span className="text-lg font-semibold text-main">Career Centra</span>
     </Link>
   );
 }
@@ -159,7 +151,7 @@ export function MarketingHeader() {
 
   return (
     <header className="sticky top-0 z-30 bg-white relative">
-      <div className="bg-secondary/5 px-6 py-2">
+      <div className=" px-6 py-2">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Logo />
           <div className="hidden items-center gap-5 text-sm md:flex">
@@ -185,7 +177,7 @@ export function MarketingHeader() {
         </div>
       </div>
 
-      <div className="hidden border-b border-gray-100 px-6 py-3 md:block">
+      <div className="hidden border-b border-gray-100 bg-[#E9F9FF] px-6 py-3 md:block">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
           <nav className="flex items-center gap-6 text-sm">
             {NAV_LINKS.map((link) => {
@@ -201,29 +193,13 @@ export function MarketingHeader() {
               );
             })}
           </nav>
-          <div className="relative w-full max-w-xs">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <SearchIcon />
-            </span>
-            <input
-              placeholder="Search programs..."
-              className="w-full rounded-md border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-            />
-          </div>
+          <SiteSearch className="w-full max-w-xs" />
         </div>
       </div>
 
       {mobileOpen && (
         <div className="absolute left-0 right-0 top-full z-40 max-h-[calc(100vh-56px)] overflow-y-auto border-b border-gray-100 bg-white px-6 py-4 shadow-lg md:hidden">
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <SearchIcon />
-            </span>
-            <input
-              placeholder="Search programs..."
-              className="w-full rounded-md border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-            />
-          </div>
+          <SiteSearch />
 
           <nav className="mt-4 flex flex-col gap-1">
             {NAV_LINKS.map((link) => {

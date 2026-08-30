@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
+import { useNotifications } from "@/hooks/queries/notifications";
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
 
 const PAGE_TITLES: { pattern: string; title: string }[] = [
@@ -69,6 +70,9 @@ export function Header() {
     ? `${user.first_name[0] ?? ""}${user.last_name[0] ?? ""}`.toUpperCase()
     : "";
 
+  const { data: notifications } = useNotifications();
+  const hasUnread = (notifications ?? []).some((n) => !n.is_read);
+
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -132,7 +136,9 @@ export function Header() {
             className="relative flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:bg-gray-50"
           >
             <BellIcon />
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" />
+            {hasUnread && (
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" />
+            )}
           </button>
           {notificationsOpen && (
             <NotificationsPanel onClose={() => setNotificationsOpen(false)} />

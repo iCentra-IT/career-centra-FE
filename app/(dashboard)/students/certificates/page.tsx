@@ -2,6 +2,7 @@
 
 import { useStudentCertificates } from "@/hooks/queries/students";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { displayTitle, formatShortDate } from "@/lib/format";
 
 function AwardIcon() {
@@ -29,7 +30,7 @@ const CertificatesPage = () => {
       <p className="mt-1 text-sm text-gray-500">Download and verify your earned certifications.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+        {isLoading && <CardGridSkeleton count={4} />}
         {!isLoading && certificates.length === 0 && (
           <p className="text-sm text-gray-400">No certificates earned yet.</p>
         )}

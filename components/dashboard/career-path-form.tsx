@@ -56,7 +56,11 @@ export function CareerPathForm({
   onSubmit,
   onClose,
 }: CareerPathFormProps) {
-  const { data: programs } = usePrograms();
+  const { data: programListings } = usePrograms();
+  // /api/programs/ bundles cohort instances, so dedupe by program id for the picker.
+  const programs = Array.from(
+    new Map((programListings ?? []).map((listing) => [listing.program.id, listing.program])).values(),
+  );
 
   const [title, setTitle] = useState(initialValues?.title ?? EMPTY_VALUES.title);
   const [description, setDescription] = useState(initialValues?.description ?? EMPTY_VALUES.description);
@@ -71,7 +75,7 @@ export function CareerPathForm({
   const [programIds, setProgramIds] = useState(initialValues?.programIds ?? EMPTY_VALUES.programIds);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const selectedPrograms = (programs?.results ?? []).filter((p) => programIds.includes(p.id));
+  const selectedPrograms = programs.filter((p) => programIds.includes(p.id));
 
   const addProgram = (id: number) => {
     if (!programIds.includes(id)) setProgramIds([...programIds, id]);
@@ -145,7 +149,7 @@ export function CareerPathForm({
           className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
         >
           <option value="">Select program</option>
-          {(programs?.results ?? [])
+          {programs
             .filter((p) => !programIds.includes(p.id))
             .map((program) => (
               <option key={program.id} value={program.id}>

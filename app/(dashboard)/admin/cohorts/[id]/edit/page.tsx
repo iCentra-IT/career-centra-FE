@@ -11,6 +11,7 @@ import { usePatchCohort } from "@/hooks/mutations/cohort";
 import { usePrograms } from "@/hooks/queries/programs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FormSkeleton } from "@/components/ui/skeleton";
 
 const schema = z.object({
   program: z.string().min(1, "Program is required"),
@@ -27,7 +28,11 @@ const EditCohortPage = () => {
   const cohortId = Number(params.id);
   const router = useRouter();
   const { data: cohort, isLoading } = useCohort(cohortId);
-  const { data: programs } = usePrograms();
+  const { data: programListings } = usePrograms();
+  // /api/programs/ bundles cohort instances, so dedupe by program id for the picker.
+  const programs = Array.from(
+    new Map((programListings ?? []).map((listing) => [listing.program.id, listing.program])).values(),
+  );
   const patchCohort = usePatchCohort(cohortId);
 
   const {
@@ -72,7 +77,7 @@ const EditCohortPage = () => {
     );
   };
 
-  if (isLoading) return <p className="text-sm text-gray-400">Loading…</p>;
+  if (isLoading) return <FormSkeleton fields={6} />;
   if (!cohort) return <p className="text-sm text-gray-400">Cohort not found.</p>;
 
   return (
@@ -89,7 +94,7 @@ const EditCohortPage = () => {
             className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
             {...register("program")}
           >
-            {programs?.results?.map((program) => (
+            {programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.title}
               </option>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCareerPaths, useCareerPathPrograms } from "@/hooks/queries/career-paths";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PencilIcon } from "@/components/ui/pencil-icon";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { formatOrdinalDateTime, displayTitle } from "@/lib/format";
 import type { CareerPath } from "@/types/career-paths";
 
@@ -76,13 +77,7 @@ const AdminCareerPathsPage = () => {
             </tr>
           </thead>
           <tbody>
-            {isLoading && (
-              <tr>
-                <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">
-                  Loading…
-                </td>
-              </tr>
-            )}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && pathways?.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">

@@ -7,6 +7,7 @@ import { useCohorts } from "@/hooks/queries/cohort";
 import { displayTitle, formatShortDate, formatUsd } from "@/lib/format";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { EnrolButton } from "@/components/marketing/enrol-button";
 
 const TABS = [
@@ -53,7 +54,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
   const [currentCohort, nextCohort] = programCohorts;
 
   if (isLoading) {
-    return <div className="px-6 py-20 text-center text-sm text-gray-400">Loading…</div>;
+    return <DetailPageSkeleton />;
   }
 
   if (!program) {
@@ -379,7 +380,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
           <SectionEyebrow>Reviews</SectionEyebrow>
           <h2 className="mt-1 text-2xl font-semibold text-gray-900">Learner Reviews</h2>
           <p className="mt-5 text-sm text-gray-400">
-            No reviews yet — there&apos;s no reviews system connected for this program.
+            No reviews yet. There&apos;s no reviews system connected for this program.
           </p>
         </section>
 

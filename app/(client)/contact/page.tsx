@@ -4,27 +4,33 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
+import { useCreateLead } from "@/hooks/mutations/leads";
+import type { CreateLeadRequest } from "@/types/lead";
 
 const SUPPORT_TYPES = [
   {
     title: "Individual Learning Support",
     description: "Get help selecting the right certification track and learning pathway.",
+    audienceType: "individual" as const,
   },
   {
     title: "Enterprise Learning Consultation",
     description: "Discuss workforce capability, corporate programs, and enterprise learning solutions.",
+    audienceType: "corporate" as const,
   },
   {
     title: "Executive Programs Advisory",
     description: "Learn more about leadership and executive learning opportunities.",
+    audienceType: "individual" as const,
   },
 ];
 
 const inquirySchema = z.object({
-  full_name: z.string().min(1, "Full name is required"),
+  name: z.string().min(1, "Full name is required"),
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),
-  organization: z.string().optional(),
-  area_of_interest: z.string().optional(),
+  phone: z.string().min(1, "Phone number is required"),
+  audience_type: z.enum(["individual", "corporate"]),
   message: z.string().min(1, "Please share a few details about what you need"),
 });
 type InquiryFormValues = z.infer<typeof inquirySchema>;
@@ -32,21 +38,42 @@ type InquiryFormValues = z.infer<typeof inquirySchema>;
 const ContactPage = () => {
   const formRef = useRef<HTMLDivElement>(null);
   const [submitted, setSubmitted] = useState(false);
+  const createLead = useCreateLead();
 
   const {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
-  } = useForm<InquiryFormValues>({ resolver: zodResolver(inquirySchema) });
+  } = useForm<InquiryFormValues>({
+    resolver: zodResolver(inquirySchema),
+    defaultValues: { audience_type: "individual" },
+  });
 
-  const onSubmit = () => {
-    // No inquiry/lead API exists yet — don't pretend this was sent anywhere.
-    setSubmitted(true);
+  const onSubmit = (values: InquiryFormValues) => {
+    const payload: CreateLeadRequest = {
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      audience_type: values.audience_type,
+      platform: "careercentra",
+      intent_tier: "medium",
+      message: values.message,
+    };
+
+    createLead.mutate(payload, {
+      onSuccess: () => {
+        toast.success("Thanks! We'll be in touch shortly.");
+        setSubmitted(true);
+        reset({ audience_type: "individual" });
+      },
+      onError: (err) => toast.error(err.message),
+    });
   };
 
-  const selectSupportType = (title: string) => {
-    setValue("area_of_interest", title);
+  const selectSupportType = (audienceType: "individual" | "corporate") => {
+    setValue("audience_type", audienceType);
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -72,7 +99,7 @@ const ContactPage = () => {
             <button
               key={type.title}
               type="button"
-              onClick={() => selectSupportType(type.title)}
+              onClick={() => selectSupportType(type.audienceType)}
               className="rounded-2xl border border-gray-100 bg-gray-50 p-6 text-left hover:border-secondary hover:bg-secondary/5"
             >
               <h3 className="text-base font-semibold text-gray-900">{type.title}</h3>
@@ -88,10 +115,8 @@ const ContactPage = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-5 text-left">
           {submitted && (
-            <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              This form isn&apos;t connected to a backend yet, so your message wasn&apos;t actually
-              sent anywhere. Nothing to worry about — just letting you know rather than pretending
-              it went through.
+            <p className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+              Your message has been sent. Our team will reach out soon.
             </p>
           )}
 
@@ -103,9 +128,9 @@ const ContactPage = () => {
               <input
                 placeholder="Jane Smith"
                 className="rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-                {...register("full_name")}
+                {...register("name")}
               />
-              {errors.full_name && <p className="text-xs text-red-500">{errors.full_name.message}</p>}
+              {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -122,33 +147,26 @@ const ContactPage = () => {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Organization
+              Phone Number
             </label>
             <input
-              placeholder="Company Name"
+              placeholder="+234 800 000 0000"
               className="rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-              {...register("organization")}
+              {...register("phone")}
             />
+            {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Area of Interest
+              I&apos;m reaching out as
             </label>
             <select
-              defaultValue=""
               className="rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-              {...register("area_of_interest")}
+              {...register("audience_type")}
             >
-              <option value="" disabled>
-                Select area of interest...
-              </option>
-              {SUPPORT_TYPES.map((type) => (
-                <option key={type.title} value={type.title}>
-                  {type.title}
-                </option>
-              ))}
-              <option value="Other">Other</option>
+              <option value="individual">An individual learner</option>
+              <option value="corporate">A company / organisation</option>
             </select>
           </div>
 
@@ -167,9 +185,10 @@ const ContactPage = () => {
 
           <button
             type="submit"
-            className="rounded-md bg-main px-6 py-3.5 text-sm font-semibold text-white hover:bg-deep-blue"
+            disabled={createLead.isPending}
+            className="rounded-md bg-main px-6 py-3.5 text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Submit Inquiry →
+            {createLead.isPending ? "Sending…" : "Submit Inquiry →"}
           </button>
         </form>
       </section>

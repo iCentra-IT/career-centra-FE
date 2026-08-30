@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useCareerPath } from "@/hooks/queries/career-paths";
 import { usePatchCareerPath } from "@/hooks/mutations/career-paths";
 import { CareerPathForm } from "@/components/dashboard/career-path-form";
+import { FormSkeleton } from "@/components/ui/skeleton";
 
 const EditCareerPathPage = () => {
   const params = useParams<{ slug: string }>();
@@ -12,7 +13,7 @@ const EditCareerPathPage = () => {
   const { data: pathway, isLoading } = useCareerPath(params.slug);
   const patchCareerPath = usePatchCareerPath(params.slug);
 
-  if (isLoading) return <p className="text-sm text-gray-400">Loading…</p>;
+  if (isLoading) return <FormSkeleton fields={7} />;
   if (!pathway) return <p className="text-sm text-gray-400">Career path not found.</p>;
 
   return (

@@ -32,7 +32,7 @@ export function Sidebar({ items }: { items: NavItem[] }) {
           <circle cx="14" cy="10" r="2.5" fill="#1875f0" />
           <path d="M8 20c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5" stroke="#0c236c" strokeWidth="2.5" strokeLinecap="round" fill="none" />
         </svg>
-        {!collapsed && <span className="text-xl font-semibold text-main">iCentra</span>}
+        {!collapsed && <span className="text-xl font-semibold text-main">Career Centra</span>}
       </div>
 
       <button

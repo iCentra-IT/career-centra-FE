@@ -1,3 +1,5 @@
+import type { FacilitatorApplicationFilters } from "@/types/facilitator";
+
 export const queryKeys = {
   auth: {
     me: ["auth", "me"] as const,
@@ -36,6 +38,32 @@ export const queryKeys = {
       ["enrollments", filters] as const,
     detail: (id: number) => ["enrollments", id] as const,
     receipt: (id: number) => ["enrollments", id, "receipt"] as const,
+  },
+
+  adminEnrollments: {
+    all: (filters?: Record<string, unknown>) => ["admin-enrollments", filters] as const,
+  },
+
+  adminLearners: {
+    all: ["admin-learners"] as const,
+  },
+
+  adminUsers: {
+    all: ["admin-users"] as const,
+    detail: (id: number) => ["admin-users", id] as const,
+  },
+
+  facilitatorApplications: {
+    all: (filters?: FacilitatorApplicationFilters) => ["facilitator-applications", filters] as const,
+    detail: (id: number) => ["facilitator-applications", id] as const,
+  },
+
+  notifications: {
+    all: ["notifications"] as const,
+  },
+
+  search: {
+    query: (q: string) => ["search", q] as const,
   },
 
   cohorts: {
