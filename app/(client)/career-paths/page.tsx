@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCareerPaths, useCareerPathPrograms } from "@/hooks/queries/career-paths";
 import { RowCardSkeleton } from "@/components/ui/skeleton";
+import { matchPathwayCategory } from "@/lib/pathways";
 import type { CareerPath } from "@/types/career-paths";
 
 function BriefcaseIcon() {
@@ -143,6 +144,10 @@ function PathwayCard({ pathway, icon: Icon }: { pathway: CareerPath; icon: () =>
           </span>
         </p>
         <p>
+          Suitable roles:{" "}
+          <span className="font-semibold text-gray-900">{pathway.suitable_roles.length}</span>
+        </p>
+        <p>
           Learning levels: <span className="font-semibold text-gray-900">{pathway.levels.length}</span>
         </p>
       </div>
@@ -178,9 +183,11 @@ const CareerPathsPage = () => {
           {!isLoading && pathways?.length === 0 && (
             <p className="text-sm text-gray-400">No career paths published yet.</p>
           )}
-          {pathways?.map((pathway, i) => (
-            <PathwayCard key={pathway.id} pathway={pathway} icon={ICONS[i % ICONS.length]} />
-          ))}
+          {pathways?.map((pathway, i) => {
+            const categoryIndex = matchPathwayCategory(pathway.title);
+            const icon = ICONS[categoryIndex >= 0 ? categoryIndex : i % ICONS.length];
+            return <PathwayCard key={pathway.id} pathway={pathway} icon={icon} />;
+          })}
         </div>
       </section>
     </div>

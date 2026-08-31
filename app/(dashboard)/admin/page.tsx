@@ -1,13 +1,12 @@
 "use client";
 
-import { usePrograms } from "@/hooks/queries/programs";
 import { useCohorts } from "@/hooks/queries/cohort";
-import { useAdminEnrollments } from "@/hooks/queries/admin-enrollments";
-import { useFacilitatorApplications } from "@/hooks/queries/facilitator-applications";
+import { useAdminDashboard } from "@/hooks/queries/admin-dashboard";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyTableState } from "@/components/ui/empty-table";
 import { ListRowSkeleton } from "@/components/ui/skeleton";
+import { formatMoney, formatUsd } from "@/lib/format";
 
 function Panel({
   title,
@@ -33,19 +32,12 @@ function statusTone(status: string): "green" | "yellow" | "red" | "gray" {
 }
 
 const AdminOverviewPage = () => {
-  const { data: programs, isLoading: programsLoading } = usePrograms();
+  const { data: dashboard, isLoading: dashboardLoading } = useAdminDashboard();
   const { data: cohorts, isLoading: cohortsLoading } = useCohorts();
-  const { data: enrollments, isLoading: enrollmentsLoading } = useAdminEnrollments();
-  const { data: applications, isLoading: applicationsLoading } = useFacilitatorApplications();
 
-  const activeCohorts = cohorts?.results?.filter((c) => c.is_active && !c.is_sold_out) ?? [];
   const nearlyFullCohorts = cohorts?.results?.filter((c) => c.is_nearly_full) ?? [];
-  const recentEnrollments = (enrollments?.results ?? []).slice(0, 5);
-  const recentApplications = (applications ?? []).slice(0, 5);
-
-  const successful = (enrollments?.results ?? []).filter((e) => statusTone(e.status) === "green").length;
-  const pending = (enrollments?.results ?? []).filter((e) => statusTone(e.status) === "yellow").length;
-  const failed = (enrollments?.results ?? []).filter((e) => statusTone(e.status) === "red").length;
+  const recentEnrollments = (dashboard?.recent_enrollments ?? []).slice(0, 5);
+  const recentFacilitators = (dashboard?.recent_facilitators ?? []).slice(0, 5);
 
   return (
     <div>
@@ -53,20 +45,36 @@ const AdminOverviewPage = () => {
       <p className="mt-1 text-sm text-gray-500">Platform performance at a glance.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard label="Total programs" value={programs?.count} loading={programsLoading} />
-        <StatCard label="Total revenue" note="No revenue endpoint yet" />
+        <StatCard
+          label="Total programs"
+          value={dashboard?.overview.total_programs}
+          loading={dashboardLoading}
+        />
+        <StatCard
+          label="Total revenue (NGN)"
+          value={dashboard ? formatMoney(dashboard.overview.total_revenue_ngn, "NGN") : undefined}
+          loading={dashboardLoading}
+        />
         <StatCard
           label="Active cohorts"
-          value={activeCohorts.length}
-          loading={cohortsLoading}
+          value={dashboard?.overview.active_cohorts}
+          loading={dashboardLoading}
         />
-        <StatCard label="Total enrollments" value={enrollments?.count} loading={enrollmentsLoading} />
-        <StatCard label="Recent payments" note="No payments endpoint yet" />
+        <StatCard
+          label="Total enrollments"
+          value={dashboard?.overview.total_enrollments}
+          loading={dashboardLoading}
+        />
+        <StatCard
+          label="Total revenue (USD)"
+          value={dashboard ? formatUsd(dashboard.overview.total_revenue_usd) : undefined}
+          loading={dashboardLoading}
+        />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Panel title="Recent enrollments">
-          {enrollmentsLoading ? (
+          {dashboardLoading ? (
             <ListRowSkeleton rows={4} />
           ) : recentEnrollments.length === 0 ? (
             <EmptyTableState
@@ -87,23 +95,23 @@ const AdminOverviewPage = () => {
             </ul>
           )}
         </Panel>
-        <Panel title="Recent facilitator applications">
-          {applicationsLoading ? (
+        <Panel title="Recent facilitators">
+          {dashboardLoading ? (
             <ListRowSkeleton rows={4} />
-          ) : recentApplications.length === 0 ? (
-            <EmptyTableState
-              columns={["Applicant", "Domains", "Status"]}
-              message="No facilitator applications yet."
-            />
+          ) : recentFacilitators.length === 0 ? (
+            <EmptyTableState columns={["Facilitator", "Domains", "Status"]} message="No facilitators yet." />
           ) : (
             <ul className="flex flex-col gap-3">
-              {recentApplications.map((a) => (
-                <li key={a.id} className="flex items-center justify-between gap-3 text-sm">
+              {recentFacilitators.map((f) => (
+                <li key={f.id} className="flex items-center justify-between gap-3 text-sm">
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-gray-900">{a.full_name}</p>
-                    <p className="truncate text-xs text-gray-400">{a.domain_areas}</p>
+                    <p className="truncate font-medium text-gray-900">{f.full_name}</p>
+                    <p className="truncate text-xs text-gray-400">{f.domains.join(", ")}</p>
                   </div>
-                  <StatusBadge label={a.status_display} tone={statusTone(a.status)} />
+                  <StatusBadge
+                    label={f.is_published ? "Published" : "Unpublished"}
+                    tone={f.is_published ? "green" : "gray"}
+                  />
                 </li>
               ))}
             </ul>
@@ -113,23 +121,28 @@ const AdminOverviewPage = () => {
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Panel title="Payment status summary">
-          {enrollmentsLoading ? (
+          {dashboardLoading ? (
             <ListRowSkeleton rows={3} />
           ) : (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between text-sm">
-                <StatusBadge label="Successful" tone="green" />
-                <span className="font-medium text-gray-900">{successful}</span>
+                <StatusBadge label="Confirmed" tone="green" />
+                <span className="font-medium text-gray-900">
+                  {dashboard?.payment_status_summary.confirmed ?? 0}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <StatusBadge label="Pending" tone="yellow" />
-                <span className="font-medium text-gray-900">{pending}</span>
+                <span className="font-medium text-gray-900">
+                  {dashboard?.payment_status_summary.pending ?? 0}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <StatusBadge label="Failed" tone="red" />
-                <span className="font-medium text-gray-900">{failed}</span>
+                <span className="font-medium text-gray-900">
+                  {dashboard?.payment_status_summary.failed ?? 0}
+                </span>
               </div>
-              <p className="text-xs text-gray-400">From the most recently loaded page, not a lifetime total.</p>
             </div>
           )}
         </Panel>

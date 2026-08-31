@@ -5,6 +5,7 @@ import { usePrograms } from "@/hooks/queries/programs";
 import { useCareerPaths } from "@/hooks/queries/career-paths";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton, Skeleton } from "@/components/ui/skeleton";
+import { matchPathwayCategory } from "@/lib/pathways";
 import Image from "next/image";
 
 function BriefcaseIcon() {
@@ -368,7 +369,8 @@ const HomePage = () => {
             </p>
           )}
           {pathways?.map((pathway, i) => {
-            const Icon = PATHWAY_ICONS[i % PATHWAY_ICONS.length];
+            const categoryIndex = matchPathwayCategory(pathway.title);
+            const Icon = PATHWAY_ICONS[categoryIndex >= 0 ? categoryIndex : i % PATHWAY_ICONS.length];
 
             return (
               <div key={pathway.id} className="rounded-2xl bg-[#E9F9FF] p-6">
@@ -389,7 +391,7 @@ const HomePage = () => {
                   {pathway.certifications.map((cert) => (
                     <span
                       key={cert}
-                      className="rounded-xl bg-[#00AFEB12]/10 px-3 py-1 text-xs font-medium text-secondary"
+                      className="rounded-xl bg-[#00AFEB12]/90 px-3 py-1 text-xs font-medium text-secondary"
                     >
                       {cert}
                     </span>
@@ -601,8 +603,8 @@ const HomePage = () => {
       </section>
 
       {/* CTA: start learning */}
-      <section className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="rounded-3xl bg-deep-blue px-8 py-14 text-center text-white">
+      <section className="mx-auto max-w-full mt-5">
+        <div className=" bg-main px-8 py-14 text-center text-white">
           <p className="text-xs font-semibold uppercase tracking-wide text-glass">
             Get Started
           </p>
