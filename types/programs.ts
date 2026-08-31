@@ -11,42 +11,58 @@ export type ProgramAudience = 'individual' | 'corporate' | string;
 
 export type PurchaseMode = 'direct' | 'quote' | string;
 
-// Program summary embedded in GET /api/programs/ (public browse) — leaner than ProgramListItem,
-// paired with the cohort scheduling/pricing fields on PublicProgramListing below. Mirrors the same
-// "lightweight program embed" pattern used by DashboardProgramSummary and CohortProgramSummary.
-export interface PublicProgramSummary {
+export interface ProgramCohortFacilitator {
   id: number;
-  title: string;
-  slug: string;
-  program_type: ProgramType;
-  level: ProgramLevel;
-  summary: string;
-  accreditations: ProgramAccreditation[];
-  cover_image_url: string;
+  full_name: string;
+  avatar_url: string;
+  short_bio: string;
+  credential_tags: string[];
 }
 
-// GET /api/programs/ list item — confirmed real shape: bundles a lightweight program summary with
-// its next/current cohort's scheduling, seats, and effective pricing. This is NOT one row per
-// catalog program — a program with more than one open cohort can appear more than once.
-export interface PublicProgramListing {
+// A cohort embedded directly on a GET /api/programs/ list item — confirmed real shape.
+export interface ProgramCohort {
   id: number;
-  program: PublicProgramSummary;
   platform: string;
   starts_on: string;
-  duration_weeks: number;
   ends_on: string;
+  duration_weeks: number;
   delivery_mode: string;
   location: string;
   seat_capacity: number;
   seats_taken: number;
-  seats_remaining: number;
+  is_enrollment_open: boolean;
   is_sold_out: boolean;
   is_nearly_full: boolean;
-  is_enrollment_open: boolean;
   effective_price_usd: string;
   effective_price_ngn: string;
-  facilitator_name: string;
-  facilitator_display: Record<string, string>[]; // shape unconfirmed — sample showed generic placeholder keys
+  default_price: string;
+  currency: string;
+  facilitator_display: ProgramCohortFacilitator[];
+}
+
+// GET /api/programs/ list item — confirmed real shape (paginated: {success, count, total_pages,
+// next, previous, results}). One row per catalog program; each program embeds its own open
+// cohorts directly rather than the list being bundled per-cohort.
+export interface PublicProgramListing {
+  id: number;
+  title: string;
+  slug: string;
+  code: string;
+  program_type: ProgramType;
+  level: ProgramLevel;
+  level_display: string;
+  audience: ProgramAudience;
+  audience_display: string;
+  purchase_mode: PurchaseMode;
+  purchase_mode_display: string;
+  summary: string;
+  base_price_usd: string;
+  base_price_ngn: string;
+  has_pmi_badge: boolean;
+  has_pecb_badge: boolean;
+  accreditations: ProgramAccreditation[];
+  cover_image_url: string;
+  cohorts: ProgramCohort[];
   is_active: boolean;
   created_at: string;
   updated_at: string;

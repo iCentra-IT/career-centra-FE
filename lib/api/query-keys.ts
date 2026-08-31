@@ -58,6 +58,10 @@ export const queryKeys = {
     detail: (id: number) => ["facilitator-applications", id] as const,
   },
 
+  facilitatorProfiles: {
+    all: ["facilitator-profiles"] as const,
+  },
+
   notifications: {
     all: ["notifications"] as const,
   },

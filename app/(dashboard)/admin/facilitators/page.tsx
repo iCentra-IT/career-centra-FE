@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useFacilitatorApplications } from "@/hooks/queries/facilitator-applications";
+import { useApprovedFacilitators } from "@/hooks/queries/facilitator-profiles";
 import { usePatchFacilitatorApplication } from "@/hooks/mutations/facilitator-applications";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyTableState } from "@/components/ui/empty-table";
@@ -12,7 +13,7 @@ import { formatOrdinalDateTime } from "@/lib/format";
 import type { FacilitatorApplication } from "@/types/facilitator";
 
 const APPLICATIONS_COLUMNS = ["Applicant", "Email", "Domains", "Status", "Submitted", "Action"];
-const APPROVED_COLUMNS = ["Name", "Credentials", "Domains", "Programs", "Profile", "Action"];
+const APPROVED_COLUMNS = ["Facilitator", "Bio", "Credentials"];
 
 const TABS = [
   { key: "applications", label: "Facilitator Applications" },
@@ -219,6 +220,7 @@ const AdminFacilitatorsPage = () => {
     search: search.trim() || undefined,
     status: status || undefined,
   });
+  const { data: approvedFacilitators, isLoading: approvedLoading } = useApprovedFacilitators();
 
   return (
     <div>
@@ -332,13 +334,60 @@ const AdminFacilitatorsPage = () => {
       ) : (
         <div className="mt-8">
           <h1 className="text-3xl font-semibold text-gray-900">Approved facilitators</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage facilitator profiles and program assignments.</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Directory of approved facilitator profiles. Cohort creation collects facilitator_name
+            directly, so this list is for reference, not program assignment.
+          </p>
 
           <div className="mt-6 overflow-x-auto rounded-2xl border border-gray-100 bg-white">
-            <EmptyTableState
-              columns={APPROVED_COLUMNS}
-              message="Not connected. No facilitator profile API exists yet. Cohort creation already collects facilitator_name directly, so this list is for managing standalone facilitator profiles, not assignment."
-            />
+            {approvedLoading ? (
+              <TableSkeleton columns={APPROVED_COLUMNS} />
+            ) : (approvedFacilitators ?? []).length === 0 ? (
+              <EmptyTableState columns={APPROVED_COLUMNS} message="No facilitator profiles published yet." />
+            ) : (
+              <table className="w-full min-w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50 text-gray-500">
+                    {APPROVED_COLUMNS.map((col) => (
+                      <th key={col} className="px-5 py-3 font-medium">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {approvedFacilitators?.map((facilitator) => (
+                    <tr key={facilitator.id} className="border-b border-gray-50 last:border-0">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          {facilitator.avatar_url ? (
+                            <img
+                              src={facilitator.avatar_url}
+                              alt={facilitator.full_name}
+                              className="h-8 w-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/10 text-xs font-semibold text-secondary">
+                              {facilitator.full_name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .slice(0, 2)
+                                .join("")
+                                .toUpperCase()}
+                            </div>
+                          )}
+                          <span className="font-medium text-gray-900">{facilitator.full_name}</span>
+                        </div>
+                      </td>
+                      <td className="max-w-xs px-5 py-4 text-gray-600">{facilitator.short_bio}</td>
+                      <td className="px-5 py-4 text-gray-600">
+                        {facilitator.credential_tags.join(", ") || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}

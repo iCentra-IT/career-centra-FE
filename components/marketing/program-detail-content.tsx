@@ -9,6 +9,7 @@ import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { EnrolButton } from "@/components/marketing/enrol-button";
+import { AddToCartButton } from "@/components/marketing/add-to-cart-button";
 
 const TABS = [
   { label: "Learning Outcome", id: "learning-outcomes" },
@@ -174,14 +175,25 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               >
                 Speak to an Advisor
               </Link>
-              <button
-                type="button"
-                disabled
-                title="Cart isn't available yet"
-                className="text-center text-sm text-gray-300 disabled:cursor-not-allowed"
-              >
-                Add to Cart
-              </button>
+              {currentCohort && (
+                <AddToCartButton
+                  item={{
+                    programId: program.id,
+                    slug: program.slug,
+                    title: program.title,
+                    summary: program.summary,
+                    badge: program.has_pmi_badge
+                      ? "PMI Authorized"
+                      : program.has_pecb_badge
+                        ? "PECB Authorized"
+                        : program.level_display,
+                    code: program.code,
+                    priceUsd: program.base_price_usd,
+                    cohortId: currentCohort.id,
+                    cohortStartsOn: currentCohort.starts_on,
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>

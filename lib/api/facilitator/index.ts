@@ -1,11 +1,17 @@
 // lib/api/facilitators/get-facilitator-applications.ts
 import {
+  ApprovedFacilitator,
   FacilitatorApplication,
   FacilitatorApplicationFilters,
   PatchFacilitatorApplicationRequest,
 } from "@/types/facilitator";
 import { unwrapList, unwrapObject } from "@/types/api";
 import { apiClient } from "../client";
+
+export async function getApprovedFacilitators(): Promise<ApprovedFacilitator[]> {
+  const { data } = await apiClient.get("/api/facilitators/profiles/");
+  return unwrapList<ApprovedFacilitator>(data);
+}
 
 export async function getFacilitatorApplications(
   filters?: FacilitatorApplicationFilters,

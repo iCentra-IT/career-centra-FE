@@ -283,7 +283,7 @@ const TESTIMONIALS = [
 const HomePage = () => {
   const { data: programs, isLoading: programsLoading } = usePrograms();
   const { data: pathways, isLoading: pathwaysLoading } = useCareerPaths();
-  const featured = programs?.slice(0, 4) ?? [];
+  const featured = programs?.results?.slice(0, 4) ?? [];
 
   return (
     <div>

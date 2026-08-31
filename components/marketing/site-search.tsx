@@ -35,7 +35,7 @@ export function SiteSearch({ className }: { className?: string }) {
 
   // Search only returns titles, so cross-reference the already-loaded lists to get real links.
   const matchedPrograms = (results?.programs ?? [])
-    .map((title) => programs?.find((p) => p.program.title === title))
+    .map((title) => programs?.results?.find((p) => p.title === title))
     .filter((p): p is NonNullable<typeof p> => !!p);
 
   const matchedPathways = (results?.career_paths ?? [])
@@ -73,12 +73,12 @@ export function SiteSearch({ className }: { className?: string }) {
               </p>
               {matchedPrograms.map((p) => (
                 <Link
-                  key={p.program.id}
-                  href={`/programms/${p.program.slug}`}
+                  key={p.id}
+                  href={`/programms/${p.slug}`}
                   onClick={() => setOpen(false)}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  {p.program.title}
+                  {p.title}
                 </Link>
               ))}
             </div>

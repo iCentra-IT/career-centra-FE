@@ -6,12 +6,12 @@ import {
   PatchProgramRequest,
   PublicProgramListing,
 } from "@/types/programs";
-import { ApiResponse, unwrapList } from "@/types/api";
+import { ApiResponse, PaginatedResponse } from "@/types/api";
 import { apiClient } from "../client";
 
-export async function getPrograms(): Promise<PublicProgramListing[]> {
-  const { data } = await apiClient.get<PublicProgramListing[]>("/api/programs/");
-  return unwrapList<PublicProgramListing>(data);
+export async function getPrograms(): Promise<PaginatedResponse<PublicProgramListing>> {
+  const { data } = await apiClient.get<PaginatedResponse<PublicProgramListing>>("/api/programs/");
+  return data;
 }
 
 export async function getProgram(slug: string): Promise<Program> {

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
+import { useCartStore } from "@/lib/store/cartStore";
 import { useLogout } from "@/hooks/mutations/auth";
 import { SiteSearch } from "@/components/marketing/site-search";
 
@@ -20,6 +21,21 @@ function CartIcon() {
       <circle cx="6.5" cy="15" r="1.1" fill="currentColor" />
       <circle cx="13" cy="15" r="1.1" fill="currentColor" />
     </svg>
+  );
+}
+
+function CartLink() {
+  const count = useCartStore((s) => s.items.length);
+
+  return (
+    <Link href="/cart" aria-label="Cart" className="relative text-gray-500 hover:text-main">
+      <CartIcon />
+      {count > 0 && (
+        <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[10px] font-semibold text-white">
+          {count}
+        </span>
+      )}
+    </Link>
   );
 }
 
@@ -155,15 +171,11 @@ export function MarketingHeader() {
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Logo />
           <div className="hidden items-center gap-5 text-sm md:flex">
-            <button type="button" aria-label="Cart" className="text-gray-500 hover:text-main">
-              <CartIcon />
-            </button>
+            <CartLink />
             <AccountMenu />
           </div>
           <div className="flex items-center gap-3 md:hidden">
-            <button type="button" aria-label="Cart" className="text-gray-500 hover:text-main">
-              <CartIcon />
-            </button>
+            <CartLink />
             <button
               type="button"
               aria-label="Toggle menu"

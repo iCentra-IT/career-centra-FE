@@ -10,16 +10,8 @@ import { formatOrdinalDateTime, formatUsd } from "@/lib/format";
 const COLUMNS = ["Program", "Track", "Level", "Accreditation", "Price", "Status", "Update", "Action"];
 
 const AdminProgramsPage = () => {
-  const { data: listings, isLoading } = usePrograms();
-
-  // /api/programs/ bundles cohort instances, so a program with several open cohorts can repeat here —
-  // dedupe by underlying program id so the catalog table shows one row per program.
-  const seen = new Set<number>();
-  const programs = (listings ?? []).filter((listing) => {
-    if (seen.has(listing.program.id)) return false;
-    seen.add(listing.program.id);
-    return true;
-  });
+  const { data, isLoading } = usePrograms();
+  const programs = data?.results ?? [];
 
   return (
     <div>
@@ -56,25 +48,27 @@ const AdminProgramsPage = () => {
                 </td>
               </tr>
             )}
-            {programs.map((listing) => {
-              const program = listing.program;
-              const accreditation = program.accreditations.map((a) => a.label).join(", ") || "—";
+            {programs.map((program) => {
+              const accreditation =
+                [program.has_pmi_badge && "PMI", program.has_pecb_badge && "PECB"]
+                  .filter(Boolean)
+                  .join(", ") || "—";
 
               return (
                 <tr key={program.id} className="border-b border-gray-50 last:border-0">
                   <td className="px-5 py-4 text-gray-900">{program.title}</td>
                   <td className="px-5 py-4 text-gray-600">{program.program_type}</td>
-                  <td className="px-5 py-4 capitalize text-gray-600">{program.level}</td>
+                  <td className="px-5 py-4 text-gray-600">{program.level_display}</td>
                   <td className="px-5 py-4 text-gray-600">{accreditation}</td>
-                  <td className="px-5 py-4 text-gray-600">{formatUsd(listing.effective_price_usd)}</td>
+                  <td className="px-5 py-4 text-gray-600">{formatUsd(program.base_price_usd)}</td>
                   <td className="px-5 py-4">
-                    {listing.is_active ? (
+                    {program.is_active ? (
                       <StatusBadge label="Published" tone="green" />
                     ) : (
                       <StatusBadge label="Draft" tone="yellow" />
                     )}
                   </td>
-                  <td className="px-5 py-4 text-gray-600">{formatOrdinalDateTime(listing.updated_at)}</td>
+                  <td className="px-5 py-4 text-gray-600">{formatOrdinalDateTime(program.updated_at)}</td>
                   <td className="px-5 py-4">
                     <Link
                       href={`/admin/programs/${program.slug}/edit`}

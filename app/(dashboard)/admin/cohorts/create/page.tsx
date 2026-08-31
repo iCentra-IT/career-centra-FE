@@ -22,11 +22,7 @@ type FormValues = z.infer<typeof schema>;
 
 const CreateCohortPage = () => {
   const router = useRouter();
-  const { data: programListings } = usePrograms();
-  // /api/programs/ bundles cohort instances, so dedupe by program id for the picker.
-  const programs = Array.from(
-    new Map((programListings ?? []).map((listing) => [listing.program.id, listing.program])).values(),
-  );
+  const { data: programs } = usePrograms();
   const createCohort = useCreateCohort();
 
   const {
@@ -78,7 +74,7 @@ const CreateCohortPage = () => {
             <option value="" disabled>
               select program
             </option>
-            {programs.map((program) => (
+            {programs?.results?.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.title}
               </option>

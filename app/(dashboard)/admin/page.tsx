@@ -38,8 +38,6 @@ const AdminOverviewPage = () => {
   const { data: enrollments, isLoading: enrollmentsLoading } = useAdminEnrollments();
   const { data: applications, isLoading: applicationsLoading } = useFacilitatorApplications();
 
-  // /api/programs/ bundles cohort instances, so a program with several open cohorts can repeat — dedupe by program id.
-  const uniquePrograms = new Set((programs ?? []).map((p) => p.program.id)).size;
   const activeCohorts = cohorts?.results?.filter((c) => c.is_active && !c.is_sold_out) ?? [];
   const nearlyFullCohorts = cohorts?.results?.filter((c) => c.is_nearly_full) ?? [];
   const recentEnrollments = (enrollments?.results ?? []).slice(0, 5);
@@ -55,7 +53,7 @@ const AdminOverviewPage = () => {
       <p className="mt-1 text-sm text-gray-500">Platform performance at a glance.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard label="Total programs" value={uniquePrograms} loading={programsLoading} />
+        <StatCard label="Total programs" value={programs?.count} loading={programsLoading} />
         <StatCard label="Total revenue" note="No revenue endpoint yet" />
         <StatCard
           label="Active cohorts"

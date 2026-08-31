@@ -28,11 +28,7 @@ const EditCohortPage = () => {
   const cohortId = Number(params.id);
   const router = useRouter();
   const { data: cohort, isLoading } = useCohort(cohortId);
-  const { data: programListings } = usePrograms();
-  // /api/programs/ bundles cohort instances, so dedupe by program id for the picker.
-  const programs = Array.from(
-    new Map((programListings ?? []).map((listing) => [listing.program.id, listing.program])).values(),
-  );
+  const { data: programs } = usePrograms();
   const patchCohort = usePatchCohort(cohortId);
 
   const {
@@ -94,7 +90,7 @@ const EditCohortPage = () => {
             className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
             {...register("program")}
           >
-            {programs.map((program) => (
+            {programs?.results?.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.title}
               </option>

@@ -56,11 +56,8 @@ export function CareerPathForm({
   onSubmit,
   onClose,
 }: CareerPathFormProps) {
-  const { data: programListings } = usePrograms();
-  // /api/programs/ bundles cohort instances, so dedupe by program id for the picker.
-  const programs = Array.from(
-    new Map((programListings ?? []).map((listing) => [listing.program.id, listing.program])).values(),
-  );
+  const { data: programsData } = usePrograms();
+  const programs = programsData?.results ?? [];
 
   const [title, setTitle] = useState(initialValues?.title ?? EMPTY_VALUES.title);
   const [description, setDescription] = useState(initialValues?.description ?? EMPTY_VALUES.description);

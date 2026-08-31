@@ -32,3 +32,30 @@ export interface FacilitatorApplicationFilters {
 export interface PatchFacilitatorApplicationRequest {
   status: FacilitatorApplication["status"];
 }
+
+// GET /api/facilitators/profiles/ — confirmed real shape (public approved-facilitator directory).
+// Sample showed credential_tags as a bare "string", but the same field on ProgramCohortFacilitator
+// (embedded facilitator data on GET /api/programs/) was confirmed as string[] from a genuine
+// capture — treating it as string[] here too since it's almost certainly the same serializer field,
+// and the sample's generic placeholder value doesn't reliably distinguish the two.
+export interface ApprovedFacilitator {
+  id: number;
+  full_name: string;
+  avatar_url: string;
+  short_bio: string;
+  credential_tags: string[];
+}
+
+// PLACEHOLDER — no public submission endpoint exists yet. Shape inferred from
+// FacilitatorApplication's writable fields plus a CV file upload (also unconfirmed —
+// no media/file upload endpoint exists yet either). Not wired to any API call.
+export interface CreateFacilitatorApplicationRequest {
+  full_name: string;
+  email: string;
+  phone: string;
+  linkedin_url?: string;
+  domain_areas: string;
+  certifications_held: string;
+  motivation_statement?: string;
+  cv: File;
+}
