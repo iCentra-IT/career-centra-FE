@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { PublicProgramListing } from "@/types/programs";
-import { displayTitle, formatShortDate, formatUsd } from "@/lib/format";
+import { PublicProgramListing, programDisplayPrice } from "@/types/programs";
+import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 
 interface ProgramCardProps {
   program: PublicProgramListing;
@@ -21,6 +21,7 @@ export function ProgramCard({ program, buttonTone = "cyan" }: ProgramCardProps) 
       : program.level_display;
   const buttonClass = buttonTone === "cyan" ? "bg-glass text-deep-blue" : "bg-secondary text-white";
   const cohort = nextOpenCohort(program);
+  const price = programDisplayPrice(program, cohort);
 
   return (
     <div className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-main to-deep-blue p-5 text-white">
@@ -39,7 +40,7 @@ export function ProgramCard({ program, buttonTone = "cyan" }: ProgramCardProps) 
           <p className="inline-block rounded-md bg-white/10 px-3 py-1.5 text-xs text-white/80">
             {cohort ? `Starts ${formatShortDate(cohort.starts_on)}` : "Cohort dates coming soon"}
           </p>
-          <p className="text-sm font-semibold text-white">{formatUsd(program.base_price_usd)}</p>
+          <p className="text-sm font-semibold text-white">{formatMoney(price.amount, price.currency)}</p>
         </div>
         {cohort?.is_nearly_full && (
           <p className="mt-2 text-xs text-amber-300">

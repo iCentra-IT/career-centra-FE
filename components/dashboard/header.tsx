@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
+import { roleLabel } from "@/types/user";
 import { useNotifications } from "@/hooks/queries/notifications";
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
 
@@ -18,7 +19,7 @@ const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/admin/enrollments", title: "Enrolments History" },
   { pattern: "/admin", title: "Dashboard" },
   { pattern: "/students/enrolments", title: "My Enrolments" },
-  { pattern: "/students/schedules", title: "Class Schedules" },
+  { pattern: "/students/schedules", title: "Class Schedule" },
   { pattern: "/students/certificates", title: "Certificates" },
   { pattern: "/students/purchase-history", title: "Purchase History" },
   { pattern: "/students/profile", title: "Profile" },
@@ -153,7 +154,7 @@ export function Header() {
             <p className="text-sm font-medium text-gray-900">
               {user ? `${user.first_name} ${user.last_name}` : "—"}
             </p>
-            <p className="text-xs capitalize text-gray-400">{user?.role ?? ""}</p>
+            <p className="text-xs text-gray-400">{user ? roleLabel(user.role) : ""}</p>
           </div>
         </div>
       </div>

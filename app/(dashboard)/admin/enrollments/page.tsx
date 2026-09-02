@@ -6,7 +6,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyTableState } from "@/components/ui/empty-table";
 import { TableSkeleton } from "@/components/ui/skeleton";
-import { formatShortDate } from "@/lib/format";
+import { formatMoney, formatShortDate } from "@/lib/format";
 
 const COLUMNS = ["User Name", "Program", "Amount Paid", "Payment Provider", "Date", "Status"];
 
@@ -93,7 +93,7 @@ const AdminEnrollmentsPage = () => {
                   <td className="px-5 py-4 text-gray-900">{enrollment.learner_name}</td>
                   <td className="px-5 py-4 text-gray-600">{enrollment.program_title}</td>
                   <td className="px-5 py-4 text-gray-600">
-                    {enrollment.currency} {parseFloat(enrollment.amount_paid).toLocaleString()}
+                    {formatMoney(enrollment.amount_paid, enrollment.currency)}
                   </td>
                   <td className="px-5 py-4 capitalize text-gray-600">{enrollment.payment_gateway}</td>
                   <td className="px-5 py-4 text-gray-600">{formatShortDate(enrollment.created_at)}</td>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCartStore, type CartItem } from "@/lib/store/cartStore";
-import { displayTitle, formatShortDate, formatUsd } from "@/lib/format";
+import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 
 function TrashIcon() {
   return (
@@ -73,9 +73,14 @@ const CartPage = () => {
   const items = useCartStore((s) => s.items);
   const removeItem = useCartStore((s) => s.removeItem);
 
-  const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.priceUsd) || 0), 0);
-  const tax = 0;
-  const total = subtotal + tax;
+  // Cohorts can be priced in different currencies, so totals are kept per currency rather than
+  // blended into one number — there's no confirmed exchange rate to convert them honestly.
+  const totalsByCurrency = items.reduce<Record<string, number>>((acc, item) => {
+    const amount = parseFloat(item.priceAmount) || 0;
+    acc[item.priceCurrency] = (acc[item.priceCurrency] ?? 0) + amount;
+    return acc;
+  }, {});
+  const currencies = Object.keys(totalsByCurrency);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
@@ -109,13 +114,19 @@ const CartPage = () => {
           <div className="h-fit rounded-2xl border border-gray-100 bg-white p-6">
             <h2 className="text-xl font-bold text-gray-900">Order Summary</h2>
             <div className="mt-5 flex flex-col gap-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Sub total</span>
-                <span className="font-medium text-gray-900">{formatUsd(subtotal)}</span>
-              </div>
+              {currencies.map((currency) => (
+                <div key={currency} className="flex items-center justify-between">
+                  <span className="text-gray-500">
+                    Sub total{currencies.length > 1 ? ` (${currency})` : ""}
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatMoney(totalsByCurrency[currency], currency)}
+                  </span>
+                </div>
+              ))}
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Estimated Tax</span>
-                <span className="font-medium text-gray-900">{formatUsd(tax)}</span>
+                <span className="font-medium text-gray-900">—</span>
               </div>
               <input
                 disabled
@@ -123,9 +134,17 @@ const CartPage = () => {
                 placeholder="Enter Coupon Code"
                 className="mt-1 w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
               />
-              <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-3 text-base">
-                <span className="font-semibold text-gray-900">Total</span>
-                <span className="font-semibold text-gray-900">{formatUsd(total)}</span>
+              <div className="mt-2 flex flex-col gap-1 border-t border-gray-100 pt-3">
+                {currencies.map((currency) => (
+                  <div key={currency} className="flex items-center justify-between text-base">
+                    <span className="font-semibold text-gray-900">
+                      Total{currencies.length > 1 ? ` (${currency})` : ""}
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      {formatMoney(totalsByCurrency[currency], currency)}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
             <button

@@ -15,13 +15,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { formatShortDate } from "@/lib/format";
+import { roleLabel } from "@/types/user";
 import type { AdminUser, UserRole, UserStatus } from "@/types/user";
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
-  { value: "admin", label: "Admin" },
-  { value: "staff", label: "Staff" },
-  { value: "facilitator", label: "Facilitator" },
   { value: "student", label: "Student" },
+  { value: "facilitator", label: "Facilitator" },
+  { value: "staff-admin", label: "Staff Admin" },
+  { value: "admin", label: "Admin" },
 ];
 
 const STATUS_OPTIONS: { value: UserStatus; label: string }[] = [
@@ -98,7 +99,7 @@ const createUserSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),
-  role: z.enum(["admin", "student", "staff", "facilitator"]),
+  role: z.enum(["student", "facilitator", "staff-admin", "admin"]),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -325,7 +326,7 @@ export function RoleBasedAccessTab() {
                     </button>
                   </td>
                   <td className="px-5 py-4 text-gray-600">{user.email}</td>
-                  <td className="px-5 py-4 capitalize text-gray-600">{user.role}</td>
+                  <td className="px-5 py-4 text-gray-600">{roleLabel(user.role)}</td>
                   <td className="px-5 py-4 text-gray-600">{formatShortDate(user.date_joined)}</td>
                   <td className="px-5 py-4">
                     <StatusBadge label={statusLabel(user.status)} tone={statusTone(user.status)} />

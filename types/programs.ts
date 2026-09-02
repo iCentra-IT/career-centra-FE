@@ -68,6 +68,19 @@ export interface PublicProgramListing {
   updated_at: string;
 }
 
+// Picks a representative cohort's real default_price (in whatever currency it's billed in) as the
+// price to show the user for this program in list views — falls back to the catalog base_price_usd
+// only when the program has no cohorts at all. Pass a specific cohort (e.g. the next open one) when
+// the caller has already picked one for other display purposes, so the price matches what's shown.
+export function programDisplayPrice(
+  program: PublicProgramListing,
+  cohort?: ProgramCohort,
+): { amount: string; currency: string } {
+  const picked = cohort ?? program.cohorts[0];
+  if (picked) return { amount: picked.default_price, currency: picked.currency };
+  return { amount: program.base_price_usd, currency: "USD" };
+}
+
 // List view — lighter payload, no "outline"
 export interface ProgramListItem {
   id: number;

@@ -1,5 +1,23 @@
 // lib/api/types/user.ts
-export type UserRole = 'admin' | 'student' | 'staff' | 'facilitator';
+export type UserRole = 'student' | 'facilitator' | 'staff-admin' | 'admin';
+
+// Roles that land on /admin rather than /students (dashboard/profile links, post-login redirect).
+export function isAdminDashboardRole(role: UserRole) {
+  return role === 'admin' || role === 'staff-admin';
+}
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  student: 'Student',
+  facilitator: 'Facilitator',
+  'staff-admin': 'Staff Admin',
+  admin: 'Admin',
+};
+
+// CSS `capitalize` mangles hyphenated roles like "staff-admin" → "Staff-admin", so display roles
+// through this instead of relying on text-transform.
+export function roleLabel(role: UserRole): string {
+  return ROLE_LABELS[role] ?? role;
+}
 
 export type UserStatus = 'pending_verification' | 'active' | 'suspended' | 'inactive'; 
 // ^ confirm the full list when you send the admin/status-related API — 

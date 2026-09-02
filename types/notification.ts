@@ -16,5 +16,5 @@ export interface BroadcastNotificationRequest {
   title: string;
   body: string;
   action_url: string;
-  role: "student" | "admin" | "staff" | "facilitator" | string;
+  role: "student" | "facilitator" | "staff-admin" | "admin" | string;
 }

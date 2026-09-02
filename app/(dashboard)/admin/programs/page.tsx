@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePrograms } from "@/hooks/queries/programs";
+import { programDisplayPrice } from "@/types/programs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PencilIcon } from "@/components/ui/pencil-icon";
 import { TableSkeletonRows } from "@/components/ui/skeleton";
-import { formatOrdinalDateTime, formatUsd } from "@/lib/format";
+import { formatMoney, formatOrdinalDateTime } from "@/lib/format";
 
 const COLUMNS = ["Program", "Track", "Level", "Accreditation", "Price", "Status", "Update", "Action"];
 
@@ -53,6 +54,7 @@ const AdminProgramsPage = () => {
                 [program.has_pmi_badge && "PMI", program.has_pecb_badge && "PECB"]
                   .filter(Boolean)
                   .join(", ") || "—";
+              const price = programDisplayPrice(program);
 
               return (
                 <tr key={program.id} className="border-b border-gray-50 last:border-0">
@@ -60,7 +62,7 @@ const AdminProgramsPage = () => {
                   <td className="px-5 py-4 text-gray-600">{program.program_type}</td>
                   <td className="px-5 py-4 text-gray-600">{program.level_display}</td>
                   <td className="px-5 py-4 text-gray-600">{accreditation}</td>
-                  <td className="px-5 py-4 text-gray-600">{formatUsd(program.base_price_usd)}</td>
+                  <td className="px-5 py-4 text-gray-600">{formatMoney(price.amount, price.currency)}</td>
                   <td className="px-5 py-4">
                     {program.is_active ? (
                       <StatusBadge label="Published" tone="green" />

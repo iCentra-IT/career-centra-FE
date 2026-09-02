@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
+import { isAdminDashboardRole } from "@/types/user";
 import { useLogout } from "@/hooks/mutations/auth";
 import { SiteSearch } from "@/components/marketing/site-search";
 
@@ -115,8 +116,8 @@ function AccountMenu() {
     );
   }
 
-  const dashboardHref = user.role === "admin" ? "/admin" : "/students";
-  const profileHref = user.role === "admin" ? "/admin/profile" : "/students/profile";
+  const dashboardHref = isAdminDashboardRole(user.role) ? "/admin" : "/students";
+  const profileHref = isAdminDashboardRole(user.role) ? "/admin/profile" : "/students/profile";
   const initials = `${user.first_name[0] ?? ""}${user.last_name[0] ?? ""}`.toUpperCase();
 
   return (
@@ -163,7 +164,7 @@ export function MarketingHeader() {
   const logout = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const dashboardHref = user ? (user.role === "admin" ? "/admin" : "/students") : null;
+  const dashboardHref = user ? (isAdminDashboardRole(user.role) ? "/admin" : "/students") : null;
 
   return (
     <header className="sticky top-0 z-30 bg-white relative">

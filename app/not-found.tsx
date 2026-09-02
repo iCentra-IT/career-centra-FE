@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
+import { isAdminDashboardRole } from "@/types/user";
 import { Button } from "@/components/ui/button";
 
 function Logo() {
@@ -25,7 +26,7 @@ function Logo() {
 
 const NotFoundPage = () => {
   const user = useAuthStore((s) => s.user);
-  const homeHref = user ? (user.role === "admin" ? "/admin" : "/students") : "/login";
+  const homeHref = user ? (isAdminDashboardRole(user.role) ? "/admin" : "/students") : "/login";
   const homeLabel = user ? "Back to Dashboard" : "Back to Login";
 
   return (

@@ -26,9 +26,16 @@ export function formatUsd(value: string | number) {
   return `$${num?.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  NGN: "₦",
+  USD: "$",
+};
+
 export function formatMoney(value: string | number, currency: string) {
   const num = typeof value === "string" ? parseFloat(value) : value;
-  return `${currency} ${num.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  const amount = num.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  const symbol = CURRENCY_SYMBOLS[currency?.toUpperCase()];
+  return symbol ? `${symbol}${amount}` : `${currency} ${amount}`;
 }
 
 export function displayTitle(title: string) {

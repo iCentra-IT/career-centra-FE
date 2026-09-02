@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useProgram } from "@/hooks/queries/programs";
-import { useCohorts } from "@/hooks/queries/cohort";
-import { displayTitle, formatShortDate, formatUsd } from "@/lib/format";
+import { useProgram, usePrograms } from "@/hooks/queries/programs";
+import { programDisplayPrice } from "@/types/programs";
+import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
@@ -45,13 +45,16 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 
 export function ProgramDetailContent({ slug }: { slug: string }) {
   const { data: program, isLoading } = useProgram(slug);
-  const { data: cohorts } = useCohorts();
+  // Cohort pricing (default_price/currency) is only confirmed on the /api/programs/ list
+  // response's embedded cohorts, not the detail endpoint, so pull the matching listing for it.
+  const { data: programsData } = usePrograms();
+  const matchedListing = programsData?.results?.find((p) => p.slug === slug);
   const [openModule, setOpenModule] = useState<number | null>(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const programCohorts = (cohorts?.results ?? [])
-    .filter((c) => c.program.slug === slug)
-    .sort((a, b) => a.starts_on.localeCompare(b.starts_on));
+  const programCohorts = [...(matchedListing?.cohorts ?? [])].sort((a, b) =>
+    a.starts_on.localeCompare(b.starts_on),
+  );
   const [currentCohort, nextCohort] = programCohorts;
 
   if (isLoading) {
@@ -73,6 +76,9 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
     : null;
 
   const leadFacilitator = program.facilitators?.[0];
+  const price = matchedListing
+    ? programDisplayPrice(matchedListing, currentCohort)
+    : { amount: program.base_price_usd, currency: "USD" };
 
   return (
     <div>
@@ -131,7 +137,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
           </div>
 
           <div className="h-fit rounded-2xl bg-white p-6 text-gray-900">
-            <p className="text-3xl font-bold text-main">{formatUsd(program.base_price_usd)}</p>
+            <p className="text-3xl font-bold text-main">{formatMoney(price.amount, price.currency)}</p>
             <p className="text-xs text-gray-400">per person</p>
 
             <div className="mt-5 flex flex-col gap-3 border-t border-gray-100 pt-4 text-sm">
@@ -155,7 +161,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                 <div className="flex justify-between">
                   <span className="text-gray-400">Seats remaining</span>
                   <span className="font-medium text-gray-900">
-                    {currentCohort.seats_remaining} of {currentCohort.seat_capacity}
+                    {currentCohort.seat_capacity - currentCohort.seats_taken} of {currentCohort.seat_capacity}
                   </span>
                 </div>
               )}
@@ -188,7 +194,8 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                         ? "PECB Authorized"
                         : program.level_display,
                     code: program.code,
-                    priceUsd: program.base_price_usd,
+                    priceAmount: currentCohort.default_price,
+                    priceCurrency: currentCohort.currency,
                     cohortId: currentCohort.id,
                     cohortStartsOn: currentCohort.starts_on,
                   }}
@@ -364,13 +371,17 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                       <td className="px-5 py-4 text-gray-900">
                         {formatShortDate(cohort.starts_on)} – {formatShortDate(cohort.ends_on)}
                       </td>
-                      <td className="px-5 py-4 text-gray-600">{cohort.facilitator_name}</td>
+                      <td className="px-5 py-4 text-gray-600">
+                        {cohort.facilitator_display[0]?.full_name ?? "—"}
+                      </td>
                       <td className="px-5 py-4">
                         <span className="rounded-full bg-secondary/10 px-2.5 py-1 text-xs font-medium text-secondary">
-                          {cohort.seats_remaining} left
+                          {cohort.seat_capacity - cohort.seats_taken} left
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-gray-900">{formatUsd(cohort.effective_price_usd)}</td>
+                      <td className="px-5 py-4 text-gray-900">
+                        {formatMoney(cohort.default_price, cohort.currency)}
+                      </td>
                       <td className="px-5 py-4">
                         <EnrolButton
                           cohortId={cohort.id}

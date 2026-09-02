@@ -21,6 +21,7 @@ import {
   requestPasswordReset,
 } from "@/lib/api/auth";
 import { NormalizedError } from "@/types/api";
+import { isAdminDashboardRole } from "@/types/user";
 import { queryKeys } from "@/lib/api/query-keys";
 import { getRefreshToken, useAuthStore } from "@/lib/store/authStore";
 import { useRouter } from "next/navigation";
@@ -39,7 +40,7 @@ export function useLogin(next?: string | null) {
     mutationFn: loginUser,
     onSuccess: (data) => {
       setAuth({ user: data.user, access: data.access, refresh: data.refresh });
-      const dashboardHref = data.user.role === "admin" || data.user.role === "staff" ? "/admin" : "/students";
+      const dashboardHref = isAdminDashboardRole(data.user.role) ? "/admin" : "/students";
       // Only students get sent back to where they left off — everyone else always lands on their dashboard.
       router.push(data.user.role === "student" && next ? next : dashboardHref);
     },

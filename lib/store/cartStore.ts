@@ -9,7 +9,8 @@ export interface CartItem {
   summary: string;
   badge: string;
   code: string;
-  priceUsd: string;
+  priceAmount: string;
+  priceCurrency: string;
   cohortId: number;
   cohortStartsOn: string;
 }
