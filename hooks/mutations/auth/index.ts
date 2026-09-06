@@ -62,7 +62,7 @@ export function useLogout() {
       // clear regardless of API success/failure — don't trap user in a logged-in UI
       clearAuth();
       queryClient.clear();
-      router.push("/login");
+      router.push("/");
     },
   });
 }

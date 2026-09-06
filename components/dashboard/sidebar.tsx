@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useLogout } from "@/hooks/mutations/auth";
-import { LogoutIcon, CollapseIcon, ChevronDownIcon } from "@/components/dashboard/nav-icons";
+import { LogoutIcon, CollapseIcon, ChevronDownIcon, GlobeIcon } from "@/components/dashboard/nav-icons";
 
 export interface NavItem {
   label: string;
@@ -102,14 +102,28 @@ export function Sidebar({ items }: { items: NavItem[] }) {
         })}
       </nav>
 
-      <button
-        type="button"
-        onClick={() => logout.mutate()}
-        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
-      >
-        <LogoutIcon />
-        {!collapsed && "Log Out"}
-      </button>
+      <div className="mt-2 flex flex-col gap-1 border-t border-gray-100 pt-3">
+        <Link
+          href="/"
+          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 ${
+            collapsed ? "justify-center" : ""
+          }`}
+          title="Back to Website"
+        >
+          <GlobeIcon />
+          {!collapsed && "Back to Website"}
+        </Link>
+        <button
+          type="button"
+          onClick={() => logout.mutate()}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 ${
+            collapsed ? "justify-center" : ""
+          }`}
+        >
+          <LogoutIcon />
+          {!collapsed && "Log Out"}
+        </button>
+      </div>
     </aside>
   );
 }
