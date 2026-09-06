@@ -1,10 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { usePrograms } from "@/hooks/queries/programs";
+import { useDeleteProgram } from "@/hooks/mutations/programs";
 import { programDisplayPrice } from "@/types/programs";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PencilIcon } from "@/components/ui/pencil-icon";
+import { EyeIcon } from "@/components/ui/eye-icon";
+import { TrashIcon } from "@/components/ui/trash-icon";
+import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { formatMoney, formatOrdinalDateTime } from "@/lib/format";
 
@@ -13,6 +19,19 @@ const COLUMNS = ["Program", "Track", "Level", "Accreditation", "Price", "Status"
 const AdminProgramsPage = () => {
   const { data, isLoading } = usePrograms();
   const programs = data?.results ?? [];
+  const [deleteTarget, setDeleteTarget] = useState<{ slug: string; title: string } | null>(null);
+  const deleteProgram = useDeleteProgram();
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    deleteProgram.mutate(deleteTarget.slug, {
+      onSuccess: () => {
+        toast.success("Program deleted.");
+        setDeleteTarget(null);
+      },
+      onError: (err) => toast.error(err.message),
+    });
+  };
 
   return (
     <div>
@@ -72,13 +91,32 @@ const AdminProgramsPage = () => {
                   </td>
                   <td className="px-5 py-4 text-gray-600">{formatOrdinalDateTime(program.updated_at)}</td>
                   <td className="px-5 py-4">
-                    <Link
-                      href={`/admin/programs/${program.slug}/edit`}
-                      className="text-gray-400 hover:text-gray-600"
-                      aria-label="Edit program"
-                    >
-                      <PencilIcon />
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/programms/${program.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-400 hover:text-gray-600"
+                        aria-label="View program"
+                      >
+                        <EyeIcon />
+                      </Link>
+                      <Link
+                        href={`/admin/programs/${program.slug}/edit`}
+                        className="text-gray-400 hover:text-gray-600"
+                        aria-label="Edit program"
+                      >
+                        <PencilIcon />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget({ slug: program.slug, title: program.title })}
+                        className="text-gray-400 hover:text-red-600"
+                        aria-label="Delete program"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -86,6 +124,15 @@ const AdminProgramsPage = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        title="Delete program"
+        description={`Are you sure you want to delete "${deleteTarget?.title}"? This can't be undone.`}
+        loading={deleteProgram.isPending}
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAdminUsers } from "@/hooks/queries/admin-users";
 import { useCreateAdminUser, usePatchAdminUser } from "@/hooks/mutations/admin-users";
+import { useAuthStore } from "@/lib/store/authStore";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyTableState } from "@/components/ui/empty-table";
@@ -104,7 +105,15 @@ const createUserSchema = z.object({
 });
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
-function EditUserModal({ user, onClose }: { user: AdminUser; onClose: () => void }) {
+function EditUserModal({
+  user,
+  canAssignRole,
+  onClose,
+}: {
+  user: AdminUser;
+  canAssignRole: boolean;
+  onClose: () => void;
+}) {
   const [role, setRole] = useState<UserRole>(user.role);
   const [status, setStatus] = useState<UserStatus>(user.status);
   const [isStaff, setIsStaff] = useState(user.is_staff);
@@ -137,8 +146,10 @@ function EditUserModal({ user, onClose }: { user: AdminUser; onClose: () => void
             <label className="text-sm text-gray-900">Role</label>
             <select
               value={role}
+              disabled={!canAssignRole}
+              title={!canAssignRole ? "Only Admins can reassign roles" : undefined}
               onChange={(e) => setRole(e.target.value as UserRole)}
-              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
             >
               {ROLE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -193,6 +204,8 @@ export function RoleBasedAccessTab() {
 
   const { data: users, isLoading } = useAdminUsers();
   const createUser = useCreateAdminUser();
+  const currentUser = useAuthStore((s) => s.user);
+  const canAssignRole = currentUser?.role === "admin";
 
   const {
     register,
@@ -430,7 +443,9 @@ export function RoleBasedAccessTab() {
                   Role <span className="text-secondary">*</span>
                 </label>
                 <select
-                  className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+                  disabled={!canAssignRole}
+                  title={!canAssignRole ? "Only Admins can assign roles — new users default to Student" : undefined}
+                  className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                   {...register("role")}
                 >
                   {ROLE_OPTIONS.map((opt) => (
@@ -469,7 +484,9 @@ export function RoleBasedAccessTab() {
         </div>
       </Modal>
 
-      {editUser && <EditUserModal user={editUser} onClose={() => setEditUser(null)} />}
+      {editUser && (
+        <EditUserModal user={editUser} canAssignRole={canAssignRole} onClose={() => setEditUser(null)} />
+      )}
     </div>
   );
 }

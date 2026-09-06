@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCareerPaths, useCareerPathPrograms } from "@/hooks/queries/career-paths";
+import { useCareerPaths } from "@/hooks/queries/career-paths";
 import { RowCardSkeleton } from "@/components/ui/skeleton";
 import { matchPathwayCategory } from "@/lib/pathways";
 import type { CareerPath } from "@/types/career-paths";
@@ -54,8 +54,6 @@ function capitalize(value: string) {
 }
 
 function PathwayCard({ pathway, icon: Icon }: { pathway: CareerPath; icon: () => React.JSX.Element }) {
-  const { data: linkedPrograms } = useCareerPathPrograms(pathway.slug);
-
   return (
     <div className="rounded-2xl border border-gray-100 p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -104,7 +102,7 @@ function PathwayCard({ pathway, icon: Icon }: { pathway: CareerPath; icon: () =>
             {pathway.levels.map((level) => (
               <span
                 key={level}
-                className="rounded-md bg-secondary/80 px-3 py-1 text-center text-xs font-medium text-white"
+                className="rounded-md bg-secondary/80 px-3 py-1 text-center text-xs font-medium text-white w-1/2"
               >
                 {capitalize(level)}
               </span>
@@ -139,9 +137,7 @@ function PathwayCard({ pathway, icon: Icon }: { pathway: CareerPath; icon: () =>
       <div className="mt-6 flex flex-wrap gap-6 border-t border-gray-100 pt-4 text-sm text-gray-500">
         <p>
           Programs:{" "}
-          <span className="font-semibold text-gray-900">
-            {linkedPrograms ? linkedPrograms.length : "…"}
-          </span>
+          <span className="font-semibold text-gray-900">{pathway.program_count}</span>
         </p>
         <p>
           Suitable roles:{" "}

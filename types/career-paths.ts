@@ -10,6 +10,7 @@ export interface CareerPath {
   suitable_roles: string[];
   certifications: string[];
   skills: string[];
+  program_count: number; // list rows carry only the count; fetch the detail for the programs
   is_active: boolean;
   created_at: string;
   updated_at: string;

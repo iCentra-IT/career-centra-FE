@@ -1,9 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useCareerPaths, useCareerPathPrograms } from "@/hooks/queries/career-paths";
+import { useDeleteCareerPath } from "@/hooks/mutations/career-paths";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PencilIcon } from "@/components/ui/pencil-icon";
+import { EyeIcon } from "@/components/ui/eye-icon";
+import { TrashIcon } from "@/components/ui/trash-icon";
+import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { formatOrdinalDateTime, displayTitle } from "@/lib/format";
 import type { CareerPath } from "@/types/career-paths";
@@ -17,7 +23,13 @@ function accreditorLabel(certifications: string[]) {
   return "—";
 }
 
-function CareerPathRow({ pathway }: { pathway: CareerPath }) {
+function CareerPathRow({
+  pathway,
+  onDelete,
+}: {
+  pathway: CareerPath;
+  onDelete: (pathway: CareerPath) => void;
+}) {
   const { data: linkedPrograms } = useCareerPathPrograms(pathway.slug);
 
   return (
@@ -35,13 +47,32 @@ function CareerPathRow({ pathway }: { pathway: CareerPath }) {
       </td>
       <td className="px-5 py-4 text-gray-600">{formatOrdinalDateTime(pathway.updated_at)}</td>
       <td className="px-5 py-4">
-        <Link
-          href={`/admin/career-paths/${pathway.slug}/edit`}
-          className="text-gray-400 hover:text-gray-600"
-          aria-label="Edit career path"
-        >
-          <PencilIcon />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/career-paths/${pathway.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-gray-600"
+            aria-label="View career path"
+          >
+            <EyeIcon />
+          </Link>
+          <Link
+            href={`/admin/career-paths/${pathway.slug}/edit`}
+            className="text-gray-400 hover:text-gray-600"
+            aria-label="Edit career path"
+          >
+            <PencilIcon />
+          </Link>
+          <button
+            type="button"
+            onClick={() => onDelete(pathway)}
+            className="text-gray-400 hover:text-red-600"
+            aria-label="Delete career path"
+          >
+            <TrashIcon />
+          </button>
+        </div>
       </td>
     </tr>
   );
@@ -49,6 +80,19 @@ function CareerPathRow({ pathway }: { pathway: CareerPath }) {
 
 const AdminCareerPathsPage = () => {
   const { data: pathways, isLoading } = useCareerPaths();
+  const [deleteTarget, setDeleteTarget] = useState<CareerPath | null>(null);
+  const deleteCareerPath = useDeleteCareerPath();
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    deleteCareerPath.mutate(deleteTarget.slug, {
+      onSuccess: () => {
+        toast.success("Career path deleted.");
+        setDeleteTarget(null);
+      },
+      onError: (err) => toast.error(err.message),
+    });
+  };
 
   return (
     <div>
@@ -86,11 +130,20 @@ const AdminCareerPathsPage = () => {
               </tr>
             )}
             {pathways?.map((pathway) => (
-              <CareerPathRow key={pathway.id} pathway={pathway} />
+              <CareerPathRow key={pathway.id} pathway={pathway} onDelete={setDeleteTarget} />
             ))}
           </tbody>
         </table>
       </div>
+
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        title="Delete career path"
+        description={`Are you sure you want to delete "${deleteTarget ? displayTitle(deleteTarget.title) : ""}"? This can't be undone.`}
+        loading={deleteCareerPath.isPending}
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 };

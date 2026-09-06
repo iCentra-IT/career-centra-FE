@@ -1,13 +1,27 @@
 import { User } from "./user";
 
 // lib/api/types/student.ts
+// Locked to the backend's IndustryChoices.
 export type Industry =
   | 'finance_and_banking'
-  | string; // placeholder — send the full choices list when available, I'll lock this to a strict union
+  | 'real_estate'
+  | 'construction'
+  | 'oil_and_gas'
+  | 'hospitality_and_tourism'
+  | 'telecommunications'
+  | 'information_technology'
+  | 'healthcare_and_pharmaceuticals'
+  | 'others';
 
+// Locked to the backend's ReferralSourceChoices.
 export type ReferralSource =
   | 'friend'
-  | string; // same as above — placeholder until full choices are known
+  | 'relative'
+  | 'colleague'
+  | 'social_media'
+  | 'sponsored_ads'
+  | 'icentra_website'
+  | 'others';
 
 export interface StudentProfile {
   id: number;

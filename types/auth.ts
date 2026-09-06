@@ -9,7 +9,6 @@ export interface RegisterRequest {
   password: string;
   password2: string; // confirm password
   phone: string;
-  country: string; // ISO code, e.g. "NG" — confirm allowed format when you send the country list, if any
   location: string;
   org_name: string;
   position: string;

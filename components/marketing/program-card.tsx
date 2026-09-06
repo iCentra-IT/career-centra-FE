@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PublicProgramListing, programDisplayPrice } from "@/types/programs";
 import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
+import { BadgeIcon } from "@/components/ui/badge-icon";
 
 interface ProgramCardProps {
   program: PublicProgramListing;
@@ -26,7 +27,8 @@ export function ProgramCard({ program, buttonTone = "cyan" }: ProgramCardProps) 
   return (
     <div className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-main to-deep-blue p-5 text-white">
       <div>
-        <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+          <BadgeIcon />
           {badge}
         </span>
         <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-glass">

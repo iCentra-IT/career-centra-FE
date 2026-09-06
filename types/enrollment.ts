@@ -73,10 +73,15 @@ export interface CheckoutInitiateResponse {
   gateway_url: string; // redirect target for the payment gateway checkout page
 }
 
+// The gateway's own redirect back to us (confirmed real, e.g.
+// /api/checkout/confirm/?status=successful&tx_ref=ICT-...&transaction_id=...) only ever carries
+// tx_ref and transaction_id — tx_ref is the same value we got back as payment_reference from
+// /api/checkout/initiate/. session_id has never actually been observed; keep it optional rather
+// than guessing a value for it.
 export interface CheckoutVerifyRequest {
   payment_reference: string;
   transaction_id: string;
-  session_id: string;
+  session_id?: string;
 }
 
 export interface StudentEnrollmentsResponse {

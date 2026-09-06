@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useProgram, usePrograms } from "@/hooks/queries/programs";
+import { useRelatedPathPrograms } from "@/hooks/queries/career-paths";
 import { programDisplayPrice } from "@/types/programs";
 import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
@@ -10,6 +11,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { EnrolButton } from "@/components/marketing/enrol-button";
 import { AddToCartButton } from "@/components/marketing/add-to-cart-button";
+import { CareerPathProgramCard } from "@/components/marketing/career-path-program-card";
 
 const TABS = [
   { label: "Learning Outcome", id: "learning-outcomes" },
@@ -49,6 +51,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
   // response's embedded cohorts, not the detail endpoint, so pull the matching listing for it.
   const { data: programsData } = usePrograms();
   const matchedListing = programsData?.results?.find((p) => p.slug === slug);
+  const { path: careerPath, related: relatedPrograms } = useRelatedPathPrograms(slug);
   const [openModule, setOpenModule] = useState<number | null>(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -430,6 +433,20 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                   </div>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {relatedPrograms.length > 0 && (
+          <section className="scroll-mt-32 border-t border-gray-100 py-6">
+            <SectionEyebrow>Other Courses</SectionEyebrow>
+            <h2 className="mt-1 text-2xl font-semibold text-gray-900">
+              {careerPath ? `More in ${displayTitle(careerPath.title)}` : "Related courses"}
+            </h2>
+            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {relatedPrograms.slice(0, 4).map((related) => (
+                <CareerPathProgramCard key={related.id} program={related} buttonTone="blue" />
+              ))}
             </div>
           </section>
         )}

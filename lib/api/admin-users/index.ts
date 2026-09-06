@@ -9,13 +9,16 @@ export async function getAdminLearners(): Promise<AdminLearner[]> {
   return unwrapList<AdminLearner>(data);
 }
 
+// GET /admin/all-users/ — lists every user regardless of role (student, facilitator, staff-admin,
+// admin), superseding /api/auth/admin/users/ for listing/viewing/reassigning. No create endpoint
+// was given alongside this, so createAdminUser below still targets the original path.
 export async function getAdminUsers(): Promise<AdminUser[]> {
-  const { data } = await apiClient.get("/api/auth/admin/users/");
+  const { data } = await apiClient.get("/api/admin/all-users/");
   return unwrapList<AdminUser>(data);
 }
 
 export async function getAdminUser(id: number): Promise<AdminUser> {
-  const { data } = await apiClient.get(`/api/auth/admin/users/${id}/`);
+  const { data } = await apiClient.get(`/api/admin/all-users/${id}/`);
   return unwrapObject<AdminUser>(data);
 }
 
@@ -24,7 +27,8 @@ export async function createAdminUser(payload: CreateAdminUserRequest): Promise<
   return unwrapObject<AdminUser>(data);
 }
 
+// PATCH /admin/all-users/<pk>/ — reassign role / deactivate any user.
 export async function patchAdminUser(id: number, payload: PatchAdminUserRequest): Promise<AdminUser> {
-  const { data } = await apiClient.patch(`/api/auth/admin/users/${id}/`, payload);
+  const { data } = await apiClient.patch(`/api/admin/all-users/${id}/`, payload);
   return unwrapObject<AdminUser>(data);
 }
