@@ -98,7 +98,7 @@ const ForgotPasswordPage = () => {
 
   const onResetSubmit = (values: ResetFormValues) => {
     passwordResetConfirm.mutate(
-      { token: otp, ...values },
+      { email, otp, ...values },
       {
         onSuccess: () => {
           toast.success("Password reset. You can now log in.");
