@@ -1,6 +1,7 @@
 // lib/api/auth/register.ts
 import {
   ChangePasswordRequest,
+  DeactivateAccountRequest,
   LoginRequest,
   LoginResponse,
   LogoutRequest,
@@ -9,11 +10,15 @@ import {
   PatchProfileRequest,
   RegisterRequest,
   RegisterResponse,
+  StaffAcceptInviteRequest,
+  StaffAcceptInviteResponse,
   UpdateProfileRequest,
   UpdateProfileResponse,
+  VerifyEmailRequest,
+  VerifyEmailResponse,
 } from "@/types/auth";
 import { apiClient } from "../client";
-import { ApiResponse } from "@/types/api";
+import { ApiResponse, unwrapObject } from "@/types/api";
 import { User } from "@/types/user";
 
 export async function registerStudent(
@@ -91,4 +96,27 @@ export async function confirmPasswordReset(
     payload,
   );
   return data.data;
+}
+
+// Activates an account using the signed token emailed on registration. Public — no auth header needed.
+export async function verifyEmail(
+  payload: VerifyEmailRequest,
+): Promise<VerifyEmailResponse> {
+  const { data } = await apiClient.post("/api/auth/verify-email/", payload);
+  return unwrapObject<VerifyEmailResponse>(data);
+}
+
+// Validates a staff/staff-admin invite token and sets the invitee's password, activating the account.
+export async function acceptStaffInvite(
+  payload: StaffAcceptInviteRequest,
+): Promise<StaffAcceptInviteResponse> {
+  const { data } = await apiClient.post("/api/auth/staff/accept-invite/", payload);
+  return unwrapObject<StaffAcceptInviteResponse>(data);
+}
+
+// Deactivates (soft-deletes) the current user's account after confirming their password.
+export async function deactivateAccount(
+  payload: DeactivateAccountRequest,
+): Promise<void> {
+  await apiClient.post("/api/auth/me/deactivate/", payload);
 }

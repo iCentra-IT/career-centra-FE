@@ -26,7 +26,7 @@ const LEGAL_LINKS = [
 function Logo() {
   return (
     <div className="flex items-center gap-2">
-      <svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      {/* <svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true">
         <circle cx="14" cy="14" r="12" stroke="#00dbff" strokeWidth="3" />
         <circle cx="14" cy="10" r="2.5" fill="#00afeb" />
         <path
@@ -36,8 +36,8 @@ function Logo() {
           strokeLinecap="round"
           fill="none"
         />
-      </svg>
-      <span className="text-2xl font-semibold">iCentra</span>
+      </svg> */}
+      <span className="text-2xl font-semibold">CareerCentra</span>
     </div>
   );
 }

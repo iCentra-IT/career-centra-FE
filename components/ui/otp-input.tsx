@@ -35,6 +35,25 @@ export function OtpInput({ length, value, onChange }: OtpInputProps) {
     }
   };
 
+  // Each box has maxLength=1, so a paste event otherwise gets truncated to whatever the browser
+  // keeps of the pasted string — only the first character ever lands. Read the clipboard directly
+  // and spread it across the remaining boxes instead.
+  const handlePaste = (index: number, e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "");
+    if (!pasted) return;
+    e.preventDefault();
+
+    const next = digits.slice();
+    let cursor = index;
+    for (const char of pasted) {
+      if (cursor >= length) break;
+      next[cursor] = char;
+      cursor++;
+    }
+    onChange(next.join(""));
+    inputsRef.current[Math.min(cursor, length - 1)]?.focus();
+  };
+
   return (
     <div className="flex justify-center gap-2">
       {digits.map((digit, i) => (
@@ -46,6 +65,7 @@ export function OtpInput({ length, value, onChange }: OtpInputProps) {
           value={digit}
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
+          onPaste={(e) => handlePaste(i, e)}
           inputMode="numeric"
           maxLength={1}
           placeholder="*"

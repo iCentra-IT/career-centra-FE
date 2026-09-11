@@ -55,7 +55,7 @@ export function Sidebar({ items }: { items: NavItem[] }) {
             <path d="M8 20c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5" stroke="#0c236c" strokeWidth="2.5" strokeLinecap="round" fill="none" />
           </svg>
           <span className={`text-xl font-semibold text-main ${collapsed ? "lg:hidden" : ""}`}>
-            Career Centra
+            CareerCentra
           </span>
           <button
             type="button"

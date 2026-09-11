@@ -78,7 +78,7 @@ function Logo() {
           fill="none"
         />
       </svg> */}
-      <span className="text-lg font-semibold text-main">Career Centra</span>
+      <span className="text-lg font-semibold text-main">CareerCentra</span>
     </Link>
   );
 }

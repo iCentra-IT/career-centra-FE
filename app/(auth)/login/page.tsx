@@ -47,6 +47,13 @@ const LoginForm = () => {
 
   return (
     <div>
+      <Link
+        href="/"
+        className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-secondary hover:underline"
+      >
+        ← Back to Home
+      </Link>
+
       <h1 className="text-2xl font-semibold text-gray-900">
         Login to your account
       </h1>

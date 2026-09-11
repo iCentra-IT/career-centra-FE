@@ -9,13 +9,17 @@ import { Button } from "@/components/ui/button";
 import { CartOrderConfirm } from "@/components/marketing/cart-order-confirm";
 import { ConfirmShell, ConfirmSpinner } from "@/components/marketing/checkout-confirm-shell";
 
-// The payment gateway redirects the browser back here after every checkout. A cart checkout
-// stashes its order id in sessionStorage just before redirecting, so if that's present we track
-// the order; otherwise this was the single-cohort "Enrol now" flow and we verify by reference.
+// The payment gateway redirects the browser back here after every checkout — via the backend's
+// own /api/checkout/confirm/, which verifies with the gateway first. A cart checkout stashes its
+// order id in sessionStorage just before redirecting, so if that's present we track the order;
+// otherwise this was the single-cohort "Enrol now" flow and we verify by reference. Flutterwave
+// carries tx_ref/transaction_id/status; Stripe carries ref/session_id (no status).
 export function CheckoutConfirmContent(props: {
   status?: string;
   txRef?: string;
   transactionId?: string;
+  sessionId?: string;
+  paymentRef?: string;
 }) {
   const [orderId] = useState<number | null>(() => {
     try {
@@ -38,14 +42,25 @@ function VerifyConfirm({
   status,
   txRef,
   transactionId,
+  sessionId,
+  paymentRef,
 }: {
   status?: string;
   txRef?: string;
   transactionId?: string;
+  sessionId?: string;
+  paymentRef?: string;
 }) {
   const router = useRouter();
   const verifyCheckout = useVerifyCheckout();
-  const canVerify = status === "successful" && !!txRef && !!transactionId;
+
+  // Flutterwave sends a status we can trust to fail fast on a cancel; Stripe sends none, so its
+  // pair is only trusted once /api/checkout/verify/ actually confirms it.
+  const flutterwavePair = !!txRef && !!transactionId;
+  const stripePair = !!paymentRef && !!sessionId;
+  const gatewayReportedFailure = status != null && status !== "successful";
+  const canVerify = !gatewayReportedFailure && (flutterwavePair || stripePair);
+
   const [outcome, setOutcome] = useState<Outcome>(canVerify ? "verifying" : "failed");
   const ranOnce = useRef(false);
 
@@ -60,7 +75,7 @@ function VerifyConfirm({
       /* ignore */
     }
 
-    if (!canVerify || !txRef || !transactionId) {
+    if (!canVerify) {
       toast.error(
         status === "cancelled" ? "Payment was cancelled." : "Payment was not completed.",
       );
@@ -68,7 +83,11 @@ function VerifyConfirm({
     }
 
     verifyCheckout.mutate(
-      { payment_reference: txRef, transaction_id: transactionId },
+      {
+        payment_reference: flutterwavePair ? (txRef as string) : (paymentRef as string),
+        transaction_id: flutterwavePair ? transactionId : undefined,
+        session_id: stripePair ? sessionId : undefined,
+      },
       {
         onSuccess: () => {
           setOutcome("success");

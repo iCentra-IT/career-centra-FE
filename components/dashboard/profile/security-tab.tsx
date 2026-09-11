@@ -5,11 +5,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useChangePassword } from "@/hooks/mutations/auth";
+import { useChangePassword, useDeactivateAccount } from "@/hooks/mutations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { IconBadge } from "@/components/ui/icon-badge";
+import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import type { ChangePasswordRequest } from "@/types/auth";
 
 const changePasswordSchema = z
@@ -24,6 +25,11 @@ const changePasswordSchema = z
   });
 type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
 
+const deactivateSchema = z.object({
+  password: z.string().min(1, "Enter your password to confirm"),
+});
+type DeactivateValues = z.infer<typeof deactivateSchema>;
+
 function ChevronIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -32,7 +38,13 @@ function ChevronIcon() {
   );
 }
 
-function SecurityMenu({ onChangePassword }: { onChangePassword: () => void }) {
+function SecurityMenu({
+  onChangePassword,
+  onDeactivateAccount,
+}: {
+  onChangePassword: () => void;
+  onDeactivateAccount: () => void;
+}) {
   return (
     <div>
       <h2 className="text-lg font-semibold text-gray-900">Security</h2>
@@ -69,12 +81,100 @@ function SecurityMenu({ onChangePassword }: { onChangePassword: () => void }) {
           <ChevronIcon />
         </div>
       </div>
+
+      <h2 className="mt-8 text-lg font-semibold text-red-600">Danger Zone</h2>
+      <div className="mt-3 max-w-2xl rounded-2xl border border-red-100 bg-white">
+        <button
+          type="button"
+          onClick={onDeactivateAccount}
+          className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-red-50"
+        >
+          <div>
+            <p className="text-sm font-semibold text-red-600">Deactivate Account</p>
+            <p className="mt-0.5 text-sm text-gray-500">
+              Deactivate your account. You won&apos;t be able to log in until it&apos;s
+              reactivated.
+            </p>
+          </div>
+          <ChevronIcon />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DeactivateAccountView({ onBack }: { onBack: () => void }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingPassword, setPendingPassword] = useState("");
+
+  const deactivateAccount = useDeactivateAccount();
+  const form = useForm<DeactivateValues>({ resolver: zodResolver(deactivateSchema) });
+
+  const onSubmit = (values: DeactivateValues) => {
+    setPendingPassword(values.password);
+    setConfirmOpen(true);
+  };
+
+  const onConfirm = () => {
+    deactivateAccount.mutate(
+      { password: pendingPassword },
+      {
+        onSuccess: () => toast.success("Your account has been deactivated."),
+        onError: (err) => {
+          setConfirmOpen(false);
+          toast.error(err.message);
+        },
+      },
+    );
+  };
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-red-600">Deactivate Account</h2>
+      <p className="mt-1 max-w-md text-sm text-gray-500">
+        This deactivates your account and logs you out — you won&apos;t be able to log back in
+        until an admin reactivates it. Confirm your password to continue.
+      </p>
+
+      <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 flex max-w-md flex-col gap-5">
+        <Input
+          label="Password"
+          type="password"
+          required
+          placeholder="Enter your password"
+          error={form.formState.errors.password?.message}
+          {...form.register("password")}
+        />
+
+        <div className="flex gap-3">
+          <Button type="submit" className="w-auto bg-red-600 px-6 hover:bg-red-700">
+            Deactivate Account
+          </Button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="rounded-md border border-gray-200 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Close
+          </button>
+        </div>
+      </form>
+
+      <ConfirmDeleteModal
+        open={confirmOpen}
+        title="Deactivate your account?"
+        description="This immediately logs you out and deactivates your account. You will need an admin to reactivate it before you can log in again."
+        confirmLabel="Yes, Deactivate"
+        loading={deactivateAccount.isPending}
+        onConfirm={onConfirm}
+        onClose={() => setConfirmOpen(false)}
+      />
     </div>
   );
 }
 
 export function SecurityTab() {
-  const [view, setView] = useState<"menu" | "change-password">("menu");
+  const [view, setView] = useState<"menu" | "change-password" | "deactivate-account">("menu");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<ChangePasswordRequest | null>(null);
@@ -109,7 +209,16 @@ export function SecurityTab() {
   };
 
   if (view === "menu") {
-    return <SecurityMenu onChangePassword={() => setView("change-password")} />;
+    return (
+      <SecurityMenu
+        onChangePassword={() => setView("change-password")}
+        onDeactivateAccount={() => setView("deactivate-account")}
+      />
+    );
+  }
+
+  if (view === "deactivate-account") {
+    return <DeactivateAccountView onBack={() => setView("menu")} />;
   }
 
   return (

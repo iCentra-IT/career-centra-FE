@@ -58,3 +58,23 @@ export interface PasswordResetConfirmRequest {
   new_password: string;
   new_password2: string;
 }
+
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+// PLACEHOLDER — no response sample given; treat any 2xx as success and just show a generic message.
+export type VerifyEmailResponse = { message?: string } | null;
+
+export interface StaffAcceptInviteRequest {
+  token: string;
+  password: string;
+  password2: string;
+}
+
+// PLACEHOLDER — no response sample given; treat any 2xx as success.
+export type StaffAcceptInviteResponse = { message?: string } | null;
+
+export interface DeactivateAccountRequest {
+  password: string;
+}

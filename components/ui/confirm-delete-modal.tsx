@@ -7,6 +7,7 @@ export function ConfirmDeleteModal({
   open,
   title,
   description,
+  confirmLabel = "Delete",
   loading,
   onConfirm,
   onClose,
@@ -14,6 +15,7 @@ export function ConfirmDeleteModal({
   open: boolean;
   title: string;
   description: string;
+  confirmLabel?: string;
   loading?: boolean;
   onConfirm: () => void;
   onClose: () => void;
@@ -37,7 +39,7 @@ export function ConfirmDeleteModal({
             onClick={onConfirm}
             className="flex-1 bg-red-600 hover:bg-red-700"
           >
-            Delete
+            {confirmLabel}
           </Button>
         </div>
       </div>

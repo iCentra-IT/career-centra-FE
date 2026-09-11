@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ChangePasswordRequest,
+  DeactivateAccountRequest,
   LoginRequest,
   LoginResponse,
   PasswordResetConfirmRequest,
@@ -9,16 +10,23 @@ import {
   PatchProfileRequest,
   RegisterRequest,
   RegisterResponse,
+  StaffAcceptInviteRequest,
+  StaffAcceptInviteResponse,
   UpdateProfileResponse,
+  VerifyEmailRequest,
+  VerifyEmailResponse,
 } from "@/types/auth";
 import {
+  acceptStaffInvite,
   changePassword,
   confirmPasswordReset,
+  deactivateAccount,
   loginUser,
   logoutUser,
   patchProfile,
   registerStudent,
   requestPasswordReset,
+  verifyEmail,
 } from "@/lib/api/auth";
 import { NormalizedError } from "@/types/api";
 import { dashboardHomeFor } from "@/types/user";
@@ -108,6 +116,34 @@ export function usePatchProfile() {
     mutationFn: patchProfile,
     onSuccess: (user) => {
       queryClient.setQueryData(queryKeys.auth.me, user);
+    },
+  });
+}
+
+export function useVerifyEmail() {
+  return useMutation<VerifyEmailResponse, NormalizedError, VerifyEmailRequest>({
+    mutationFn: verifyEmail,
+  });
+}
+
+export function useAcceptStaffInvite() {
+  return useMutation<StaffAcceptInviteResponse, NormalizedError, StaffAcceptInviteRequest>({
+    mutationFn: acceptStaffInvite,
+  });
+}
+
+export function useDeactivateAccount() {
+  const router = useRouter();
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const queryClient = useQueryClient();
+
+  return useMutation<void, NormalizedError, DeactivateAccountRequest>({
+    mutationFn: deactivateAccount,
+    onSuccess: () => {
+      // The account is gone — same treatment as a deliberate logout: clear everything and go home.
+      clearAuth();
+      queryClient.clear();
+      router.push("/");
     },
   });
 }
