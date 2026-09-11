@@ -68,7 +68,7 @@ const EMPTY_VALUES: ProgramFormValues = {
   programType: "",
   badge: "none",
   level: "",
-  audience: "",
+  audience: "individual",
   priceUsd: "",
   priceNgn: "",
   learningOutcomes: [],
@@ -274,7 +274,9 @@ export function ProgramForm({
             <select
               value={audience}
               onChange={(e) => setAudience(e.target.value)}
-              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+              disabled
+              title="Audience switching isn't available yet — new programs are individual-only for now"
+              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
             >
               <option value="">Select Audience type</option>
               {AUDIENCE_OPTIONS.map((opt) => (
