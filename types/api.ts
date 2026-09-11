@@ -18,10 +18,19 @@ export interface ApiErrorResponse {
 export class NormalizedError extends Error {
   status?: number;
   errors?: Record<string, string[]>;
-  constructor(message: string, status?: number, errors?: Record<string, string[]>) {
+  // Raw response body — kept so callers can read endpoint-specific error shapes
+  // (e.g. the cart checkout's `item_errors` map) without re-parsing the axios error.
+  data?: unknown;
+  constructor(
+    message: string,
+    status?: number,
+    errors?: Record<string, string[]>,
+    data?: unknown,
+  ) {
     super(message);
     this.status = status;
     this.errors = errors;
+    this.data = data;
   }
 }
 
@@ -30,7 +39,8 @@ export function normalizeError(error: unknown): NormalizedError {
     return new NormalizedError(
       error.response?.data?.message ?? error.response?.data?.detail ?? error.message,
       error.response?.status,
-      error.response?.data?.errors
+      error.response?.data?.errors,
+      error.response?.data,
     );
   }
   return new NormalizedError('An unexpected error occurred');

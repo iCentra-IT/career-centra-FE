@@ -174,6 +174,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               <EnrolButton
                 cohortId={currentCohort?.id}
                 enrollmentOpen={currentCohort?.is_enrollment_open}
+                withCoupon
                 className="w-full rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Enrol Now
@@ -354,6 +355,11 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
         <section className="scroll-mt-32 border-t border-gray-100 py-6">
           <SectionEyebrow>Upcoming Cohorts</SectionEyebrow>
           <h2 className="mt-1 text-2xl font-semibold text-gray-900">Course Schedule</h2>
+          {programCohorts.length > 0 && (
+            <p className="mt-1 text-sm text-gray-500">
+              Add a cohort to your cart to apply a coupon code at checkout.
+            </p>
+          )}
           {programCohorts.length === 0 ? (
             <p className="mt-5 text-sm text-gray-400">No upcoming cohorts scheduled yet.</p>
           ) : (
@@ -386,13 +392,25 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                         {formatMoney(cohort.default_price, cohort.currency)}
                       </td>
                       <td className="px-5 py-4">
-                        <EnrolButton
-                          cohortId={cohort.id}
-                          enrollmentOpen={cohort.is_enrollment_open}
+                        <AddToCartButton
+                          item={{
+                            programId: program.id,
+                            slug: program.slug,
+                            title: program.title,
+                            summary: program.summary,
+                            badge: program.has_pmi_badge
+                              ? "PMI Authorized"
+                              : program.has_pecb_badge
+                                ? "PECB Authorized"
+                                : program.level_display,
+                            code: program.code,
+                            priceAmount: cohort.default_price,
+                            priceCurrency: cohort.currency,
+                            cohortId: cohort.id,
+                            cohortStartsOn: cohort.starts_on,
+                          }}
                           className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Enrol
-                        </EnrolButton>
+                        />
                       </td>
                     </tr>
                   ))}

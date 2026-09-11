@@ -6,6 +6,20 @@ export function isAdminDashboardRole(role: UserRole) {
   return role === 'admin' || role === 'staff-admin';
 }
 
+// Home of a role's dashboard area — post-login redirect and the header's "Dashboard" link.
+export function dashboardHomeFor(role: UserRole): string {
+  if (isAdminDashboardRole(role)) return '/admin';
+  if (role === 'facilitator') return '/facilitators';
+  return '/students';
+}
+
+// Where a role's "Profile"/account settings live.
+export function profilePathFor(role: UserRole): string {
+  if (isAdminDashboardRole(role)) return '/admin/profile';
+  if (role === 'facilitator') return '/facilitators/settings/profile';
+  return '/students/profile';
+}
+
 const ROLE_LABELS: Record<UserRole, string> = {
   student: 'Student',
   facilitator: 'Facilitator',

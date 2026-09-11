@@ -25,7 +25,7 @@ export function Modal({ open, onClose, children }: ModalProps) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
+      <div className="relative max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-6 shadow-lg sm:p-8">
         <button
           type="button"
           onClick={onClose}

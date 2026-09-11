@@ -21,9 +21,11 @@ import {
   requestPasswordReset,
 } from "@/lib/api/auth";
 import { NormalizedError } from "@/types/api";
-import { isAdminDashboardRole } from "@/types/user";
+import { dashboardHomeFor } from "@/types/user";
 import { queryKeys } from "@/lib/api/query-keys";
 import { getRefreshToken, useAuthStore } from "@/lib/store/authStore";
+import { useCartStore, guestCartCohortIds } from "@/lib/store/cartStore";
+import { mergeGuestCart } from "@/lib/api/cart";
 import { useRouter } from "next/navigation";
 
 export function useRegister() {
@@ -34,13 +36,27 @@ export function useRegister() {
 
 export function useLogin(next?: string | null) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const setAuth = useAuthStore((s) => s.setAuth);
 
   return useMutation<LoginResponse, NormalizedError, LoginRequest>({
     mutationFn: loginUser,
     onSuccess: (data) => {
       setAuth({ user: data.user, access: data.access, refresh: data.refresh });
-      const dashboardHref = isAdminDashboardRole(data.user.role) ? "/admin" : "/students";
+
+      // Fold any locally-held guest cart into the server cart. Best-effort — never block login on it.
+      const cohortIds = guestCartCohortIds();
+      if (cohortIds.length > 0) {
+        mergeGuestCart({ cohort_ids: cohortIds })
+          .catch(() => {})
+          .finally(() => {
+            useCartStore.getState().clear();
+            queryClient.invalidateQueries({ queryKey: queryKeys.cart.root });
+            queryClient.invalidateQueries({ queryKey: queryKeys.cart.count });
+          });
+      }
+
+      const dashboardHref = dashboardHomeFor(data.user.role);
       // Only students get sent back to where they left off — everyone else always lands on their dashboard.
       router.push(data.user.role === "student" && next ? next : dashboardHref);
     },

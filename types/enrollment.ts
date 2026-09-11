@@ -59,15 +59,16 @@ export interface EnrollmentReceipt {
 // lib/api/types/checkout.ts
 
 export interface CheckoutInitiateRequest {
-  cohort_id: number;
+  cohort_ids: number[]; // the endpoint takes a list even for a single-cohort "Enrol now"
   country_code: string; // e.g. "NG"
   currency: string; // "NGN" | "USD"
   coupon_code: string; // empty string if none applied
 }
 
-// Confirmed real shape from a live /api/checkout/initiate/ response.
 export interface CheckoutInitiateResponse {
-  enrollment_id: number;
+  order_id?: number; // present now that initiate creates an order like the cart checkout does
+  enrollment_id?: number; // legacy single-cohort shape
+  enrollment_ids?: number[];
   payment_reference: string;
   gateway: PaymentGateway;
   gateway_url: string; // redirect target for the payment gateway checkout page

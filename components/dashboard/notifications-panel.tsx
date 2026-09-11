@@ -22,7 +22,7 @@ export function NotificationsPanel({ onClose }: { onClose: () => void }) {
   const hasUnread = (notifications ?? []).some((n) => !n.is_read);
 
   return (
-    <div className="absolute right-0 top-full z-40 mt-2 w-96 rounded-2xl border border-gray-100 bg-white shadow-lg">
+    <div className="absolute right-0 top-full z-40 mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-100 bg-white shadow-lg">
       <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
         <h2 className="text-base font-semibold text-gray-900">Notifications</h2>
         <button

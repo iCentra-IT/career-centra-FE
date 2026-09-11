@@ -29,11 +29,28 @@ export function formatUsd(value: string | number) {
 const CURRENCY_SYMBOLS: Record<string, string> = {
   NGN: "₦",
   USD: "$",
+  EUR: "€",
+  GBP: "£",
+  GHS: "₵",
+  KES: "KSh ",
 };
 
 export function formatMoney(value: string | number, currency: string) {
   const num = typeof value === "string" ? parseFloat(value) : value;
   const amount = num.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  const symbol = CURRENCY_SYMBOLS[currency?.toUpperCase()];
+  return symbol ? `${symbol}${amount}` : `${currency} ${amount}`;
+}
+
+// Like formatMoney but keeps the cents — for carts, orders and receipts where the exact
+// decimal string from the API matters.
+export function formatCurrency(value: string | number | null | undefined, currency: string) {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (num == null || !Number.isFinite(num)) return "—";
+  const amount = num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
   const symbol = CURRENCY_SYMBOLS[currency?.toUpperCase()];
   return symbol ? `${symbol}${amount}` : `${currency} ${amount}`;
 }

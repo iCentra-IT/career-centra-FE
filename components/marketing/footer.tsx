@@ -1,45 +1,100 @@
 import Link from "next/link";
+import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 
-const COLUMNS = [
-  {
-    title: "Quick Link",
-    links: [
-      { label: "Home", href: "/" },
-      { label: "About Us", href: "/about" },
-      { label: "Contact Us", href: "/contact" },
-      { label: "Media Room", href: "/about" },
-    ],
-  },
-  {
-    title: "About iCentra",
-    links: [
-      { label: "Who we are", href: "/about" },
-      { label: "Leadership Team", href: "/about" },
-      { label: "Careers", href: "/about" },
-      { label: "Media Room", href: "/about" },
-    ],
-  },
-  {
-    title: "Our Solution",
-    links: [
-      { label: "Continuous Transformation", href: "/about" },
-      { label: "Our solution", href: "/about" },
-      { label: "Platforms", href: "/about" },
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
-      { label: "Terms of Use", href: "/terms" },
-      { label: "Privacy Policy", href: "/privacy" },
-    ],
-  },
+const PROGRAM_LINKS = [
+  { label: "Project Management", href: `/programms?track=${encodeURIComponent(PATHWAY_CATEGORIES[0].programType)}` },
+  { label: "Agile & Product", href: `/programms?track=${encodeURIComponent(PATHWAY_CATEGORIES[1].programType)}` },
+  { label: "Cybersecurity & Risk", href: `/programms?track=${encodeURIComponent(PATHWAY_CATEGORIES[2].programType)}` },
+  { label: "AI & Digital Transformation", href: `/programms?track=${encodeURIComponent(PATHWAY_CATEGORIES[3].programType)}` },
+  { label: "Executive Programs", href: "/programms" },
 ];
 
-function SocialIcon({ path }: { path: string }) {
+// No dedicated solutions pages exist yet — these route to Contact rather than a dead link.
+const SOLUTION_LINKS = [
+  { label: "Workforce Capability Partnerships™", href: "/contact" },
+  { label: "Corporate Training", href: "/contact" },
+  { label: "Enterprise Certification", href: "/contact" },
+  { label: "Leadership Development", href: "/contact" },
+  { label: "Terms and Conditions", href: "/terms" },
+];
+
+const LEGAL_LINKS = [
+  { label: "Terms of Use", href: "/terms" },
+  { label: "Privacy Policy", href: "/privacy" },
+];
+
+function Logo() {
+  return (
+    <div className="flex items-center gap-2">
+      <svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <circle cx="14" cy="14" r="12" stroke="#00dbff" strokeWidth="3" />
+        <circle cx="14" cy="10" r="2.5" fill="#00afeb" />
+        <path
+          d="M8 20c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5"
+          stroke="#00dbff"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
+      <span className="text-2xl font-semibold">iCentra</span>
+    </div>
+  );
+}
+
+function SocialBadge({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-deep-blue transition-opacity hover:opacity-85"
+    >
+      {children}
+    </a>
+  );
+}
+
+function XIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d={path} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M10.5 5H9.3c-.4 0-.6.3-.6.7V7h1.7l-.3 1.8H8.7V14H6.8V8.8H5.3V7h1.5V5.5C6.8 3.9 7.8 3 9.3 3h1.2v2z" />
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="2.5" y="2.5" width="11" height="11" rx="3" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="8" cy="8" r="2.6" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="11.3" cy="4.7" r="0.7" fill="currentColor" />
+    </svg>
+  );
+}
+
+function YoutubeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="1.5" y="3.5" width="13" height="9" rx="2.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M6.7 6v4l3.5-2-3.5-2z" fill="currentColor" />
     </svg>
   );
 }
@@ -48,51 +103,71 @@ export function MarketingFooter() {
   return (
     <footer className="bg-deep-blue px-6 py-14 text-white">
       <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="lg:col-span-1">
-            <div className="flex items-center gap-2">
-              <svg width="22" height="22" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <circle cx="14" cy="14" r="12" stroke="#00dbff" strokeWidth="3" />
-                <circle cx="14" cy="10" r="2.5" fill="#00afeb" />
-                <path
-                  d="M8 20c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5"
-                  stroke="#00dbff"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-              </svg>
-              <span className="text-lg font-semibold">iCentra</span>
-            </div>
-            <p className="mt-3 text-sm text-white/60">
-              Transforming people &amp; organizations for excellence.
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+          <div>
+            <Logo />
+            <p className="mt-3 max-w-xs text-sm text-white/60">
+              Globally aligned certifications, executive programs, and workforce capability
+              solutions that deliver measurable business outcomes.
             </p>
+            <div className="mt-5 flex items-center gap-3">
+              <SocialBadge href="https://x.com" label="X (Twitter)">
+                <XIcon />
+              </SocialBadge>
+              <SocialBadge href="https://facebook.com" label="Facebook">
+                <FacebookIcon />
+              </SocialBadge>
+              <SocialBadge href="https://instagram.com" label="Instagram">
+                <InstagramIcon />
+              </SocialBadge>
+              <SocialBadge href="https://youtube.com" label="YouTube">
+                <YoutubeIcon />
+              </SocialBadge>
+            </div>
           </div>
 
-          {COLUMNS.map((col) => (
-            <div key={col.title}>
-              <h3 className="text-sm font-semibold text-white">{col.title}</h3>
-              <ul className="mt-4 flex flex-col gap-2.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link href={link.href} className="text-sm text-white/60 hover:text-white">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div>
+            <h3 className="text-sm font-semibold text-white">Programs</h3>
+            <ul className="mt-4 flex flex-col gap-2.5">
+              {PROGRAM_LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-white/60 hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-white">Solution</h3>
+            <ul className="mt-4 flex flex-col gap-2.5">
+              {SOLUTION_LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-white/60 hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-white">Legal Terms</h3>
+            <ul className="mt-4 flex flex-col gap-2.5">
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-white/60 hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row">
+        <div className="mt-12 border-t border-white/10 pt-6">
           <p className="text-xs text-white/50">© 2026 iCentra. All rights reserved.</p>
-          <div className="flex items-center gap-4 text-white/60">
-            <SocialIcon path="M2 2l12 12M14 2L2 14" />
-            <SocialIcon path="M11 2H9a3 3 0 00-3 3v2H4v3h2v6h3V10h2.2L11.5 7H9V5.2c0-.4.3-.7.7-.7H11V2z" />
-            <SocialIcon path="M3 3h10v10H3zM8 6.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM10.7 4.8h.01" />
-            <SocialIcon path="M2 4.5l6 3.5-6 3.5v-7zM8 4h6v8H8" />
-          </div>
         </div>
       </div>
     </footer>

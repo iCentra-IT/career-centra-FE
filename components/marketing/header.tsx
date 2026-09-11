@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
-import { isAdminDashboardRole } from "@/types/user";
+import { useCartCount } from "@/hooks/queries/cart";
+import { dashboardHomeFor, profilePathFor } from "@/types/user";
 import { useLogout } from "@/hooks/mutations/auth";
 import { SiteSearch } from "@/components/marketing/site-search";
 
@@ -26,7 +27,10 @@ function CartIcon() {
 }
 
 function CartLink() {
-  const count = useCartStore((s) => s.items.length);
+  const user = useAuthStore((s) => s.user);
+  const guestCount = useCartStore((s) => s.items.length);
+  const { data: serverCount } = useCartCount();
+  const count = user ? serverCount ?? 0 : guestCount;
 
   return (
     <Link href="/cart" aria-label="Cart" className="relative text-gray-500 hover:text-main">
@@ -116,8 +120,8 @@ function AccountMenu() {
     );
   }
 
-  const dashboardHref = isAdminDashboardRole(user.role) ? "/admin" : "/students";
-  const profileHref = isAdminDashboardRole(user.role) ? "/admin/profile" : "/students/profile";
+  const dashboardHref = dashboardHomeFor(user.role);
+  const profileHref = profilePathFor(user.role);
   const initials = `${user.first_name[0] ?? ""}${user.last_name[0] ?? ""}`.toUpperCase();
 
   return (
@@ -164,7 +168,7 @@ export function MarketingHeader() {
   const logout = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const dashboardHref = user ? (isAdminDashboardRole(user.role) ? "/admin" : "/students") : null;
+  const dashboardHref = user ? dashboardHomeFor(user.role) : null;
 
   return (
     <header className="sticky top-0 z-30 bg-white relative">

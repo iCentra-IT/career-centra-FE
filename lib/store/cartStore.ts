@@ -1,4 +1,8 @@
 // lib/store/cart-store.ts
+//
+// GUEST cart only. Logged-out shoppers can add cohorts before signing in; this holds a rich
+// snapshot purely for display. On login the cohort ids are POSTed to /api/cart/merge/ and this
+// store is cleared — from then on the server cart (useCart) is the source of truth.
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -18,7 +22,7 @@ export interface CartItem {
 interface CartState {
   items: CartItem[];
   addItem: (item: CartItem) => void;
-  removeItem: (programId: number) => void;
+  removeItem: (cohortId: number) => void;
   clear: () => void;
 }
 
@@ -28,13 +32,16 @@ export const useCartStore = create<CartState>()(
       items: [],
       addItem: (item) =>
         set((state) => {
-          if (state.items.some((i) => i.programId === item.programId)) return state;
+          if (state.items.some((i) => i.cohortId === item.cohortId)) return state;
           return { items: [...state.items, item] };
         }),
-      removeItem: (programId) =>
-        set((state) => ({ items: state.items.filter((item) => item.programId !== programId) })),
+      removeItem: (cohortId) =>
+        set((state) => ({ items: state.items.filter((item) => item.cohortId !== cohortId) })),
       clear: () => set({ items: [] }),
     }),
     { name: "cart-storage" },
   ),
 );
+
+export const guestCartCohortIds = () =>
+  useCartStore.getState().items.map((i) => i.cohortId);

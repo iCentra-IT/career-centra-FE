@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { roleLabel } from "@/types/user";
 import { useNotifications } from "@/hooks/queries/notifications";
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
+import { useDashboardChromeStore } from "@/lib/store/dashboardChromeStore";
 
 const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/admin/profile", title: "Profile" },
@@ -24,12 +25,14 @@ const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/students/purchase-history", title: "Purchase History" },
   { pattern: "/students/profile", title: "Profile" },
   { pattern: "/students", title: "Overview" },
+  { pattern: "/facilitators/programs", title: "Program" },
+  { pattern: "/facilitators/settings", title: "Settings" },
+  { pattern: "/facilitators", title: "Dashboard" },
 ];
 
-const CREATE_PAGE_BREADCRUMBS: Record<
-  string,
-  { parent: string; parentHref: string; current: string }
-> = {
+type Breadcrumb = { parent: string; parentHref: string; current: string };
+
+const CREATE_PAGE_BREADCRUMBS: Record<string, Breadcrumb> = {
   "/admin/cohorts/create": { parent: "Cohorts", parentHref: "/admin/cohorts", current: "Create Cohorts" },
   "/admin/coupons/create": { parent: "Coupon", parentHref: "/admin/coupons", current: "Create Coupons" },
 };
@@ -41,11 +44,27 @@ function pageTitleFor(pathname: string) {
   return match?.title ?? "Dashboard";
 }
 
+function breadcrumbFor(pathname: string): Breadcrumb | undefined {
+  if (CREATE_PAGE_BREADCRUMBS[pathname]) return CREATE_PAGE_BREADCRUMBS[pathname];
+  if (/^\/facilitators\/programs\/[^/]+$/.test(pathname)) {
+    return { parent: "Program", parentHref: "/facilitators/programs", current: "Class Details" };
+  }
+  return undefined;
+}
+
 function SearchIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
       <path d="M13 13l-2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -95,24 +114,36 @@ export function Header() {
     };
   }, [notificationsOpen]);
 
-  const breadcrumb = CREATE_PAGE_BREADCRUMBS[pathname];
+  const breadcrumb = breadcrumbFor(pathname);
+  const toggleMobileSidebar = useDashboardChromeStore((s) => s.toggleMobileSidebar);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-6 border-b border-gray-100 bg-white px-8">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 sm:gap-6 sm:px-6 lg:px-8">
+      <button
+        type="button"
+        onClick={toggleMobileSidebar}
+        aria-label="Open menu"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-500 hover:bg-gray-50 lg:hidden"
+      >
+        <MenuIcon />
+      </button>
+
       {breadcrumb ? (
-        <div className="flex shrink-0 items-center gap-2 text-sm">
-          <Link href={breadcrumb.parentHref} className="flex items-center gap-1 font-medium text-secondary hover:underline">
+        <div className="flex min-w-0 flex-1 items-center gap-2 text-sm lg:flex-none">
+          <Link href={breadcrumb.parentHref} className="hidden shrink-0 items-center gap-1 font-medium text-secondary hover:underline sm:flex">
             ← Back
           </Link>
-          <span className="text-gray-300">|</span>
-          <Link href={breadcrumb.parentHref} className="text-gray-400 hover:text-gray-600">
+          <span className="hidden shrink-0 text-gray-300 sm:inline">|</span>
+          <Link href={breadcrumb.parentHref} className="hidden shrink-0 text-gray-400 hover:text-gray-600 sm:inline">
             {breadcrumb.parent}
           </Link>
-          <span className="text-gray-300">/</span>
-          <span className="font-semibold text-gray-900">{breadcrumb.current}</span>
+          <span className="hidden shrink-0 text-gray-300 sm:inline">/</span>
+          <span className="truncate font-semibold text-gray-900">{breadcrumb.current}</span>
         </div>
       ) : (
-        <h1 className="shrink-0 text-lg font-semibold text-gray-900">{pageTitleFor(pathname)}</h1>
+        <h1 className="min-w-0 flex-1 truncate text-lg font-semibold text-gray-900 lg:flex-none">
+          {pageTitleFor(pathname)}
+        </h1>
       )}
 
       <div className="relative hidden max-w-xs flex-1 sm:block">
@@ -146,12 +177,12 @@ export function Header() {
           )}
         </div>
 
-        <div className="flex items-center gap-3 border-l border-gray-100 pl-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-main text-xs font-semibold text-white">
+        <div className="flex items-center gap-3 border-l border-gray-100 pl-2 sm:pl-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-main text-xs font-semibold text-white">
             {initials || "?"}
           </div>
-          <div className="leading-tight">
-            <p className="text-sm font-medium text-gray-900">
+          <div className="hidden leading-tight sm:block">
+            <p className="max-w-[10rem] truncate text-sm font-medium text-gray-900">
               {user ? `${user.first_name} ${user.last_name}` : "—"}
             </p>
             <p className="text-xs text-gray-400">{user ? roleLabel(user.role) : ""}</p>

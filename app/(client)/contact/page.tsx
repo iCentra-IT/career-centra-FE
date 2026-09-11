@@ -8,23 +8,23 @@ import { toast } from "sonner";
 import { useCreateLead } from "@/hooks/mutations/leads";
 import type { CreateLeadRequest } from "@/types/lead";
 
-const SUPPORT_TYPES = [
-  {
-    title: "Individual Learning Support",
-    description: "Get help selecting the right certification track and learning pathway.",
-    audienceType: "individual" as const,
-  },
-  {
-    title: "Enterprise Learning Consultation",
-    description: "Discuss workforce capability, corporate programs, and enterprise learning solutions.",
-    audienceType: "corporate" as const,
-  },
-  {
-    title: "Executive Programs Advisory",
-    description: "Learn more about leadership and executive learning opportunities.",
-    audienceType: "individual" as const,
-  },
-];
+// const SUPPORT_TYPES = [
+//   {
+//     title: "Individual Learning Support",
+//     description: "Get help selecting the right certification track and learning pathway.",
+//     audienceType: "individual" as const,
+//   },
+//   {
+//     title: "Enterprise Learning Consultation",
+//     description: "Discuss workforce capability, corporate programs, and enterprise learning solutions.",
+//     audienceType: "corporate" as const,
+//   },
+//   {
+//     title: "Executive Programs Advisory",
+//     description: "Learn more about leadership and executive learning opportunities.",
+//     audienceType: "individual" as const,
+//   },
+// ];
 
 const inquirySchema = z.object({
   name: z.string().min(1, "Full name is required"),
@@ -43,7 +43,7 @@ const ContactPage = () => {
   const {
     register,
     handleSubmit,
-    setValue,
+    // setValue,
     reset,
     formState: { errors },
   } = useForm<InquiryFormValues>({
@@ -72,14 +72,14 @@ const ContactPage = () => {
     });
   };
 
-  const selectSupportType = (audienceType: "individual" | "corporate") => {
-    setValue("audience_type", audienceType);
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  // const selectSupportType = (audienceType: "individual" | "corporate") => {
+  //   setValue("audience_type", audienceType);
+  //   formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // };
 
   return (
-    <div>
-      <section className="bg-gradient-to-br from-main to-deep-blue px-6 py-16 text-white">
+    <div className="space-y-10">
+      <section className="bg-linear-to-br from-main to-deep-blue px-6 py-16 text-white">
         <div className="mx-auto max-w-4xl">
           <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
             Learning Support &amp; Advisory
@@ -93,7 +93,7 @@ const ContactPage = () => {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-14">
+      {/* <section className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           {SUPPORT_TYPES.map((type) => (
             <button
@@ -107,7 +107,7 @@ const ContactPage = () => {
             </button>
           ))}
         </div>
-      </section>
+      </section> */}
 
       <section ref={formRef} className="mx-auto max-w-2xl px-6 pb-20 text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Inquiry Form</p>

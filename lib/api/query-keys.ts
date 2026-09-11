@@ -40,6 +40,16 @@ export const queryKeys = {
     receipt: (id: number) => ["enrollments", id, "receipt"] as const,
   },
 
+  cart: {
+    root: ["cart"] as const,
+    view: (opts?: Record<string, unknown>) => ["cart", "view", opts ?? {}] as const,
+    count: ["cart-count"] as const,
+  },
+
+  orders: {
+    detail: (id: number) => ["orders", id] as const,
+  },
+
   adminEnrollments: {
     all: (filters?: Record<string, unknown>) => ["admin-enrollments", filters] as const,
   },
