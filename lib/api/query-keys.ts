@@ -96,4 +96,13 @@ export const queryKeys = {
     certificates: ["student-dashboard", "certificates"] as const,
     purchaseHistory: ["student-dashboard", "purchase-history"] as const,
   },
+
+  exchangeRates: {
+    all: ["exchange-rates"] as const,
+    detail: (id: number) => ["exchange-rates", id] as const,
+  },
+
+  certificates: {
+    all: ["certificates"] as const,
+  },
 } as const;

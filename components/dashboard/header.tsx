@@ -17,6 +17,8 @@ const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/admin/cohorts", title: "Cohorts" },
   { pattern: "/admin/users", title: "Users" },
   { pattern: "/admin/coupons", title: "Coupons" },
+  { pattern: "/admin/certificates", title: "Certificates" },
+  { pattern: "/admin/exchange-rates", title: "Exchange Rates" },
   { pattern: "/admin/enrollments", title: "Enrolments History" },
   { pattern: "/admin", title: "Dashboard" },
   { pattern: "/students/enrolments", title: "My Enrolments" },

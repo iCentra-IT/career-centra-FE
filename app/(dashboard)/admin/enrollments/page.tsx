@@ -1,14 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useAdminEnrollments } from "@/hooks/queries/admin-enrollments";
+import { useIssueCertificate } from "@/hooks/mutations/certificates";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyTableState } from "@/components/ui/empty-table";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { formatMoney, formatShortDate } from "@/lib/format";
+import type { AdminEnrollment } from "@/types/enrollment";
 
-const COLUMNS = ["User Name", "Program", "Amount Paid", "Payment Provider", "Date", "Status"];
+const COLUMNS = ["User Name", "Program", "Amount Paid", "Payment Provider", "Date", "Status", "Action"];
 
 function SearchIcon() {
   return (
@@ -25,6 +28,30 @@ function statusTone(status: string): "green" | "yellow" | "red" | "gray" {
   if (s === "pending") return "yellow";
   if (s === "failed" || s === "cancelled") return "red";
   return "gray";
+}
+
+function IssueCertificateButton({ enrollment }: { enrollment: AdminEnrollment }) {
+  const issueCertificate = useIssueCertificate();
+
+  if (statusTone(enrollment.status) !== "green") {
+    return <span className="text-xs text-gray-300">—</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={issueCertificate.isPending}
+      onClick={() =>
+        issueCertificate.mutate(enrollment.id, {
+          onSuccess: () => toast.success(`Certificate issued for ${enrollment.learner_name}.`),
+          onError: (err) => toast.error(err.message),
+        })
+      }
+      className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {issueCertificate.isPending ? "Issuing…" : "Issue Certificate"}
+    </button>
+  );
 }
 
 const AdminEnrollmentsPage = () => {
@@ -99,6 +126,9 @@ const AdminEnrollmentsPage = () => {
                   <td className="px-5 py-4 text-gray-600">{formatShortDate(enrollment.created_at)}</td>
                   <td className="px-5 py-4">
                     <StatusBadge label={enrollment.status} tone={statusTone(enrollment.status)} />
+                  </td>
+                  <td className="px-5 py-4">
+                    <IssueCertificateButton enrollment={enrollment} />
                   </td>
                 </tr>
               ))}

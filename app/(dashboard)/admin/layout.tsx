@@ -10,6 +10,7 @@ import {
   TagIcon,
   ProfileIcon,
   CouponsIcon,
+  CertificatesIcon,
   SettingsIcon,
 } from "@/components/dashboard/nav-icons";
 
@@ -22,11 +23,15 @@ const NAV_ITEMS = [
   { label: "Cohorts", href: "/admin/cohorts", icon: <TagIcon /> },
   { label: "Users", href: "/admin/users", icon: <ProfileIcon /> },
   { label: "Coupons", href: "/admin/coupons", icon: <CouponsIcon /> },
+  { label: "Certificates", href: "/admin/certificates", icon: <CertificatesIcon /> },
   {
     label: "Settings",
     href: "/admin/settings",
     icon: <SettingsIcon />,
-    children: [{ label: "Profile", href: "/admin/profile" }],
+    children: [
+      { label: "Profile", href: "/admin/profile" },
+      { label: "Exchange Rates", href: "/admin/exchange-rates" },
+    ],
   },
 ];
 
