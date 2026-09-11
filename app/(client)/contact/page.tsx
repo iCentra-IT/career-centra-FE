@@ -7,6 +7,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useCreateLead } from "@/hooks/mutations/leads";
 import type { CreateLeadRequest } from "@/types/lead";
+import { Input } from "@/components/ui/input";
 
 // const SUPPORT_TYPES = [
 //   {
@@ -121,48 +122,35 @@ const ContactPage = () => {
           )}
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Full Name
-              </label>
-              <input
-                placeholder="Jane Smith"
-                className="rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-                {...register("name")}
-              />
-              {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Email Address
-              </label>
-              <input
-                placeholder="jane@company.com"
-                className="rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-                {...register("email")}
-              />
-              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Phone Number
-            </label>
-            <input
-              placeholder="+234 800 000 0000"
-              className="rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-              {...register("phone")}
+            <Input
+              label="Full Name"
+              required
+              placeholder="Jane Smith"
+              error={errors.name?.message}
+              {...register("name")}
             />
-            {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
+            <Input
+              label="Email Address"
+              type="email"
+              required
+              placeholder="jane@company.com"
+              error={errors.email?.message}
+              {...register("email")}
+            />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              I&apos;m reaching out as
-            </label>
+          <Input
+            label="Phone Number"
+            required
+            placeholder="+234 800 000 0000"
+            error={errors.phone?.message}
+            {...register("phone")}
+          />
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-900">I&apos;m reaching out as</label>
             <select
-              className="rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
               {...register("audience_type")}
             >
               <option value="individual">An individual learner</option>
@@ -170,14 +158,14 @@ const ContactPage = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Message
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-900">
+              Message <span className="text-secondary">*</span>
             </label>
             <textarea
               rows={4}
               placeholder="Tell us about your learning needs and goals..."
-              className="rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
               {...register("message")}
             />
             {errors.message && <p className="text-xs text-red-500">{errors.message.message}</p>}
