@@ -456,7 +456,7 @@ const HomePage = () => {
           </Link>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {programsLoading && <CardGridSkeleton count={4} />}
           {!programsLoading && featured.length === 0 && (
             <p className="text-sm text-gray-400">No programs published yet.</p>
