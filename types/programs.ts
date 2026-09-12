@@ -117,10 +117,17 @@ export interface ProgramListItem {
   purchase_mode: PurchaseMode;
   purchase_mode_display: string;
   summary: string;
+  pricing_mode: PricingMode;
+  pricing_mode_display: string;
   base_price_usd: string; // decimal serialized as string — DO NOT parseFloat for display, keep as string until formatting
   base_price_ngn: string;
   has_pmi_badge: boolean;
   has_pecb_badge: boolean;
+  has_icentra_badge: boolean;
+  // Confirmed present on both GET /api/programs/{slug}/ and PATCH/PUT's response by a later doc
+  // dump — the edit form previously had to guess these from has_pmi_badge/has_pecb_badge, which
+  // silently corrupted them (e.g. reset has_icentra_badge to false) on every save.
+  certificate_provider: CertificateProvider;
   accreditations: ProgramAccreditation[];
   cover_image_url: string;
   next_cohort: string | null; // pre-formatted display date, e.g. "25 Sep 2026", or null if none scheduled

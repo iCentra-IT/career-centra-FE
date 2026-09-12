@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useProgram } from "@/hooks/queries/programs";
 import { usePatchProgram } from "@/hooks/mutations/programs";
 import { ProgramForm, EMPTY_CERTIFICATION } from "@/components/dashboard/program-form";
-import { clearPersistedStateByPrefix } from "@/hooks/use-persisted-state";
+import { clearPersistedStateByPrefix, discardStaleDraft } from "@/hooks/use-persisted-state";
 import { FormSkeleton } from "@/components/ui/skeleton";
 
 const EditProgramPage = () => {
@@ -14,6 +15,12 @@ const EditProgramPage = () => {
   const { data: program, isLoading } = useProgram(params.slug);
   const patchProgram = usePatchProgram(params.slug);
   const persistKey = `program-edit-${params.slug}`;
+
+  // Revisiting "edit this program" after abandoning a previous attempt should show the program's
+  // real current data, not resurface the old draft — only an actual refresh of this page should
+  // resume in-progress work. Called before the loading/not-found returns below so it always runs
+  // on this page's first render (Rules of Hooks), ahead of ProgramForm's own persisted fields.
+  useState(() => discardStaleDraft(persistKey));
 
   if (isLoading) return <FormSkeleton fields={8} />;
   if (!program) return <p className="text-sm text-gray-400">Program not found.</p>;
@@ -39,15 +46,11 @@ const EditProgramPage = () => {
             programType: program.program_type,
             pmiBadge: program.has_pmi_badge,
             pecbBadge: program.has_pecb_badge,
-            // The read model doesn't expose has_icentra_badge/certificate_provider yet — best-effort
-            // defaults until the GET response confirms these fields.
-            icentraBadge: false,
-            certificateProvider: program.has_pmi_badge ? "pmi" : program.has_pecb_badge ? "pecb" : "none",
+            icentraBadge: program.has_icentra_badge,
+            certificateProvider: program.certificate_provider,
             level: program.level,
             audience: program.audience,
-            // Same story for pricing_mode — both currencies are always present on read, so "dual"
-            // is the safe default until the GET response confirms this field.
-            pricingMode: "dual",
+            pricingMode: program.pricing_mode,
             priceUsd: program.base_price_usd,
             priceNgn: program.base_price_ngn,
             learningOutcomes: program.learning_outcomes,

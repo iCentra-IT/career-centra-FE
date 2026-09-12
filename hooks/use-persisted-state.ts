@@ -70,3 +70,23 @@ export function clearPersistedStateByPrefix(prefix: string) {
     // ignore
   }
 }
+
+// True only for an actual browser refresh (F5 / reload button) of the current page — false for a
+// fresh visit (first load, a link click, typing the URL), including a client-side SPA navigation
+// to this route, since that doesn't create a new Navigation Timing entry at all and so falls back
+// to whatever the tab's original hard-load type was.
+function isPageReload(): boolean {
+  if (typeof window === "undefined" || typeof performance === "undefined") return false;
+  const [entry] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+  return entry?.type === "reload";
+}
+
+// A form's draft should resume itself after a refresh, but NOT after the admin abandons it and
+// later revisits the same "create X" / "edit X" page fresh — otherwise stale, possibly-incomplete
+// field values from an old attempt silently resurface and get resubmitted, which reads as data
+// randomly "going missing" (whatever the old draft didn't have gets sent instead of the real
+// current values). Call this once, before any usePersistedState field under `prefix` is read —
+// e.g. at the top of the page component, guarded by a ref so it only runs on that first render.
+export function discardStaleDraft(prefix: string) {
+  if (!isPageReload()) clearPersistedStateByPrefix(prefix);
+}
