@@ -1,40 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TagListField } from "@/components/dashboard/tag-list-field";
 import { FaqListField } from "@/components/dashboard/faq-list-field";
-import type { CreateProgramRequest, ProgramFaq } from "@/types/programs";
+import { ModuleListField, type ModuleFormValue } from "@/components/dashboard/module-list-field";
+import type { CreateProgramRequest, PricingMode, ProgramFaq } from "@/types/programs";
+import type { CertificateProvider } from "@/types/cart";
 
+// Confirmed full enum from GET /api/programs/'s program_type filter parameter docs.
 const PROGRAM_TYPE_OPTIONS = [
-  "Project & Portfolio Management",
   "Agile, Product & Business Analysis",
+  "Career Pathways",
+  "Certifications",
+  "Consultation-Led Engagement",
+  "Corporate Learning",
   "Cybersecurity & Risk",
-  "AI & Digital Transformation",
+  "Digital Transformation & AI",
+  "Enrollment-Driven Experience",
+  "Enterprise Certifications",
+  "Executive Education",
+  "Innovation & Digital Economy",
+  "Leadership Capability",
+  "Project & Portfolio Management",
+  "Strategic Transformation",
   "Workforce Capability",
 ];
 const LEVEL_OPTIONS = [
   { value: "foundation", label: "Foundation" },
   { value: "professional", label: "Professional" },
   { value: "advanced", label: "Advanced" },
+  { value: "specialized", label: "Specialized" },
 ];
 const AUDIENCE_OPTIONS = [
   { value: "individual", label: "Individual" },
   { value: "corporate", label: "Corporate" },
 ];
-const BADGE_OPTIONS = [
-  { value: "none", label: "None" },
-  { value: "pmi", label: "PMI Authorized" },
-  { value: "pecb", label: "PECB Authorized" },
+const CERTIFICATE_PROVIDER_OPTIONS: { value: CertificateProvider; label: string }[] = [
+  { value: "none", label: "No certificate" },
+  { value: "icentra", label: "iCentra" },
+  { value: "pmi", label: "PMI" },
+  { value: "pecb", label: "PECB" },
+];
+// Only "dual" is confirmed — the other two are a reasonable guess for a single-currency program.
+const PRICING_MODE_OPTIONS: { value: PricingMode; label: string }[] = [
+  { value: "dual", label: "Dual (USD + NGN)" },
+  { value: "usd_only", label: "USD only" },
+  { value: "ngn_only", label: "NGN only" },
 ];
 
-function PlusIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <path d="M7 2.5v9M2.5 7h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
+const MAX_COVER_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB — keeps the data URL (and the persisted draft) a sane size
+
+export interface CertificationFormValue {
+  name: string;
+  examFormat: string;
+  durationMinutes: string;
+  delivery: string;
+  passRate: string;
 }
 
 export interface ProgramFormValues {
@@ -42,78 +66,197 @@ export interface ProgramFormValues {
   code: string;
   description: string;
   programType: string;
-  badge: "none" | "pmi" | "pecb";
+  // Independent accreditation badges — any combination can be on at once.
+  pmiBadge: boolean;
+  pecbBadge: boolean;
+  icentraBadge: boolean;
+  // Separate single choice: who actually issues the certificate.
+  certificateProvider: CertificateProvider;
   level: string;
   audience: string;
+  pricingMode: PricingMode;
   priceUsd: string;
   priceNgn: string;
   learningOutcomes: string[];
   whoShouldAttend: string[];
   prerequisites: string[];
   faqs: ProgramFaq[];
+  modules: ModuleFormValue[];
+  hasCertification: boolean;
+  certification: CertificationFormValue;
 }
 
 interface ProgramFormProps {
+  // Unique per form instance — e.g. "program-create" or `program-edit-${slug}` — so drafts don't
+  // collide between "create new" and "editing program X", and each program's edit draft is its own.
+  persistKey: string;
   initialValues?: ProgramFormValues;
+  // The program's current cover image, if editing one — display-only; a browser can't
+  // pre-populate a file input, so a new upload is only sent when the admin picks a new file.
+  existingCoverImageUrl?: string;
   submitLabel: string;
   isPending: boolean;
   onSubmit: (payload: CreateProgramRequest) => void;
   onClose: () => void;
 }
 
+export const EMPTY_CERTIFICATION: CertificationFormValue = {
+  name: "",
+  examFormat: "",
+  durationMinutes: "",
+  delivery: "",
+  passRate: "",
+};
+
 const EMPTY_VALUES: ProgramFormValues = {
   title: "",
   code: "",
   description: "",
   programType: "",
-  badge: "none",
+  pmiBadge: false,
+  pecbBadge: false,
+  icentraBadge: false,
+  certificateProvider: "none",
   level: "",
   audience: "individual",
+  pricingMode: "dual",
   priceUsd: "",
   priceNgn: "",
   learningOutcomes: [],
   whoShouldAttend: [],
   prerequisites: [],
   faqs: [],
+  modules: [],
+  hasCertification: false,
+  certification: EMPTY_CERTIFICATION,
 };
 
 export function ProgramForm({
+  persistKey,
   initialValues,
+  existingCoverImageUrl,
   submitLabel,
   isPending,
   onSubmit,
   onClose,
 }: ProgramFormProps) {
-  const [step, setStep] = useState<1 | 2>(1);
+  // Every field below is persisted to localStorage under `${persistKey}:<field>`, so a refresh —
+  // or closing the tab and coming back — restores exactly what was typed, including which step of
+  // the wizard you were on.
+  const usePersist = <T,>(field: string, initial: T) =>
+    usePersistedState<T>(`${persistKey}:${field}`, initial);
 
-  const [title, setTitle] = useState(initialValues?.title ?? EMPTY_VALUES.title);
-  const [code, setCode] = useState(initialValues?.code ?? EMPTY_VALUES.code);
-  const [description, setDescription] = useState(initialValues?.description ?? EMPTY_VALUES.description);
-  const [programType, setProgramType] = useState(initialValues?.programType ?? EMPTY_VALUES.programType);
-  const [badge, setBadge] = useState(initialValues?.badge ?? EMPTY_VALUES.badge);
-  const [level, setLevel] = useState(initialValues?.level ?? EMPTY_VALUES.level);
-  const [audience, setAudience] = useState(initialValues?.audience ?? EMPTY_VALUES.audience);
-  const [priceUsd, setPriceUsd] = useState(initialValues?.priceUsd ?? EMPTY_VALUES.priceUsd);
-  const [priceNgn, setPriceNgn] = useState(initialValues?.priceNgn ?? EMPTY_VALUES.priceNgn);
+  const [step, setStep] = usePersist<1 | 2>("step", 1);
+
+  const [title, setTitle] = usePersist("title", initialValues?.title ?? EMPTY_VALUES.title);
+  const [code, setCode] = usePersist("code", initialValues?.code ?? EMPTY_VALUES.code);
+  const [description, setDescription] = usePersist(
+    "description",
+    initialValues?.description ?? EMPTY_VALUES.description,
+  );
+  const [programType, setProgramType] = usePersist(
+    "programType",
+    initialValues?.programType ?? EMPTY_VALUES.programType,
+  );
+  const [pmiBadge, setPmiBadge] = usePersist("pmiBadge", initialValues?.pmiBadge ?? EMPTY_VALUES.pmiBadge);
+  const [pecbBadge, setPecbBadge] = usePersist(
+    "pecbBadge",
+    initialValues?.pecbBadge ?? EMPTY_VALUES.pecbBadge,
+  );
+  const [icentraBadge, setIcentraBadge] = usePersist(
+    "icentraBadge",
+    initialValues?.icentraBadge ?? EMPTY_VALUES.icentraBadge,
+  );
+  const [certificateProvider, setCertificateProvider] = usePersist<CertificateProvider>(
+    "certificateProvider",
+    initialValues?.certificateProvider ?? EMPTY_VALUES.certificateProvider,
+  );
+  const [level, setLevel] = usePersist("level", initialValues?.level ?? EMPTY_VALUES.level);
+  const [audience, setAudience] = usePersist("audience", initialValues?.audience ?? EMPTY_VALUES.audience);
+  const [pricingMode, setPricingMode] = usePersist<PricingMode>(
+    "pricingMode",
+    initialValues?.pricingMode ?? EMPTY_VALUES.pricingMode,
+  );
+  const [priceUsd, setPriceUsd] = usePersist("priceUsd", initialValues?.priceUsd ?? EMPTY_VALUES.priceUsd);
+  const [priceNgn, setPriceNgn] = usePersist("priceNgn", initialValues?.priceNgn ?? EMPTY_VALUES.priceNgn);
+  // Not persisted — a File can't be written to localStorage (or restored into a file input after
+  // a refresh even if it could be; browsers block that for security). Re-selecting the cover image
+  // after a refresh is an unavoidable, one-time exception to the rest of this form's persistence.
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [errors1, setErrors1] = useState<Record<string, string>>({});
 
-  const [learningOutcomes, setLearningOutcomes] = useState(
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file after removing it
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setErrors1((prev) => ({ ...prev, coverImage: "Please choose an image file" }));
+      return;
+    }
+    if (file.size > MAX_COVER_IMAGE_BYTES) {
+      setErrors1((prev) => ({ ...prev, coverImage: "Image must be 2MB or smaller" }));
+      return;
+    }
+
+    setErrors1((prev) => {
+      const next = { ...prev };
+      delete next.coverImage;
+      return next;
+    });
+
+    setCoverImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+    setCoverImageFile(file);
+  };
+
+  const removeCoverImage = () => {
+    setCoverImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setCoverImageFile(null);
+  };
+
+  // Object URLs aren't garbage-collected on their own — release the last one when the form goes away.
+  useEffect(() => {
+    return () => {
+      if (coverImagePreview) URL.revokeObjectURL(coverImagePreview);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [learningOutcomes, setLearningOutcomes] = usePersist(
+    "learningOutcomes",
     initialValues?.learningOutcomes ?? EMPTY_VALUES.learningOutcomes,
   );
-  const [whoShouldAttend, setWhoShouldAttend] = useState(
+  const [whoShouldAttend, setWhoShouldAttend] = usePersist(
+    "whoShouldAttend",
     initialValues?.whoShouldAttend ?? EMPTY_VALUES.whoShouldAttend,
   );
-  const [prerequisites, setPrerequisites] = useState(
+  const [prerequisites, setPrerequisites] = usePersist(
+    "prerequisites",
     initialValues?.prerequisites ?? EMPTY_VALUES.prerequisites,
   );
-  const [faqs, setFaqs] = useState(initialValues?.faqs ?? EMPTY_VALUES.faqs);
-  const [reviewPoints, setReviewPoints] = useState<string[]>([]);
+  const [faqs, setFaqs] = usePersist("faqs", initialValues?.faqs ?? EMPTY_VALUES.faqs);
+  const [modules, setModules] = usePersist("modules", initialValues?.modules ?? EMPTY_VALUES.modules);
+  const [hasCertification, setHasCertification] = usePersist(
+    "hasCertification",
+    initialValues?.hasCertification ?? EMPTY_VALUES.hasCertification,
+  );
+  const [certification, setCertification] = usePersist(
+    "certification",
+    initialValues?.certification ?? EMPTY_VALUES.certification,
+  );
+  const [reviewPoints, setReviewPoints] = usePersist("reviewPoints", [] as string[]);
   const [errors2, setErrors2] = useState<Record<string, string>>({});
 
   const validateStep1 = () => {
     const next: Record<string, string> = {};
     if (!title.trim()) next.title = "Course name is required";
-    if (!code.trim()) next.code = "Program code is required";
     if (!programType) next.programType = "Program type is required";
     if (!level) next.level = "Course level is required";
     if (!audience) next.audience = "Audience is required";
@@ -131,6 +274,8 @@ export function ProgramForm({
     if (prerequisites.filter((v) => v.trim()).length === 0)
       next.prerequisites = "Add at least one prerequisite";
     if (faqs.filter((f) => f.question.trim()).length === 0) next.faqs = "Add at least one FAQ";
+    if (hasCertification && !certification.name.trim())
+      next.certification = "Enter a certification name, or turn this off";
     setErrors2(next);
     return Object.keys(next).length === 0;
   };
@@ -151,10 +296,14 @@ export function ProgramForm({
       purchase_mode: "direct",
       summary: description.trim(),
       outline: description.trim(),
+      pricing_mode: pricingMode,
       base_price_usd: priceUsd,
       base_price_ngn: priceNgn || "0",
-      has_pmi_badge: badge === "pmi",
-      has_pecb_badge: badge === "pecb",
+      has_pmi_badge: pmiBadge,
+      has_pecb_badge: pecbBadge,
+      has_icentra_badge: icentraBadge,
+      certificate_provider: certificateProvider,
+      cover_image: coverImageFile ?? undefined,
       learning_outcomes: learningOutcomes.map((v) => v.trim()).filter(Boolean),
       who_should_attend: whoShouldAttend.map((v) => v.trim()).filter(Boolean),
       prerequisites: prerequisites
@@ -162,6 +311,25 @@ export function ProgramForm({
         .filter(Boolean)
         .map((text, i) => ({ kind: "required" as const, text, order: i + 1 })),
       faqs: faqs.filter((f) => f.question.trim()),
+      modules: modules
+        .filter((m) => m.title.trim())
+        .map((m, i) => ({
+          title: m.title.trim(),
+          order: i + 1,
+          lessons: m.lessons
+            .filter((l) => l.title.trim())
+            .map((l, li) => ({ title: l.title.trim(), order: li + 1 })),
+        })),
+      certification:
+        hasCertification && certification.name.trim()
+          ? {
+              name: certification.name.trim(),
+              exam_format: certification.examFormat.trim(),
+              duration_minutes: Number(certification.durationMinutes) || 0,
+              delivery: certification.delivery.trim(),
+              pass_rate: certification.passRate.trim(),
+            }
+          : null,
       is_active: true,
     });
   };
@@ -203,15 +371,42 @@ export function ProgramForm({
 
           <div className="flex flex-col gap-2">
             <label className="text-sm text-gray-900">Cover Image</label>
-            <button
-              type="button"
-              disabled
-              title="Image upload isn't available yet"
-              className="flex items-center justify-center gap-2 rounded-md border border-gray-200 py-2.5 text-sm font-medium text-gray-400 disabled:cursor-not-allowed"
-            >
-              <PlusIcon />
-              Add Cover image
-            </button>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCoverImageChange}
+              className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-secondary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary hover:file:bg-secondary/20"
+            />
+            {coverImagePreview ? (
+              <div className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a blob: object URL, next/image can't optimize it anyway */}
+                <img
+                  src={coverImagePreview}
+                  alt="New cover preview"
+                  className="h-16 w-24 rounded-md border border-gray-100 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={removeCoverImage}
+                  className="text-xs font-medium text-red-500 hover:text-red-600"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              existingCoverImageUrl && (
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- an arbitrary hosted URL, not worth configuring next/image's domains for */}
+                  <img
+                    src={existingCoverImageUrl}
+                    alt="Current cover"
+                    className="h-16 w-24 rounded-md border border-gray-100 object-cover"
+                  />
+                  <p className="text-xs text-gray-400">Current image — pick a new file to replace it.</p>
+                </div>
+              )
+            )}
+            {errors1.coverImage && <p className="text-xs text-red-500">{errors1.coverImage}</p>}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -234,18 +429,52 @@ export function ProgramForm({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-900">Course Badge</label>
+            <label className="text-sm text-gray-900">Accreditation Badges</label>
+            <div className="flex flex-col gap-2 rounded-md border border-gray-200 p-3">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={pmiBadge}
+                  onChange={(e) => setPmiBadge(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-secondary focus:ring-secondary"
+                />
+                PMI Authorized
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={pecbBadge}
+                  onChange={(e) => setPecbBadge(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-secondary focus:ring-secondary"
+                />
+                PECB Authorized
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={icentraBadge}
+                  onChange={(e) => setIcentraBadge(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-secondary focus:ring-secondary"
+                />
+                iCentra Authorized
+              </label>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-900">Certificate Provider</label>
             <select
-              value={badge}
-              onChange={(e) => setBadge(e.target.value as ProgramFormValues["badge"])}
+              value={certificateProvider}
+              onChange={(e) => setCertificateProvider(e.target.value as CertificateProvider)}
               className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
             >
-              {BADGE_OPTIONS.map((opt) => (
+              {CERTIFICATE_PROVIDER_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
               ))}
             </select>
+            <p className="text-xs text-gray-400">Who issues the certificate learners receive — separate from the badges above.</p>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -286,6 +515,21 @@ export function ProgramForm({
               ))}
             </select>
             {errors1.audience && <p className="text-xs text-red-500">{errors1.audience}</p>}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-900">Pricing Mode</label>
+            <select
+              value={pricingMode}
+              onChange={(e) => setPricingMode(e.target.value as PricingMode)}
+              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+            >
+              {PRICING_MODE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -357,6 +601,65 @@ export function ProgramForm({
             error={errors2.prerequisites}
           />
           <FaqListField values={faqs} onChange={setFaqs} error={errors2.faqs} />
+          <ModuleListField values={modules} onChange={setModules} />
+
+          <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">
+            <label className="flex items-center gap-2 text-sm text-gray-900">
+              <input
+                type="checkbox"
+                checked={hasCertification}
+                onChange={(e) => setHasCertification(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-secondary focus:ring-secondary"
+              />
+              This program includes a certification exam
+            </label>
+
+            {hasCertification && (
+              <div className="flex flex-col gap-3">
+                <input
+                  value={certification.name}
+                  onChange={(e) => setCertification({ ...certification, name: e.target.value })}
+                  placeholder="Certification name"
+                  className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    value={certification.examFormat}
+                    onChange={(e) =>
+                      setCertification({ ...certification, examFormat: e.target.value })
+                    }
+                    placeholder="Exam format (e.g. Multiple choice)"
+                    className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+                  />
+                  <input
+                    value={certification.durationMinutes}
+                    onChange={(e) =>
+                      setCertification({ ...certification, durationMinutes: e.target.value })
+                    }
+                    type="number"
+                    placeholder="Duration (minutes)"
+                    className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    value={certification.delivery}
+                    onChange={(e) => setCertification({ ...certification, delivery: e.target.value })}
+                    placeholder="Delivery (e.g. Online proctored)"
+                    className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+                  />
+                  <input
+                    value={certification.passRate}
+                    onChange={(e) => setCertification({ ...certification, passRate: e.target.value })}
+                    placeholder="Pass rate (e.g. 92%)"
+                    className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+                  />
+                </div>
+              </div>
+            )}
+            {errors2.certification && <p className="text-xs text-red-500">{errors2.certification}</p>}
+          </div>
+
           <TagListField
             label="Review"
             addLabel="Add Point"

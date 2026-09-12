@@ -1,48 +1,60 @@
 // lib/api/types/program.ts
 import { ProgramAccreditation } from "./student";
+import { CertificateProvider } from "./cart";
 
-// Free-text category, not an enum — confirmed values so far: "Agile, Product & Business Analysis",
-// "Project & Portfolio Management", "Workforce Capability"
-export type ProgramType = string;
+// Confirmed value: "dual" (both base_price_usd and base_price_ngn apply). No other values
+// confirmed yet — "usd_only"/"ngn_only" are a reasonable guess for a single-currency program,
+// flag for backend confirmation if the UI needs to branch on them beyond just submitting the string.
+export type PricingMode = 'dual' | 'usd_only' | 'ngn_only' | string;
 
-export type ProgramLevel = 'foundation' | 'professional' | 'advanced' | string;
+// Confirmed full enum from GET /api/programs/'s program_type filter parameter docs — kept the
+// `| string` fallback since the backend may add more tabs later without a frontend redeploy.
+export type ProgramType =
+  | "Agile, Product & Business Analysis"
+  | "Career Pathways"
+  | "Certifications"
+  | "Consultation-Led Engagement"
+  | "Corporate Learning"
+  | "Cybersecurity & Risk"
+  | "Digital Transformation & AI"
+  | "Enrollment-Driven Experience"
+  | "Enterprise Certifications"
+  | "Executive Education"
+  | "Innovation & Digital Economy"
+  | "Leadership Capability"
+  | "Project & Portfolio Management"
+  | "Strategic Transformation"
+  | "Workforce Capability"
+  | string;
 
-export type ProgramAudience = 'individual' | 'corporate' | string;
+// Confirmed full enum from GET /api/programs/'s level filter parameter docs.
+export type ProgramLevel = 'foundation' | 'professional' | 'advanced' | 'specialized' | string;
+
+// Confirmed full enum from GET /api/programs/'s audience filter parameter docs.
+export type ProgramAudience = 'individual' | 'corporate' | 'executive' | string;
 
 export type PurchaseMode = 'direct' | 'quote' | string;
 
-export interface ProgramCohortFacilitator {
-  id: number;
-  full_name: string;
-  avatar_url: string;
-  short_bio: string;
-  credential_tags: string[];
-}
-
-// A cohort embedded directly on a GET /api/programs/ list item — confirmed real shape.
-export interface ProgramCohort {
-  id: number;
-  platform: string;
-  starts_on: string;
-  ends_on: string;
-  duration_weeks: number;
-  delivery_mode: string;
-  location: string;
-  seat_capacity: number;
-  seats_taken: number;
-  is_enrollment_open: boolean;
-  is_sold_out: boolean;
-  is_nearly_full: boolean;
-  effective_price_usd: string;
-  effective_price_ngn: string;
-  default_price: string;
-  currency: string;
-  facilitator_display: ProgramCohortFacilitator[];
+// Confirmed query params for GET /api/programs/ (the public catalog listing).
+export interface ProgramListFilters {
+  search?: string;
+  program_type?: ProgramType;
+  level?: ProgramLevel;
+  audience?: ProgramAudience;
+  certification_body?: CertificateProvider;
+  price_min?: string;
+  price_max?: string;
 }
 
 // GET /api/programs/ list item — confirmed real shape (paginated: {success, count, total_pages,
-// next, previous, results}). One row per catalog program; each program embeds its own open
-// cohorts directly rather than the list being bundled per-cohort.
+// next, previous, results}). One row per catalog program.
+//
+// IMPORTANT: this does NOT embed cohorts. An earlier capture of this endpoint looked like it did
+// (there used to be a `cohorts: ProgramCohort[]` field here), but a later doc dump plus a real
+// runtime crash ("program.cohorts is not iterable") confirmed that was wrong — cohorts live only
+// on GET /api/cohorts/ (types/cohort.ts's `Cohort`), each embedding a `program` summary the other
+// way around. Use useCohortsByProgram(program.id) (hooks/queries/cohort) to get a program's
+// scheduled cohorts, not this type.
 export interface PublicProgramListing {
   id: number;
   title: string;
@@ -53,32 +65,40 @@ export interface PublicProgramListing {
   level_display: string;
   audience: ProgramAudience;
   audience_display: string;
+  // platform/pricing_mode/has_icentra_badge/certificate_provider confirmed present on this list
+  // item by a later GET /api/programs/ doc dump — added here alongside the original capture's fields.
+  platform?: string;
+  platform_display?: string;
   purchase_mode: PurchaseMode;
   purchase_mode_display: string;
   summary: string;
+  pricing_mode?: PricingMode;
+  pricing_mode_display?: string;
   base_price_usd: string;
   base_price_ngn: string;
   has_pmi_badge: boolean;
   has_pecb_badge: boolean;
+  has_icentra_badge?: boolean;
+  certificate_provider?: CertificateProvider;
+  // Also present in the same dump as certificate_provider above with an unconfirmed (Swagger
+  // placeholder) value — likely just the filter-param name mirrored back, but kept separate rather
+  // than assumed identical until confirmed.
+  certification_body?: string;
   accreditations: ProgramAccreditation[];
   cover_image_url: string;
-  cohorts: ProgramCohort[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-// Picks a representative cohort's real default_price (in whatever currency it's billed in) as the
-// price to show the user for this program in list views — falls back to the catalog base_price_usd
-// only when the program has no cohorts at all. Pass a specific cohort (e.g. the next open one) when
-// the caller has already picked one for other display purposes, so the price matches what's shown.
+// Display price for a program in list views — pass a cohort's effective_price_usd (from
+// types/cohort.ts's Cohort, fetched separately via useCohortsByProgram) when the caller has one
+// and wants the price to match a specific cohort; otherwise falls back to the catalog base price.
 export function programDisplayPrice(
   program: PublicProgramListing,
-  cohort?: ProgramCohort,
+  cohortPriceUsd?: string,
 ): { amount: string; currency: string } {
-  const picked = cohort ?? program.cohorts[0];
-  if (picked) return { amount: picked.default_price, currency: picked.currency };
-  return { amount: program.base_price_usd, currency: "USD" };
+  return { amount: cohortPriceUsd ?? program.base_price_usd, currency: "USD" };
 }
 
 // List view — lighter payload, no "outline"
@@ -164,6 +184,27 @@ export interface Program extends ProgramListItem {
   facilitators: ProgramFacilitator[];
 }
 
+// Write-side module/lesson shapes — no id/lesson_count, those are server-assigned/derived.
+export interface CreateProgramModuleLesson {
+  title: string;
+  order: number;
+}
+
+export interface CreateProgramModule {
+  title: string;
+  order: number;
+  lessons: CreateProgramModuleLesson[];
+}
+
+// Write-side certification shape — no id, that's server-assigned.
+export interface CreateProgramCertification {
+  name: string;
+  exam_format: string;
+  duration_minutes: number;
+  delivery: string;
+  pass_rate: string;
+}
+
 export interface CreateProgramRequest {
   title: string;
   code: string;
@@ -173,15 +214,26 @@ export interface CreateProgramRequest {
   purchase_mode: PurchaseMode;
   summary: string;
   outline: string;
+  pricing_mode: PricingMode;
   base_price_usd: string;
   base_price_ngn: string;
+  // Independent accreditation badges — a program can carry any combination of these.
   has_pmi_badge: boolean;
   has_pecb_badge: boolean;
-  cover_image?: string; // confirmed field name on write, distinct from the read model's cover_image_url
+  has_icentra_badge: boolean;
+  // Who actually issues the certificate — separate from the has_*_badge accreditation flags
+  // above, which just control which "authorized by" badges are shown.
+  certificate_provider: CertificateProvider;
+  // Confirmed a real file upload (DRF ImageField) — "not a file, check the encoding type on the
+  // form" is DRF's rejection when this arrives as JSON/a string instead of multipart. Omit to
+  // leave an existing image untouched on a PATCH.
+  cover_image?: File;
   learning_outcomes?: string[];
   who_should_attend?: string[];
   faqs?: ProgramFaq[];
   prerequisites?: { kind: ProgramPrerequisite["kind"]; text: string; order: number }[];
+  modules?: CreateProgramModule[];
+  certification?: CreateProgramCertification | null;
   is_active: boolean;
 }
 

@@ -1,7 +1,7 @@
 // lib/api/types/cart.ts
 import { ProgramAccreditation } from "./student";
 
-export type CertificateProvider = "icentra" | "pmi" | "none" | string;
+export type CertificateProvider = "icentra" | "pmi" | "pecb" | "none" | string;
 export type OrderStatus = "pending" | "confirmed" | "failed" | string;
 export type CheckoutGateway = "stripe" | "flutterwave" | string;
 

@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useRegister } from "@/hooks/mutations/auth";
+import { usePersistedState, clearPersistedState } from "@/hooks/use-persisted-state";
+import { usePersistedFormDraft } from "@/hooks/use-persisted-form-draft";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PasswordStrength } from "@/components/ui/password-strength";
 import type { Industry, ReferralSource } from "@/types/student";
+
+const DRAFT_KEY = "registration-draft";
+const STEP_KEY = "registration-step";
 
 // Mirrors the backend's IndustryChoices / ReferralSourceChoices.
 const INDUSTRY_OPTIONS: { value: Industry; label: string }[] = [
@@ -75,19 +79,23 @@ const STEP1_FIELDS = [
 
 const RegistrationPage = () => {
   const router = useRouter();
-  const [step, setStep] = useState<"account" | "organisation">("account");
+  const [step, setStep] = usePersistedState<"account" | "organisation">(STEP_KEY, "account");
   const registerMutation = useRegister();
 
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { years_of_experience: 0 },
+  });
   const {
     register,
     handleSubmit,
     trigger,
     watch,
     formState: { errors },
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { years_of_experience: 0 },
-  });
+  } = form;
+
+  // Refresh-proof draft — everything except the passwords, which never touch storage.
+  usePersistedFormDraft(DRAFT_KEY, form, { exclude: ["password", "password2"] });
 
   const password = watch("password") ?? "";
 
@@ -100,6 +108,8 @@ const RegistrationPage = () => {
     registerMutation.mutate(values, {
       onSuccess: () => {
         toast.success("Account created — check your email to verify your address before logging in.");
+        clearPersistedState(DRAFT_KEY);
+        clearPersistedState(STEP_KEY);
         router.push("/login");
       },
       onError: (err) => toast.error(err.message),

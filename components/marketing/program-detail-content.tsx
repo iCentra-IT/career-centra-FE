@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useProgram, usePrograms } from "@/hooks/queries/programs";
+import { useProgram } from "@/hooks/queries/programs";
+import { useCohortsByProgram } from "@/hooks/queries/cohort";
 import { useRelatedPathPrograms } from "@/hooks/queries/career-paths";
-import { programDisplayPrice } from "@/types/programs";
+import type { Cohort } from "@/types/cohort";
 import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -45,19 +46,75 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{children}</p>;
 }
 
+// Compact "10–14 Feb 2025" for a same-month cohort instead of repeating the month/year on both
+// ends; falls back to the full range when the cohort spans two different months.
+function formatCohortDateRange(startIso: string, endIso: string) {
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+  const sameMonth = start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth();
+  if (sameMonth) {
+    const month = end.toLocaleDateString("en-GB", { month: "short" });
+    return `${start.getDate()}–${end.getDate()} ${month} ${end.getFullYear()}`;
+  }
+  return `${formatShortDate(startIso)} – ${formatShortDate(endIso)}`;
+}
+
 export function ProgramDetailContent({ slug }: { slug: string }) {
   const { data: program, isLoading } = useProgram(slug);
-  // Cohort pricing (default_price/currency) is only confirmed on the /api/programs/ list
-  // response's embedded cohorts, not the detail endpoint, so pull the matching listing for it.
-  const { data: programsData } = usePrograms();
-  const matchedListing = programsData?.results?.find((p) => p.slug === slug);
+  // /api/programs/ doesn't embed cohorts (confirmed by a runtime crash — see types/programs.ts),
+  // so a program's scheduled cohorts come from /api/cohorts/ instead, filtered to this program.
+  const { data: cohortsData } = useCohortsByProgram(program?.id);
   const { path: careerPath, related: relatedPrograms } = useRelatedPathPrograms(slug);
   const [openModule, setOpenModule] = useState<number | null>(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activeTabId, setActiveTabId] = useState<string>(TABS[0].id);
+  const [headerOffset, setHeaderOffset] = useState(0);
+  const tabBarRef = useRef<HTMLDivElement>(null);
 
-  const programCohorts = [...(matchedListing?.cohorts ?? [])].sort((a, b) =>
-    a.starts_on.localeCompare(b.starts_on),
-  );
+  // Measure the sticky marketing header's real height so the tab bar sticks flush beneath it —
+  // the header is a different height on mobile (single row) vs desktop (two rows).
+  useEffect(() => {
+    const header = document.getElementById("site-header");
+    if (!header) return;
+
+    const updateOffset = () => setHeaderOffset(header.getBoundingClientRect().height);
+    updateOffset();
+
+    const observer = new ResizeObserver(updateOffset);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
+  // Highlight whichever tab's section has scrolled up past the sticky tab bar.
+  useEffect(() => {
+    const elements = TABS.map((tab) => document.getElementById(tab.id)).filter(
+      (el): el is HTMLElement => !!el,
+    );
+    if (elements.length === 0) return;
+
+    const updateActiveTab = () => {
+      const offset = (tabBarRef.current?.getBoundingClientRect().bottom ?? 0) + 8;
+      let current = elements[0].id;
+      for (const el of elements) {
+        if (el.getBoundingClientRect().top <= offset) current = el.id;
+      }
+      setActiveTabId(current);
+    };
+
+    updateActiveTab();
+    window.addEventListener("scroll", updateActiveTab, { passive: true });
+    window.addEventListener("resize", updateActiveTab);
+    return () => {
+      window.removeEventListener("scroll", updateActiveTab);
+      window.removeEventListener("resize", updateActiveTab);
+    };
+  }, [program]);
+
+  // Cross-check by program id as a safety net in case the backend doesn't honor the `program`
+  // filter param useCohortsByProgram sends.
+  const programCohorts = (cohortsData?.results ?? [])
+    .filter((c) => c.program.id === program?.id)
+    .sort((a, b) => a.starts_on.localeCompare(b.starts_on));
   const [currentCohort, nextCohort] = programCohorts;
 
   if (isLoading) {
@@ -79,9 +136,26 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
     : null;
 
   const leadFacilitator = program.facilitators?.[0];
-  const price = matchedListing
-    ? programDisplayPrice(matchedListing, currentCohort)
+  const price = currentCohort
+    ? { amount: currentCohort.effective_price_usd, currency: "USD" }
     : { amount: program.base_price_usd, currency: "USD" };
+
+  const cartItemFor = (cohort: Cohort) => ({
+    programId: program.id,
+    slug: program.slug,
+    title: program.title,
+    summary: program.summary,
+    badge: program.has_pmi_badge
+      ? "PMI Authorized"
+      : program.has_pecb_badge
+        ? "PECB Authorized"
+        : program.level_display,
+    code: program.code,
+    priceAmount: cohort.effective_price_usd,
+    priceCurrency: "USD",
+    cohortId: cohort.id,
+    cohortStartsOn: cohort.starts_on,
+  });
 
   return (
     <div>
@@ -185,39 +259,25 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               >
                 Speak to an Advisor
               </Link>
-              {currentCohort && (
-                <AddToCartButton
-                  item={{
-                    programId: program.id,
-                    slug: program.slug,
-                    title: program.title,
-                    summary: program.summary,
-                    badge: program.has_pmi_badge
-                      ? "PMI Authorized"
-                      : program.has_pecb_badge
-                        ? "PECB Authorized"
-                        : program.level_display,
-                    code: program.code,
-                    priceAmount: currentCohort.default_price,
-                    priceCurrency: currentCohort.currency,
-                    cohortId: currentCohort.id,
-                    cohortStartsOn: currentCohort.starts_on,
-                  }}
-                />
-              )}
+              {currentCohort && <AddToCartButton item={cartItemFor(currentCohort)} />}
             </div>
           </div>
         </div>
       </section>
 
-      <div className="sticky top-[105px] z-20 border-b border-gray-100 bg-white px-6">
+      <div
+        ref={tabBarRef}
+        className="sticky z-20 border-b border-gray-100 bg-white px-6"
+        style={{ top: headerOffset }}
+      >
         <div className="mx-auto flex max-w-6xl gap-6 overflow-x-auto text-sm">
-          {TABS.map((tab, i) => (
+          {TABS.map((tab) => (
             <a
               key={tab.id}
               href={`#${tab.id}`}
+              onClick={() => setActiveTabId(tab.id)}
               className={`whitespace-nowrap border-b-2 py-3 ${
-                i === 0
+                activeTabId === tab.id
                   ? "border-main font-medium text-main"
                   : "border-transparent text-gray-500 hover:text-main"
               }`}
@@ -363,60 +423,87 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
           {programCohorts.length === 0 ? (
             <p className="mt-5 text-sm text-gray-400">No upcoming cohorts scheduled yet.</p>
           ) : (
-            <div className="mt-5 overflow-x-auto rounded-2xl border border-gray-100">
-              <table className="w-full min-w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50 text-gray-500">
-                    <th className="px-5 py-3 font-medium">Dates</th>
-                    <th className="px-5 py-3 font-medium">Facilitator</th>
-                    <th className="px-5 py-3 font-medium">Seats</th>
-                    <th className="px-5 py-3 font-medium">Price</th>
-                    <th className="px-5 py-3 font-medium" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {programCohorts.map((cohort) => (
-                    <tr key={cohort.id} className="border-b border-gray-50 last:border-0">
-                      <td className="px-5 py-4 text-gray-900">
-                        {formatShortDate(cohort.starts_on)} – {formatShortDate(cohort.ends_on)}
-                      </td>
-                      <td className="px-5 py-4 text-gray-600">
-                        {cohort.facilitator_display[0]?.full_name ?? "—"}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="rounded-full bg-secondary/10 px-2.5 py-1 text-xs font-medium text-secondary">
-                          {cohort.seat_capacity - cohort.seats_taken} left
+            <>
+              {/* Mobile: one card per cohort */}
+              <div className="mt-5 flex flex-col gap-3 sm:hidden">
+                {programCohorts.map((cohort) => {
+                  const seatsLeft = cohort.seat_capacity - cohort.seats_taken;
+                  return (
+                    <div key={cohort.id} className="rounded-2xl border border-gray-100 bg-white p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-base font-semibold text-gray-900">
+                          {formatCohortDateRange(cohort.starts_on, cohort.ends_on)}
+                        </p>
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+                            cohort.is_nearly_full ? "bg-red-500 text-white" : "bg-deep-blue text-white"
+                          }`}
+                        >
+                          {seatsLeft} left
                         </span>
-                      </td>
-                      <td className="px-5 py-4 text-gray-900">
-                        {formatMoney(cohort.default_price, cohort.currency)}
-                      </td>
-                      <td className="px-5 py-4">
-                        <AddToCartButton
-                          item={{
-                            programId: program.id,
-                            slug: program.slug,
-                            title: program.title,
-                            summary: program.summary,
-                            badge: program.has_pmi_badge
-                              ? "PMI Authorized"
-                              : program.has_pecb_badge
-                                ? "PECB Authorized"
-                                : program.level_display,
-                            code: program.code,
-                            priceAmount: cohort.default_price,
-                            priceCurrency: cohort.currency,
-                            cohortId: cohort.id,
-                            cohortStartsOn: cohort.starts_on,
-                          }}
-                          className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                        />
-                      </td>
+                      </div>
+                      <div className="mt-3 flex flex-col gap-1.5 text-sm text-gray-600">
+                        <p>
+                          <span className="text-gray-400">Facilitator:</span>{" "}
+                          {cohort.facilitator_name || "—"}
+                        </p>
+                        <p>
+                          <span className="text-gray-400">Price:</span>{" "}
+                          <span className="font-semibold text-main">
+                            {formatMoney(cohort.effective_price_usd, "USD")}
+                          </span>
+                        </p>
+                      </div>
+                      <AddToCartButton
+                        item={cartItemFor(cohort)}
+                        className="mt-4 block w-full rounded-md border border-gray-200 px-4 py-2.5 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="mt-5 hidden overflow-x-auto rounded-2xl border border-gray-100 sm:block">
+                <table className="w-full min-w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-gray-50 text-gray-500">
+                      <th className="px-5 py-3 font-medium">Dates</th>
+                      <th className="px-5 py-3 font-medium">Facilitator</th>
+                      <th className="px-5 py-3 font-medium">Seats</th>
+                      <th className="px-5 py-3 font-medium">Price</th>
+                      <th className="px-5 py-3 font-medium" />
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {programCohorts.map((cohort) => (
+                      <tr key={cohort.id} className="border-b border-gray-50 last:border-0">
+                        <td className="px-5 py-4 text-gray-900">
+                          {formatShortDate(cohort.starts_on)} – {formatShortDate(cohort.ends_on)}
+                        </td>
+                        <td className="px-5 py-4 text-gray-600">
+                          {cohort.facilitator_name || "—"}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="rounded-full bg-secondary/10 px-2.5 py-1 text-xs font-medium text-secondary">
+                            {cohort.seat_capacity - cohort.seats_taken} left
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-gray-900">
+                          {formatMoney(cohort.effective_price_usd, "USD")}
+                        </td>
+                        <td className="px-5 py-4">
+                          <AddToCartButton
+                            item={cartItemFor(cohort)}
+                            className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </section>
 

@@ -6,8 +6,11 @@ export interface FacilitatorApplication {
   email: string;
   phone: string;
   linkedin_url: string;
-  domain_areas: string;
-  certifications_held: string;
+  // Confirmed array<string> by the real POST /api/facilitators/applications/ endpoint (sample value
+  // "project_portfolio_mgmt" for domain_areas) — the "manage" detail endpoint's generic Swagger
+  // sample showed these as a bare "string", which is just Swagger's placeholder quirk for arrays.
+  domain_areas: string[];
+  certifications_held: string[];
   experience_years: number;
   motivation_statement: string;
   cv_url: string;
@@ -33,29 +36,79 @@ export interface PatchFacilitatorApplicationRequest {
   status: FacilitatorApplication["status"];
 }
 
-// GET /api/facilitators/profiles/ — confirmed real shape (public approved-facilitator directory).
+// Confirmed real CRUD resource: GET/POST /api/facilitators/profiles/ (admin/staff list+create),
+// GET/PATCH/DELETE /api/facilitators/profiles/{id}/, POST /api/facilitators/profiles/invite/.
 // Sample showed credential_tags as a bare "string", but the same field on ProgramCohortFacilitator
 // (embedded facilitator data on GET /api/programs/) was confirmed as string[] from a genuine
 // capture — treating it as string[] here too since it's almost certainly the same serializer field,
 // and the sample's generic placeholder value doesn't reliably distinguish the two.
-export interface ApprovedFacilitator {
+export interface FacilitatorProfile {
   id: number;
   full_name: string;
+  application_id: number | null;
   avatar_url: string;
   short_bio: string;
   credential_tags: string[];
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-// PLACEHOLDER — no public submission endpoint exists yet. Shape inferred from
-// FacilitatorApplication's writable fields plus a CV file upload (also unconfirmed —
-// no media/file upload endpoint exists yet either). Not wired to any API call.
+// Kept as an alias — the public marketing directory only ever reads the published subset of this
+// same resource, but the shape is identical.
+export type ApprovedFacilitator = FacilitatorProfile;
+
+// avatar is a real file upload (same multipart convention as programs' cover_image) — omit to
+// leave an existing avatar untouched on a PATCH.
+export interface CreateFacilitatorProfileRequest {
+  full_name: string;
+  application_id?: number;
+  avatar?: File;
+  short_bio?: string;
+  credential_tags?: string[];
+  is_published?: boolean;
+}
+
+export type PatchFacilitatorProfileRequest = Partial<CreateFacilitatorProfileRequest>;
+
+// POST /api/facilitators/profiles/invite/ — admin-only. Links an existing account by email if one
+// exists, otherwise creates an inactive account and emails the facilitator a set-password link.
+export interface InviteFacilitatorRequest {
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  avatar?: File;
+  short_bio?: string;
+  credential_tags?: string[];
+  is_published?: boolean;
+}
+
+// Confirmed real endpoint: POST /api/facilitators/applications/ — public multipart endpoint.
+// cv_file is a real file upload (PDF or Word, max 5MB). domain_areas/certifications_held are
+// arrays of backend-defined codes (sample showed "project_portfolio_mgmt" for domain_areas) — the
+// full enum list isn't confirmed, so the UI collects them as free-entry tags rather than a fixed select.
 export interface CreateFacilitatorApplicationRequest {
   full_name: string;
   email: string;
   phone: string;
-  linkedin_url?: string;
-  domain_areas: string;
-  certifications_held: string;
-  motivation_statement?: string;
-  cv: File;
+  linkedin_url: string;
+  domain_areas: string[];
+  certifications_held: string[];
+  experience_years: number;
+  motivation_statement: string;
+  cv_file: File;
+}
+
+export interface CreateFacilitatorApplicationResponse {
+  id: number;
+  full_name: string;
+  email: string;
+  phone: string;
+  linkedin_url: string;
+  domain_areas: string[];
+  certifications_held: string[];
+  experience_years: number;
+  motivation_statement: string;
+  status: string;
+  submitted_at: string;
 }

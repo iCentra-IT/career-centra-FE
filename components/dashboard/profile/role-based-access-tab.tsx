@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAdminUsers } from "@/hooks/queries/admin-users";
-import { useCreateAdminUser, usePatchAdminUser } from "@/hooks/mutations/admin-users";
+import { useCreateAdminUser, usePatchAdminUser, useResendAdminUserInvite } from "@/hooks/mutations/admin-users";
 import { useAuthStore } from "@/lib/store/authStore";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -15,6 +15,7 @@ import { TableSkeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { formatShortDate } from "@/lib/format";
 import { roleLabel } from "@/types/user";
 import type { AdminUser, UserRole, UserStatus } from "@/types/user";
@@ -33,7 +34,7 @@ const STATUS_OPTIONS: { value: UserStatus; label: string }[] = [
   { value: "inactive", label: "Inactive" },
 ];
 
-const TABLE_COLUMNS = ["Name", "Email Address", "Role", "Joined", "Status"];
+const TABLE_COLUMNS = ["Name", "Email Address", "Role", "Joined", "Status", "Action"];
 
 function statusTone(status: string): "green" | "yellow" | "red" | "gray" {
   if (status === "active") return "green";
@@ -119,6 +120,14 @@ function EditUserModal({
   const [isStaff, setIsStaff] = useState(user.is_staff);
   const [isActive, setIsActive] = useState(user.is_active);
   const patchUser = usePatchAdminUser(user.id);
+  const resendInvite = useResendAdminUserInvite();
+
+  const handleResendInvite = () => {
+    resendInvite.mutate(user.id, {
+      onSuccess: () => toast.success(`Invite resent to ${user.email}.`),
+      onError: (err) => toast.error(err.message),
+    });
+  };
 
   const handleSave = () => {
     patchUser.mutate(
@@ -140,6 +149,20 @@ function EditUserModal({
         <p className="mt-1 text-sm text-gray-500">
           {user.full_name} · {user.email}
         </p>
+
+        {user.status === "pending_verification" && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-yellow-50 px-4 py-3">
+            <p className="text-sm text-yellow-800">Hasn&apos;t accepted their invite yet.</p>
+            <button
+              type="button"
+              onClick={handleResendInvite}
+              disabled={resendInvite.isPending}
+              className="shrink-0 text-sm font-medium text-secondary hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {resendInvite.isPending ? "Sending…" : "Resend Invite"}
+            </button>
+          </div>
+        )}
 
         <div className="mt-6 flex flex-col gap-5">
           <div className="flex flex-col gap-2">
@@ -190,6 +213,73 @@ function EditUserModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function ActivateToggleButton({ user, isSelf }: { user: AdminUser; isSelf: boolean }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const patchUser = usePatchAdminUser(user.id);
+
+  const activate = () => {
+    patchUser.mutate(
+      { is_active: true },
+      {
+        onSuccess: () => toast.success(`${user.full_name} activated.`),
+        onError: (err) => toast.error(err.message),
+      },
+    );
+  };
+
+  const deactivate = () => {
+    patchUser.mutate(
+      { is_active: false },
+      {
+        onSuccess: () => {
+          toast.success(`${user.full_name} deactivated.`);
+          setConfirmOpen(false);
+        },
+        onError: (err) => {
+          toast.error(err.message);
+          setConfirmOpen(false);
+        },
+      },
+    );
+  };
+
+  if (!user.is_active) {
+    return (
+      <button
+        type="button"
+        onClick={activate}
+        disabled={patchUser.isPending}
+        className="rounded-md border border-green-200 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {patchUser.isPending ? "Activating…" : "Activate"}
+      </button>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setConfirmOpen(true)}
+        disabled={isSelf}
+        title={isSelf ? "You can't deactivate your own account here" : undefined}
+        className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Deactivate
+      </button>
+      <ConfirmDeleteModal
+        open={confirmOpen}
+        title="Deactivate this account?"
+        description={`${user.full_name} won't be able to log in until it's reactivated.`}
+        confirmLabel="Deactivate"
+        loading={patchUser.isPending}
+        onConfirm={deactivate}
+        onClose={() => setConfirmOpen(false)}
+      />
+    </>
   );
 }
 
@@ -343,6 +433,9 @@ export function RoleBasedAccessTab() {
                   <td className="px-5 py-4 text-gray-600">{formatShortDate(user.date_joined)}</td>
                   <td className="px-5 py-4">
                     <StatusBadge label={statusLabel(user.status)} tone={statusTone(user.status)} />
+                  </td>
+                  <td className="px-5 py-4">
+                    <ActivateToggleButton user={user} isSelf={user.id === currentUser?.id} />
                   </td>
                 </tr>
               ))}

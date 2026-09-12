@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PublicProgramListing, programDisplayPrice } from "@/types/programs";
-import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
+import { displayTitle, formatMoney } from "@/lib/format";
 import { BadgeIcon } from "@/components/ui/badge-icon";
 
 interface ProgramCardProps {
@@ -8,12 +8,9 @@ interface ProgramCardProps {
   buttonTone?: "cyan" | "blue";
 }
 
-function nextOpenCohort(program: PublicProgramListing) {
-  return [...program.cohorts]
-    .filter((c) => c.is_enrollment_open && !c.is_sold_out)
-    .sort((a, b) => a.starts_on.localeCompare(b.starts_on))[0];
-}
-
+// GET /api/programs/ doesn't embed cohorts (confirmed by a runtime crash on program.cohorts — see
+// types/programs.ts), so list contexts like this card have no per-program cohort data to show a
+// "next cohort" date from. Falls back to the catalog base price and a generic "coming soon" label.
 export function ProgramCard({ program, buttonTone = "cyan" }: ProgramCardProps) {
   const badge = program.has_pmi_badge
     ? "PMI Authorized"
@@ -21,11 +18,10 @@ export function ProgramCard({ program, buttonTone = "cyan" }: ProgramCardProps) 
       ? "PECB Authorized"
       : program.level_display;
   const buttonClass = buttonTone === "cyan" ? "bg-glass text-deep-blue" : "bg-secondary text-white";
-  const cohort = nextOpenCohort(program);
-  const price = programDisplayPrice(program, cohort);
+  const price = programDisplayPrice(program);
 
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-main to-deep-blue p-5 text-white">
+    <div className="flex flex-col justify-between rounded-2xl bg-linear-to-br from-main to-deep-blue p-5 text-white">
       <div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
           <BadgeIcon />
@@ -40,15 +36,10 @@ export function ProgramCard({ program, buttonTone = "cyan" }: ProgramCardProps) 
       <div className="mt-6">
         <div className="flex items-center justify-between gap-2">
           <p className="inline-block rounded-md bg-white/10 px-3 py-1.5 text-xs text-white/80">
-            {cohort ? `Starts ${formatShortDate(cohort.starts_on)}` : "Cohort dates coming soon"}
+            Cohort dates coming soon
           </p>
           <p className="text-sm font-semibold text-white">{formatMoney(price.amount, price.currency)}</p>
         </div>
-        {cohort?.is_nearly_full && (
-          <p className="mt-2 text-xs text-amber-300">
-            Only {cohort.seat_capacity - cohort.seats_taken} seats left
-          </p>
-        )}
         <Link
           href={`/programms/${program.slug}`}
           className={`mt-3 flex items-center justify-center gap-1 rounded-full px-4 py-2.5 text-sm font-medium hover:opacity-90 ${buttonClass}`}

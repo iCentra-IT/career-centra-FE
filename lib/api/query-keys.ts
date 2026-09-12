@@ -17,8 +17,7 @@ export const queryKeys = {
 
   programs: {
     all: ["programs"] as const,
-    list: (filters?: Record<string, unknown>) =>
-      ["programs", "list", filters] as const,
+    list: <T extends object>(filters?: T) => ["programs", "list", filters] as const,
     detail: (slug: string) => ["programs", slug] as const,
   },
 
@@ -70,6 +69,7 @@ export const queryKeys = {
 
   facilitatorProfiles: {
     all: ["facilitator-profiles"] as const,
+    detail: (id: number) => ["facilitator-profiles", id] as const,
   },
 
   notifications: {
@@ -82,6 +82,7 @@ export const queryKeys = {
 
   cohorts: {
     all: ["cohorts"] as const,
+    list: <T extends object>(filters?: T) => ["cohorts", "list", filters] as const,
     detail: (id: number) => ["cohorts", id] as const,
     sessions: (cohortId: number) => ["cohorts", cohortId, "sessions"] as const,
     sessionDetail: (cohortId: number, id: number) =>

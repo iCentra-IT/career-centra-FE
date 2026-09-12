@@ -5,10 +5,16 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { TagListField } from "@/components/dashboard/tag-list-field";
 import { useApprovedFacilitators } from "@/hooks/queries/facilitator-profiles";
+import { useCreateFacilitatorApplication } from "@/hooks/mutations/facilitator-applications";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
 import type { CreateFacilitatorApplicationRequest } from "@/types/facilitator";
+
+const MAX_CV_BYTES = 5 * 1024 * 1024; // 5MB — matches the backend's documented cv_file limit
 
 function CheckIcon() {
   return (
@@ -73,10 +79,9 @@ const applicationSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),
   phone: z.string().min(1, "Phone number is required"),
-  linkedin_url: z.string().optional(),
-  domain_areas: z.string().min(1, "Specialised domains are required"),
-  certifications_held: z.string().min(1, "Active credentials are required"),
-  motivation_statement: z.string().optional(),
+  linkedin_url: z.string().min(1, "LinkedIn URL is required").url("Enter a valid URL"),
+  experience_years: z.coerce.number().min(0, "Years of experience is required"),
+  motivation_statement: z.string().min(1, "Motivation statement is required"),
 });
 type ApplicationFormValues = z.infer<typeof applicationSchema>;
 
@@ -84,20 +89,71 @@ const FacilitatorPage = () => {
   const formRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [cvError, setCvError] = useState<string | undefined>();
+  const [domainAreas, setDomainAreas] = useState<string[]>([""]);
+  const [certificationsHeld, setCertificationsHeld] = useState<string[]>([""]);
+  const [domainAreasError, setDomainAreasError] = useState<string | undefined>();
+  const [certificationsError, setCertificationsError] = useState<string | undefined>();
   const { data: facilitators, isLoading: facilitatorsLoading } = useApprovedFacilitators();
+  const createApplication = useCreateFacilitatorApplication();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ApplicationFormValues>({
     resolver: zodResolver(applicationSchema),
   });
 
+  const handleCvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file after removing it
+    if (!file) return;
+    if (file.size > MAX_CV_BYTES) {
+      setCvError("File must be 5MB or smaller");
+      return;
+    }
+    setCvError(undefined);
+    setCvFile(file);
+  };
+
   const onSubmit = (values: ApplicationFormValues) => {
-    if (!cvFile) return;
-    const payload: CreateFacilitatorApplicationRequest = { ...values, cv: cvFile };
-    void payload;
+    const domains = domainAreas.map((v) => v.trim()).filter(Boolean);
+    const certifications = certificationsHeld.map((v) => v.trim()).filter(Boolean);
+
+    let valid = true;
+    if (!cvFile) {
+      setCvError("Resume/CV is required");
+      valid = false;
+    }
+    if (domains.length === 0) {
+      setDomainAreasError("Add at least one specialised domain");
+      valid = false;
+    }
+    if (certifications.length === 0) {
+      setCertificationsError("Add at least one credential");
+      valid = false;
+    }
+    if (!valid || !cvFile) return;
+
+    const payload: CreateFacilitatorApplicationRequest = {
+      ...values,
+      domain_areas: domains,
+      certifications_held: certifications,
+      cv_file: cvFile,
+    };
+
+    createApplication.mutate(payload, {
+      onSuccess: () => {
+        toast.success("Application submitted — we'll be in touch after review.");
+        reset();
+        setCvFile(null);
+        setDomainAreas([""]);
+        setCertificationsHeld([""]);
+      },
+      onError: (err) => toast.error(err.message),
+    });
   };
 
   const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -233,6 +289,7 @@ const FacilitatorPage = () => {
               />
               <Input
                 label="LinkedIn URL"
+                required
                 placeholder="linkedin.com/in/jane"
                 error={errors.linkedin_url?.message}
                 {...register("linkedin_url")}
@@ -240,28 +297,49 @@ const FacilitatorPage = () => {
             </div>
 
             <Input
-              label="Specialised Domains"
+              label="Years of Experience"
+              type="number"
+              min={0}
               required
-              placeholder="e.g. Agile Coaching, Cybersecurity"
-              error={errors.domain_areas?.message}
-              {...register("domain_areas")}
+              placeholder="e.g. 5"
+              error={errors.experience_years?.message}
+              {...register("experience_years")}
             />
-            <Input
+
+            <TagListField
+              label="Specialised Domains"
+              addLabel="Add domain"
+              values={domainAreas}
+              onChange={(v) => {
+                setDomainAreas(v);
+                setDomainAreasError(undefined);
+              }}
+              error={domainAreasError}
+            />
+            <TagListField
               label="Active Credentials"
-              required
-              placeholder="e.g. PMP, CSM"
-              error={errors.certifications_held?.message}
-              {...register("certifications_held")}
+              addLabel="Add credential"
+              values={certificationsHeld}
+              onChange={(v) => {
+                setCertificationsHeld(v);
+                setCertificationsError(undefined);
+              }}
+              error={certificationsError}
             />
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm text-gray-900">Motivation Statement</label>
+              <label className="text-sm text-gray-900">
+                Motivation Statement <span className="text-secondary">*</span>
+              </label>
               <textarea
                 rows={4}
                 placeholder="Tell us about your learning needs and goals..."
                 className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
                 {...register("motivation_statement")}
               />
+              {errors.motivation_statement && (
+                <p className="text-xs text-red-500">{errors.motivation_statement.message}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -273,7 +351,7 @@ const FacilitatorPage = () => {
                 type="file"
                 accept=".pdf,.doc,.docx"
                 className="hidden"
-                onChange={(e) => setCvFile(e.target.files?.[0] ?? null)}
+                onChange={handleCvChange}
               />
               {cvFile ? (
                 <div className="flex items-center justify-between rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700">
@@ -300,17 +378,16 @@ const FacilitatorPage = () => {
                   Click <span className="font-medium text-gray-700">here</span> to upload your supporting document
                 </button>
               )}
-              {!cvFile && <p className="text-xs text-gray-400">Resume/CV is required.</p>}
+              {cvError ? (
+                <p className="text-xs text-red-500">{cvError}</p>
+              ) : (
+                !cvFile && <p className="text-xs text-gray-400">Resume/CV is required (PDF or Word, max 5MB).</p>
+              )}
             </div>
 
-            <button
-              type="submit"
-              disabled
-              title="Facilitator applications aren't connected yet — no public submission API exists"
-              className="rounded-md bg-main px-6 py-3.5 text-sm font-semibold text-white opacity-60 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" loading={createApplication.isPending} className="mt-1">
               Submit Application
-            </button>
+            </Button>
           </form>
         </div>
       </section>

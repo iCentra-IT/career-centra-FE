@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCreateProgram } from "@/hooks/mutations/programs";
 import { ProgramForm } from "@/components/dashboard/program-form";
+import { clearPersistedStateByPrefix } from "@/hooks/use-persisted-state";
+
+const PERSIST_KEY = "program-create";
 
 const CreateProgramPage = () => {
   const router = useRouter();
@@ -18,6 +21,7 @@ const CreateProgramPage = () => {
 
       <div className="mt-8">
         <ProgramForm
+          persistKey={PERSIST_KEY}
           submitLabel="Create"
           isPending={createProgram.isPending}
           onClose={() => router.push("/admin/programs")}
@@ -25,6 +29,7 @@ const CreateProgramPage = () => {
             createProgram.mutate(payload, {
               onSuccess: () => {
                 toast.success("Program created.");
+                clearPersistedStateByPrefix(PERSIST_KEY);
                 router.push("/admin/programs");
               },
               onError: (err) => toast.error(err.message),

@@ -461,7 +461,7 @@ const HomePage = () => {
           {!programsLoading && featured.length === 0 && (
             <p className="text-sm text-gray-400">No programs published yet.</p>
           )}
-          {featured.map((program) => (
+          {featured.slice(0, 4).map((program) => (
             <ProgramCard key={program.id} program={program} buttonTone="cyan" />
           ))}
         </div>
@@ -509,7 +509,7 @@ const HomePage = () => {
                   </p>
                 </div>
                 {i < LEVELS.length - 1 && (
-                  <span className="text-gray-300">›</span>
+                  <span className="text-gray-300 hidden md:blockthis global ">›</span>
                 )}
               </div>
             );

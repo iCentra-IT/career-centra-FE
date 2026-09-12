@@ -12,6 +12,16 @@ const PAGE_SIZE = 9;
 
 type SortOption = "relevance" | "price_asc" | "price_desc" | "newest";
 
+// Confirmed full enum from GET /api/programs/'s level filter parameter docs — filtering by the raw
+// value server-side, so this can't be derived from whatever level_display strings happen to be in
+// the currently-loaded page.
+const LEVEL_FILTER_OPTIONS = [
+  { value: "foundation", label: "Foundation" },
+  { value: "professional", label: "Professional" },
+  { value: "advanced", label: "Advanced" },
+  { value: "specialized", label: "Specialized" },
+];
+
 function SearchIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -56,7 +66,6 @@ function Select({
 
 function ProgramsPageContent() {
   const searchParams = useSearchParams();
-  const { data: programs, isLoading } = usePrograms();
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>(searchParams.get("track") ?? "");
@@ -67,34 +76,27 @@ function ProgramsPageContent() {
   const [sort, setSort] = useState<SortOption>("relevance");
   const [page, setPage] = useState(1);
 
-  const levelOptions = useMemo(() => {
-    const values = new Set((programs?.results ?? []).map((p) => p.level_display));
-    return Array.from(values);
-  }, [programs]);
+  // Filtering (search/category/level/certification body/price range) is confirmed server-side via
+  // GET /api/programs/'s query params — only sorting and display pagination stay client-side since
+  // the backend doesn't document a sort or page param.
+  const { data: programs, isLoading } = usePrograms({
+    search: search.trim() || undefined,
+    program_type: category || undefined,
+    level: level || undefined,
+    certification_body: certBody || undefined,
+    price_min: minPrice || undefined,
+    price_max: maxPrice || undefined,
+  });
 
   const filtered = useMemo(() => {
-    let list = programs?.results ?? [];
+    const list = [...(programs?.results ?? [])];
 
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.summary.toLowerCase().includes(q),
-      );
-    }
-    if (category) list = list.filter((p) => p.program_type === category);
-    if (level) list = list.filter((p) => p.level_display === level);
-    if (certBody === "pmi") list = list.filter((p) => p.has_pmi_badge);
-    if (certBody === "pecb") list = list.filter((p) => p.has_pecb_badge);
-    if (minPrice) list = list.filter((p) => parseFloat(p.base_price_usd) >= parseFloat(minPrice));
-    if (maxPrice) list = list.filter((p) => parseFloat(p.base_price_usd) <= parseFloat(maxPrice));
-
-    list = [...list];
     if (sort === "price_asc") list.sort((a, b) => parseFloat(a.base_price_usd) - parseFloat(b.base_price_usd));
     if (sort === "price_desc") list.sort((a, b) => parseFloat(b.base_price_usd) - parseFloat(a.base_price_usd));
     if (sort === "newest") list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return list;
-  }, [programs, search, category, level, certBody, minPrice, maxPrice, sort]);
+  }, [programs, sort]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -113,7 +115,7 @@ function ProgramsPageContent() {
 
   return (
     <div>
-      <section className="bg-gradient-to-br from-main to-deep-blue px-6 py-16 text-white">
+      <section className="bg-linear-to-br from-main to-deep-blue px-6 py-16 text-white">
         <div className="mx-auto max-w-6xl">
           <p className="text-sm text-white/60">
             <Link href="/" className="hover:text-white">
@@ -140,10 +142,7 @@ function ProgramsPageContent() {
                 setLevel(v);
                 setPage(1);
               }}
-              options={[
-                { label: "All Levels", value: "" },
-                ...levelOptions.map((l) => ({ label: l, value: l })),
-              ]}
+              options={[{ label: "All Levels", value: "" }, ...LEVEL_FILTER_OPTIONS]}
             />
             <Select label="Delivery Format" value="" options={[{ label: "All Formats", value: "" }]} disabled />
             <Select label="Duration" value="" options={[{ label: "Any Duration", value: "" }]} disabled />
@@ -157,6 +156,7 @@ function ProgramsPageContent() {
               }}
               options={[
                 { label: "All Bodies", value: "" },
+                { label: "iCentra", value: "icentra" },
                 { label: "PMI", value: "pmi" },
                 { label: "PECB", value: "pecb" },
               ]}

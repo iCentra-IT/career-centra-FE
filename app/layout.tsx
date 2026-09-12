@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Carerrer Centra",
+  title: "Career Centra",
   description: "Created by iCentra",
 };
 

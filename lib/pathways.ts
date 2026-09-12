@@ -2,7 +2,7 @@ export const PATHWAY_CATEGORIES = [
   { label: "Project Management", programType: "Project & Portfolio Management" },
   { label: "Agile & Product", programType: "Agile, Product & Business Analysis" },
   { label: "Cybersecurity", programType: "Cybersecurity & Risk" },
-  { label: "Digital & AI", programType: "AI & Digital Transformation" },
+  { label: "Digital & AI", programType: "Digital Transformation & AI" },
 ] as const;
 
 // Matches a career path's title to one of the four known pathway categories above by keyword,

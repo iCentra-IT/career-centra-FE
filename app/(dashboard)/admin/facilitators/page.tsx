@@ -2,18 +2,38 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useFacilitatorApplications } from "@/hooks/queries/facilitator-applications";
 import { useApprovedFacilitators } from "@/hooks/queries/facilitator-profiles";
 import { usePatchFacilitatorApplication } from "@/hooks/mutations/facilitator-applications";
+import {
+  useDeleteFacilitatorProfile,
+  useInviteFacilitator,
+  usePatchFacilitatorProfile,
+} from "@/hooks/mutations/facilitator-profiles";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyTableState } from "@/components/ui/empty-table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
+import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
+import { TagListField } from "@/components/dashboard/tag-list-field";
+import { ImageFileField } from "@/components/dashboard/image-file-field";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { formatOrdinalDateTime } from "@/lib/format";
-import type { FacilitatorApplication } from "@/types/facilitator";
+import type { FacilitatorApplication, FacilitatorProfile } from "@/types/facilitator";
 
 const APPLICATIONS_COLUMNS = ["Applicant", "Email", "Domains", "Status", "Submitted", "Action"];
-const APPROVED_COLUMNS = ["Facilitator", "Bio", "Credentials"];
+const APPROVED_COLUMNS = ["Facilitator", "Bio", "Credentials", "Status", "Action"];
+
+const inviteSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email address"),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+});
+type InviteFormValues = z.infer<typeof inviteSchema>;
 
 const TABS = [
   { key: "applications", label: "Facilitator Applications" },
@@ -109,13 +129,13 @@ function ApplicationDrawer({
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Domains</p>
-              <p className="mt-1 text-gray-900">{application.domain_areas}</p>
+              <p className="mt-1 text-gray-900">{application.domain_areas.join(", ") || "—"}</p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                 Certifications Held
               </p>
-              <p className="mt-1 text-gray-900">{application.certifications_held || "—"}</p>
+              <p className="mt-1 text-gray-900">{application.certifications_held.join(", ") || "—"}</p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -210,11 +230,250 @@ function ApplicationDrawer({
   );
 }
 
+function InviteFacilitatorModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [shortBio, setShortBio] = useState("");
+  const [credentialTags, setCredentialTags] = useState<string[]>([""]);
+  const [isPublished, setIsPublished] = useState(true);
+  const inviteFacilitator = useInviteFacilitator();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<InviteFormValues>({ resolver: zodResolver(inviteSchema) });
+
+  const resetAll = () => {
+    reset();
+    setAvatarFile(null);
+    setShortBio("");
+    setCredentialTags([""]);
+    setIsPublished(true);
+  };
+
+  const onSubmit = (values: InviteFormValues) => {
+    inviteFacilitator.mutate(
+      {
+        ...values,
+        avatar: avatarFile ?? undefined,
+        short_bio: shortBio.trim() || undefined,
+        credential_tags: credentialTags.map((t) => t.trim()).filter(Boolean),
+        is_published: isPublished,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Invite sent.");
+          resetAll();
+          onClose();
+        },
+        onError: (err) => toast.error(err.message),
+      },
+    );
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={() => {
+        resetAll();
+        onClose();
+      }}
+    >
+      <div className="text-left">
+        <h2 className="text-lg font-semibold text-gray-900">Invite Facilitator</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Links an existing account by email, or creates one and emails a set-password link.
+        </p>
+
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mt-6 flex flex-col gap-5">
+            <Input
+              label="Email"
+              type="email"
+              required
+              placeholder="jane@company.com"
+              error={errors.email?.message}
+              {...register("email")}
+            />
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Input label="First Name" placeholder="Jane" {...register("first_name")} />
+              <Input label="Last Name" placeholder="Smith" {...register("last_name")} />
+            </div>
+
+            <ImageFileField label="Avatar" file={avatarFile} onChange={setAvatarFile} />
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-900">Short Bio</label>
+              <textarea
+                rows={3}
+                value={shortBio}
+                onChange={(e) => setShortBio(e.target.value)}
+                placeholder="A short introduction shown on the public facilitator directory"
+                className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+              />
+            </div>
+
+            <TagListField
+              label="Credential Tags"
+              addLabel="Add credential"
+              required={false}
+              values={credentialTags}
+              onChange={setCredentialTags}
+            />
+
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={isPublished}
+                onChange={(e) => setIsPublished(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              Publish to the public facilitator directory
+            </label>
+          </div>
+
+          <Button type="submit" loading={inviteFacilitator.isPending} className="mt-6">
+            Send Invite
+          </Button>
+        </form>
+      </div>
+    </Modal>
+  );
+}
+
+function EditFacilitatorModal({
+  facilitator,
+  onClose,
+}: {
+  facilitator: FacilitatorProfile;
+  onClose: () => void;
+}) {
+  const [fullName, setFullName] = useState(facilitator.full_name);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [shortBio, setShortBio] = useState(facilitator.short_bio);
+  const [credentialTags, setCredentialTags] = useState<string[]>(
+    facilitator.credential_tags.length > 0 ? facilitator.credential_tags : [""],
+  );
+  const [isPublished, setIsPublished] = useState(facilitator.is_published);
+  const patchProfile = usePatchFacilitatorProfile(facilitator.id);
+
+  const handleSave = () => {
+    patchProfile.mutate(
+      {
+        full_name: fullName.trim(),
+        avatar: avatarFile ?? undefined,
+        short_bio: shortBio.trim(),
+        credential_tags: credentialTags.map((t) => t.trim()).filter(Boolean),
+        is_published: isPublished,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Facilitator profile updated.");
+          onClose();
+        },
+        onError: (err) => toast.error(err.message),
+      },
+    );
+  };
+
+  return (
+    <Modal open onClose={onClose}>
+      <div className="text-left">
+        <h2 className="text-lg font-semibold text-gray-900">Edit Facilitator</h2>
+
+        <div className="mt-6 flex flex-col gap-5">
+          <Input label="Full Name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+
+          <ImageFileField
+            label="Avatar"
+            existingImageUrl={facilitator.avatar_url || undefined}
+            file={avatarFile}
+            onChange={setAvatarFile}
+          />
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-900">Short Bio</label>
+            <textarea
+              rows={3}
+              value={shortBio}
+              onChange={(e) => setShortBio(e.target.value)}
+              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+            />
+          </div>
+
+          <TagListField
+            label="Credential Tags"
+            addLabel="Add credential"
+            required={false}
+            values={credentialTags}
+            onChange={setCredentialTags}
+          />
+
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={isPublished}
+              onChange={(e) => setIsPublished(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            Published to the public facilitator directory
+          </label>
+        </div>
+
+        <Button type="button" loading={patchProfile.isPending} onClick={handleSave} className="mt-6">
+          Save Changes
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+function DeleteFacilitatorButton({ facilitator }: { facilitator: FacilitatorProfile }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const deleteProfile = useDeleteFacilitatorProfile();
+
+  const handleDelete = () => {
+    deleteProfile.mutate(facilitator.id, {
+      onSuccess: () => {
+        toast.success(`${facilitator.full_name} removed.`);
+        setConfirmOpen(false);
+      },
+      onError: (err) => {
+        toast.error(err.message);
+        setConfirmOpen(false);
+      },
+    });
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setConfirmOpen(true)}
+        className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+      >
+        Delete
+      </button>
+      <ConfirmDeleteModal
+        open={confirmOpen}
+        title="Remove this facilitator profile?"
+        description={`${facilitator.full_name} will be removed from the facilitator directory.`}
+        loading={deleteProfile.isPending}
+        onConfirm={handleDelete}
+        onClose={() => setConfirmOpen(false)}
+      />
+    </>
+  );
+}
+
 const AdminFacilitatorsPage = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("applications");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [selected, setSelected] = useState<FacilitatorApplication | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [editFacilitator, setEditFacilitator] = useState<FacilitatorProfile | null>(null);
 
   const { data: applications, isLoading } = useFacilitatorApplications({
     search: search.trim() || undefined,
@@ -300,7 +559,9 @@ const AdminFacilitatorsPage = () => {
                         </button>
                       </td>
                       <td className="px-5 py-4 text-gray-600">{application.email}</td>
-                      <td className="px-5 py-4 text-gray-600">{application.domain_areas}</td>
+                      <td className="px-5 py-4 text-gray-600">
+                        {application.domain_areas.join(", ") || "—"}
+                      </td>
                       <td className="px-5 py-4">
                         <StatusBadge
                           label={application.status_display}
@@ -333,11 +594,22 @@ const AdminFacilitatorsPage = () => {
         </div>
       ) : (
         <div className="mt-8">
-          <h1 className="text-3xl font-semibold text-gray-900">Approved facilitators</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Directory of approved facilitator profiles. Cohort creation collects facilitator_name
-            directly, so this list is for reference, not program assignment.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-semibold text-gray-900">Approved facilitators</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Directory of approved facilitator profiles. Cohort creation collects
+                facilitator_name directly, so this list is for reference, not program assignment.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setInviteOpen(true)}
+              className="rounded-md bg-main px-5 py-2.5 text-sm font-medium text-white hover:bg-deep-blue"
+            >
+              + Invite Facilitator
+            </button>
+          </div>
 
           <div className="mt-6 overflow-x-auto rounded-2xl border border-gray-100 bg-white">
             {approvedLoading ? (
@@ -383,6 +655,24 @@ const AdminFacilitatorsPage = () => {
                       <td className="px-5 py-4 text-gray-600">
                         {facilitator.credential_tags.join(", ") || "—"}
                       </td>
+                      <td className="px-5 py-4">
+                        <StatusBadge
+                          label={facilitator.is_published ? "Published" : "Draft"}
+                          tone={facilitator.is_published ? "green" : "gray"}
+                        />
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditFacilitator(facilitator)}
+                            className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            Edit
+                          </button>
+                          <DeleteFacilitatorButton facilitator={facilitator} />
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -393,6 +683,10 @@ const AdminFacilitatorsPage = () => {
       )}
 
       {selected && <ApplicationDrawer application={selected} onClose={() => setSelected(null)} />}
+      <InviteFacilitatorModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      {editFacilitator && (
+        <EditFacilitatorModal facilitator={editFacilitator} onClose={() => setEditFacilitator(null)} />
+      )}
     </div>
   );
 };

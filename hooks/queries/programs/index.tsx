@@ -1,12 +1,13 @@
 // lib/api/programs/use-programs.ts
 import { getProgram, getPrograms } from "@/lib/api/programs";
 import { queryKeys } from "@/lib/api/query-keys";
+import type { ProgramListFilters } from "@/types/programs";
 import { useQuery } from "@tanstack/react-query";
 
-export function usePrograms() {
+export function usePrograms(filters?: ProgramListFilters) {
   return useQuery({
-    queryKey: queryKeys.programs.all,
-    queryFn: getPrograms,
+    queryKey: filters ? queryKeys.programs.list(filters) : queryKeys.programs.all,
+    queryFn: () => getPrograms(filters),
     staleTime: 5 * 60 * 1000,
   });
 }

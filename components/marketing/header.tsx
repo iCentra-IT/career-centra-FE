@@ -171,7 +171,7 @@ export function MarketingHeader() {
   const dashboardHref = user ? dashboardHomeFor(user.role) : null;
 
   return (
-    <header className="sticky top-0 z-30 bg-white relative">
+    <header id="site-header" className="sticky top-0 z-30 bg-white relative">
       <div className=" px-6 py-2">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Logo />

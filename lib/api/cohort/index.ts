@@ -5,8 +5,12 @@ import { apiClient } from '../client';
 
 // NOTE: assumed paginated like /api/programs/ (confirmed) — same {success, count, results} envelope.
 // Not yet confirmed against a real /api/cohorts/ response; fix this if that turns out wrong.
-export async function getCohorts(): Promise<PaginatedResponse<Cohort>> {
-  const { data } = await apiClient.get<PaginatedResponse<Cohort>>('/api/cohorts/');
+//
+// `program` is an optional, unconfirmed filter param (mirrors the pattern GET /api/programs/ uses
+// for its own filters) — callers that need "cohorts for this program" should still filter the
+// results client-side by `cohort.program.id`, since it's not guaranteed the backend honors this.
+export async function getCohorts(filters?: { program?: number }): Promise<PaginatedResponse<Cohort>> {
+  const { data } = await apiClient.get<PaginatedResponse<Cohort>>('/api/cohorts/', { params: filters });
   return data;
 }
 

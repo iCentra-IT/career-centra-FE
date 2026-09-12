@@ -1,4 +1,4 @@
-import { createAdminUser, patchAdminUser } from "@/lib/api/admin-users";
+import { createAdminUser, patchAdminUser, resendAdminUserInvite } from "@/lib/api/admin-users";
 import { queryKeys } from "@/lib/api/query-keys";
 import { NormalizedError } from "@/types/api";
 import { AdminUser, CreateAdminUserRequest, PatchAdminUserRequest } from "@/types/user";
@@ -24,5 +24,11 @@ export function usePatchAdminUser(id: number) {
       queryClient.setQueryData(queryKeys.adminUsers.detail(id), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.adminUsers.all });
     },
+  });
+}
+
+export function useResendAdminUserInvite() {
+  return useMutation<void, NormalizedError, number>({
+    mutationFn: (id) => resendAdminUserInvite(id),
   });
 }
