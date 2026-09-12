@@ -349,7 +349,7 @@ export function ProgramForm({
 
           <Input
             label="Program Code"
-            required
+            // required
             placeholder="e.g. PMP"
             value={code}
             onChange={(e) => setCode(e.target.value)}
