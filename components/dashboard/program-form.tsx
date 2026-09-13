@@ -43,11 +43,10 @@ const CERTIFICATE_PROVIDER_OPTIONS: { value: CertificateProvider; label: string 
   { value: "pmi", label: "PMI" },
   { value: "pecb", label: "PECB" },
 ];
-// Only "dual" is confirmed — the other two are a reasonable guess for a single-currency program.
+// Confirmed the only two real values — no ngn_only.
 const PRICING_MODE_OPTIONS: { value: PricingMode; label: string }[] = [
   { value: "dual", label: "Dual (USD + NGN)" },
   { value: "usd_only", label: "USD only" },
-  // { value: "ngn_only", label: "NGN only" },
 ];
 
 const MAX_COVER_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB

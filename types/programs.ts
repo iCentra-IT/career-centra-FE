@@ -2,9 +2,8 @@
 import { ProgramAccreditation } from "./student";
 import { CertificateProvider } from "./cart";
 
-// Confirmed value: "dual" (both base_price_usd and base_price_ngn apply). No other values
-// confirmed yet — "usd_only"/"ngn_only" are a reasonable guess for a single-currency program,
-// flag for backend confirmation if the UI needs to branch on them beyond just submitting the string.
+// Confirmed the only two real values: "dual" (both base_price_usd and base_price_ngn apply) and
+// "usd_only" (single-currency, USD).
 export type PricingMode = 'dual' | 'usd_only' | string;
 
 // Confirmed full enum from GET /api/programs/'s program_type filter parameter docs — kept the
@@ -55,6 +54,9 @@ export interface ProgramListFilters {
 // on GET /api/cohorts/ (types/cohort.ts's `Cohort`), each embedding a `program` summary the other
 // way around. Use useCohortsByProgram(program.id) (hooks/queries/cohort) to get a program's
 // scheduled cohorts, not this type.
+// Confirmed real shape from an actual captured GET /api/programs/ response (paginated: {success,
+// count, total_pages, next, previous, results}, 8 real programs) — every field below was present
+// on every item, so none of them are optional.
 export interface PublicProgramListing {
   id: number;
   title: string;
@@ -65,41 +67,52 @@ export interface PublicProgramListing {
   level_display: string;
   audience: ProgramAudience;
   audience_display: string;
-  // platform/pricing_mode/has_icentra_badge/certificate_provider confirmed present on this list
-  // item by a later GET /api/programs/ doc dump — added here alongside the original capture's fields.
-  platform?: string;
-  platform_display?: string;
+  platform: string;
+  platform_display: string;
   purchase_mode: PurchaseMode;
   purchase_mode_display: string;
   summary: string;
-  pricing_mode?: PricingMode;
-  pricing_mode_display?: string;
+  pricing_mode: PricingMode;
+  pricing_mode_display: string;
   base_price_usd: string;
   base_price_ngn: string;
+  // effective_price_* mirrors base_price_* on every captured item (no per-listing override seen
+  // yet) — default_price/currency is the one to actually display: for pricing_mode "dual" it was
+  // effective_price_ngn re-labelled "NGN"; for "usd_only" the sample showed a real oddity —
+  // default_price "0.00"/currency "NGN" even though effective_price_usd was the real 1500.00 — so
+  // default_price isn't reliable for a usd_only program. See programDisplayPrice below.
+  effective_price_usd: string;
+  effective_price_ngn: string;
+  default_price: string;
+  currency: string;
   has_pmi_badge: boolean;
   has_pecb_badge: boolean;
-  has_icentra_badge?: boolean;
-  certificate_provider?: CertificateProvider;
-  // Confirmed genuinely distinct from certificate_provider by a real backend-dev-provided sample:
-  // a program created with certificate_provider "icentra" but both has_pmi_badge/has_pecb_badge
-  // true came back with certification_body "pmi" — this looks server-derived from the badges
-  // (which accreditor to lead with), not a mirror of the certificate_provider choice.
-  certification_body?: CertificateProvider;
+  has_icentra_badge: boolean;
+  certificate_provider: CertificateProvider;
+  // Confirmed genuinely distinct from certificate_provider — e.g. a program with
+  // certificate_provider "icentra" came back with certification_body "pmi" when has_pmi_badge was
+  // its only true badge. Server-derived from the badges, not a mirror of certificate_provider.
+  certification_body: CertificateProvider;
   accreditations: ProgramAccreditation[];
   cover_image_url: string;
+  next_cohort: string | null; // always null on every captured item so far — shape when set is unconfirmed
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-// Display price for a program in list views — pass a cohort's effective_price_usd (from
-// types/cohort.ts's Cohort, fetched separately via useCohortsByProgram) when the caller has one
-// and wants the price to match a specific cohort; otherwise falls back to the catalog base price.
+// Display price for a program in list views. Per pricing_mode:
+// - "dual": default_price/currency is correct (NGN, matching effective_price_ngn).
+// - "usd_only": default_price/currency was seen coming back wrong ("0.00"/"NGN") on a real
+//   captured usd_only program whose real price was effective_price_usd "1500.00" — fall back to
+//   that instead of trusting default_price for this mode.
 export function programDisplayPrice(
   program: PublicProgramListing,
-  cohortPriceUsd?: string,
 ): { amount: string; currency: string } {
-  return { amount: cohortPriceUsd ?? program.base_price_usd, currency: "USD" };
+  if (program.pricing_mode === "usd_only") {
+    return { amount: program.effective_price_usd, currency: "USD" };
+  }
+  return { amount: program.default_price, currency: program.currency };
 }
 
 // List view — lighter payload, no "outline"
