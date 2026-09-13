@@ -5,7 +5,7 @@ import { CertificateProvider } from "./cart";
 // Confirmed value: "dual" (both base_price_usd and base_price_ngn apply). No other values
 // confirmed yet — "usd_only"/"ngn_only" are a reasonable guess for a single-currency program,
 // flag for backend confirmation if the UI needs to branch on them beyond just submitting the string.
-export type PricingMode = 'dual' | 'usd_only' | 'ngn_only' | string;
+export type PricingMode = 'dual' | 'usd_only' | string;
 
 // Confirmed full enum from GET /api/programs/'s program_type filter parameter docs — kept the
 // `| string` fallback since the backend may add more tabs later without a frontend redeploy.
