@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePersistedState } from "@/hooks/use-persisted-state";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TagListField } from "@/components/dashboard/tag-list-field";
@@ -51,7 +50,7 @@ const PRICING_MODE_OPTIONS: { value: PricingMode; label: string }[] = [
   { value: "ngn_only", label: "NGN only" },
 ];
 
-const MAX_COVER_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB — keeps the data URL (and the persisted draft) a sane size
+const MAX_COVER_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB
 
 export interface CertificationFormValue {
   name: string;
@@ -87,9 +86,6 @@ export interface ProgramFormValues {
 }
 
 interface ProgramFormProps {
-  // Unique per form instance — e.g. "program-create" or `program-edit-${slug}` — so drafts don't
-  // collide between "create new" and "editing program X", and each program's edit draft is its own.
-  persistKey: string;
   initialValues?: ProgramFormValues;
   // The program's current cover image, if editing one — display-only; a browser can't
   // pre-populate a file input, so a new upload is only sent when the admin picks a new file.
@@ -132,7 +128,6 @@ const EMPTY_VALUES: ProgramFormValues = {
 };
 
 export function ProgramForm({
-  persistKey,
   initialValues,
   existingCoverImageUrl,
   submitLabel,
@@ -140,48 +135,31 @@ export function ProgramForm({
   onSubmit,
   onClose,
 }: ProgramFormProps) {
-  // Every field below is persisted to localStorage under `${persistKey}:<field>`, so a refresh —
-  // or closing the tab and coming back — restores exactly what was typed, including which step of
-  // the wizard you were on.
-  const usePersist = <T,>(field: string, initial: T) =>
-    usePersistedState<T>(`${persistKey}:${field}`, initial);
+  const [step, setStep] = useState<1 | 2>(1);
 
-  const [step, setStep] = usePersist<1 | 2>("step", 1);
-
-  const [title, setTitle] = usePersist("title", initialValues?.title ?? EMPTY_VALUES.title);
-  const [code, setCode] = usePersist("code", initialValues?.code ?? EMPTY_VALUES.code);
-  const [description, setDescription] = usePersist(
-    "description",
+  const [title, setTitle] = useState(initialValues?.title ?? EMPTY_VALUES.title);
+  const [code, setCode] = useState(initialValues?.code ?? EMPTY_VALUES.code);
+  const [description, setDescription] = useState(
     initialValues?.description ?? EMPTY_VALUES.description,
   );
-  const [programType, setProgramType] = usePersist(
-    "programType",
+  const [programType, setProgramType] = useState(
     initialValues?.programType ?? EMPTY_VALUES.programType,
   );
-  const [pmiBadge, setPmiBadge] = usePersist("pmiBadge", initialValues?.pmiBadge ?? EMPTY_VALUES.pmiBadge);
-  const [pecbBadge, setPecbBadge] = usePersist(
-    "pecbBadge",
-    initialValues?.pecbBadge ?? EMPTY_VALUES.pecbBadge,
-  );
-  const [icentraBadge, setIcentraBadge] = usePersist(
-    "icentraBadge",
+  const [pmiBadge, setPmiBadge] = useState(initialValues?.pmiBadge ?? EMPTY_VALUES.pmiBadge);
+  const [pecbBadge, setPecbBadge] = useState(initialValues?.pecbBadge ?? EMPTY_VALUES.pecbBadge);
+  const [icentraBadge, setIcentraBadge] = useState(
     initialValues?.icentraBadge ?? EMPTY_VALUES.icentraBadge,
   );
-  const [certificateProvider, setCertificateProvider] = usePersist<CertificateProvider>(
-    "certificateProvider",
+  const [certificateProvider, setCertificateProvider] = useState<CertificateProvider>(
     initialValues?.certificateProvider ?? EMPTY_VALUES.certificateProvider,
   );
-  const [level, setLevel] = usePersist("level", initialValues?.level ?? EMPTY_VALUES.level);
-  const [audience, setAudience] = usePersist("audience", initialValues?.audience ?? EMPTY_VALUES.audience);
-  const [pricingMode, setPricingMode] = usePersist<PricingMode>(
-    "pricingMode",
+  const [level, setLevel] = useState(initialValues?.level ?? EMPTY_VALUES.level);
+  const [audience, setAudience] = useState(initialValues?.audience ?? EMPTY_VALUES.audience);
+  const [pricingMode, setPricingMode] = useState<PricingMode>(
     initialValues?.pricingMode ?? EMPTY_VALUES.pricingMode,
   );
-  const [priceUsd, setPriceUsd] = usePersist("priceUsd", initialValues?.priceUsd ?? EMPTY_VALUES.priceUsd);
-  const [priceNgn, setPriceNgn] = usePersist("priceNgn", initialValues?.priceNgn ?? EMPTY_VALUES.priceNgn);
-  // Not persisted — a File can't be written to localStorage (or restored into a file input after
-  // a refresh even if it could be; browsers block that for security). Re-selecting the cover image
-  // after a refresh is an unavoidable, one-time exception to the rest of this form's persistence.
+  const [priceUsd, setPriceUsd] = useState(initialValues?.priceUsd ?? EMPTY_VALUES.priceUsd);
+  const [priceNgn, setPriceNgn] = useState(initialValues?.priceNgn ?? EMPTY_VALUES.priceNgn);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [errors1, setErrors1] = useState<Record<string, string>>({});
@@ -229,29 +207,24 @@ export function ProgramForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [learningOutcomes, setLearningOutcomes] = usePersist(
-    "learningOutcomes",
+  const [learningOutcomes, setLearningOutcomes] = useState(
     initialValues?.learningOutcomes ?? EMPTY_VALUES.learningOutcomes,
   );
-  const [whoShouldAttend, setWhoShouldAttend] = usePersist(
-    "whoShouldAttend",
+  const [whoShouldAttend, setWhoShouldAttend] = useState(
     initialValues?.whoShouldAttend ?? EMPTY_VALUES.whoShouldAttend,
   );
-  const [prerequisites, setPrerequisites] = usePersist(
-    "prerequisites",
+  const [prerequisites, setPrerequisites] = useState(
     initialValues?.prerequisites ?? EMPTY_VALUES.prerequisites,
   );
-  const [faqs, setFaqs] = usePersist("faqs", initialValues?.faqs ?? EMPTY_VALUES.faqs);
-  const [modules, setModules] = usePersist("modules", initialValues?.modules ?? EMPTY_VALUES.modules);
-  const [hasCertification, setHasCertification] = usePersist(
-    "hasCertification",
+  const [faqs, setFaqs] = useState(initialValues?.faqs ?? EMPTY_VALUES.faqs);
+  const [modules, setModules] = useState(initialValues?.modules ?? EMPTY_VALUES.modules);
+  const [hasCertification, setHasCertification] = useState(
     initialValues?.hasCertification ?? EMPTY_VALUES.hasCertification,
   );
-  const [certification, setCertification] = usePersist(
-    "certification",
+  const [certification, setCertification] = useState(
     initialValues?.certification ?? EMPTY_VALUES.certification,
   );
-  const [reviewPoints, setReviewPoints] = usePersist("reviewPoints", [] as string[]);
+  const [reviewPoints, setReviewPoints] = useState([] as string[]);
   const [errors2, setErrors2] = useState<Record<string, string>>({});
 
   const validateStep1 = () => {
