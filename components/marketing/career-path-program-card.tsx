@@ -13,11 +13,13 @@ export function CareerPathProgramCard({ program, buttonTone = "cyan" }: CareerPa
     ? "PMI Authorized"
     : program.has_pecb_badge
       ? "PECB Authorized"
-      : program.level_display;
+      : program.has_icentra_badge
+        ? "iCentra Authorized"
+        : program.level_display;
   const buttonClass = buttonTone === "cyan" ? "bg-glass text-deep-blue" : "bg-secondary text-white";
 
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-main to-deep-blue p-5 text-white">
+    <div className="flex flex-col justify-between rounded-2xl bg-linear-to-br from-main to-deep-blue p-5 text-white">
       <div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
           <BadgeIcon />

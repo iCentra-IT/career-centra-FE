@@ -9,7 +9,7 @@ import {
 } from "@/types/programs";
 import { ApiResponse, PaginatedResponse } from "@/types/api";
 import { apiClient } from "../client";
-import { toFormData, MULTIPART_HEADERS } from "../form-data";
+import { toRequestBody } from "../form-data";
 
 // Confirmed query params: search, program_type, level, audience, certification_body, price_min,
 // price_max — all optional, filtering the public catalog listing server-side.
@@ -27,18 +27,18 @@ export async function getProgram(slug: string): Promise<Program> {
   return data.data;
 }
 
-// cover_image is a real file upload (DRF ImageField), so the request has to go as
-// multipart/form-data — a plain JSON body gets "not a file, check the encoding type on the form".
-// Nested fields (arrays/objects — learning_outcomes, faqs, prerequisites, modules, certification)
-// are encoded via the shared toFormData helper (see lib/api/form-data.ts) using the backend's
-// confirmed nested-multipart convention: bracketed list indices, unbracketed dict keys.
+// Plain JSON when there's no cover_image File to upload (confirmed by a real sample payload from
+// the backend dev), multipart with the bracket-notation nested encoding when there is one
+// (confirmed separately by "not a file, check the encoding type on the form" — see
+// lib/api/form-data.ts's toRequestBody for the full story).
 export async function createProgram(
   payload: CreateProgramRequest,
 ): Promise<Program> {
+  const { body, headers } = toRequestBody(payload);
   const { data } = await apiClient.post<ApiResponse<Program>>(
     "/api/programs/",
-    toFormData(payload),
-    MULTIPART_HEADERS,
+    body,
+    headers ? { headers } : undefined,
   );
   return data.data;
 }
@@ -47,10 +47,11 @@ export async function updateProgram(
   slug: string,
   payload: UpdateProgramRequest,
 ): Promise<Program> {
+  const { body, headers } = toRequestBody(payload);
   const { data } = await apiClient.put<ApiResponse<Program>>(
     `/api/programs/${slug}/`,
-    toFormData(payload),
-    MULTIPART_HEADERS,
+    body,
+    headers ? { headers } : undefined,
   );
   return data.data;
 }
@@ -59,10 +60,11 @@ export async function patchProgram(
   slug: string,
   payload: PatchProgramRequest,
 ): Promise<Program> {
+  const { body, headers } = toRequestBody(payload);
   const { data } = await apiClient.patch<ApiResponse<Program>>(
     `/api/programs/${slug}/`,
-    toFormData(payload),
-    MULTIPART_HEADERS,
+    body,
+    headers ? { headers } : undefined,
   );
   return data.data;
 }

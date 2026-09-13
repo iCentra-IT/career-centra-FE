@@ -80,10 +80,11 @@ export interface PublicProgramListing {
   has_pecb_badge: boolean;
   has_icentra_badge?: boolean;
   certificate_provider?: CertificateProvider;
-  // Also present in the same dump as certificate_provider above with an unconfirmed (Swagger
-  // placeholder) value — likely just the filter-param name mirrored back, but kept separate rather
-  // than assumed identical until confirmed.
-  certification_body?: string;
+  // Confirmed genuinely distinct from certificate_provider by a real backend-dev-provided sample:
+  // a program created with certificate_provider "icentra" but both has_pmi_badge/has_pecb_badge
+  // true came back with certification_body "pmi" — this looks server-derived from the badges
+  // (which accreditor to lead with), not a mirror of the certificate_provider choice.
+  certification_body?: CertificateProvider;
   accreditations: ProgramAccreditation[];
   cover_image_url: string;
   is_active: boolean;
@@ -128,6 +129,10 @@ export interface ProgramListItem {
   // dump — the edit form previously had to guess these from has_pmi_badge/has_pecb_badge, which
   // silently corrupted them (e.g. reset has_icentra_badge to false) on every save.
   certificate_provider: CertificateProvider;
+  // Read-only, server-derived — confirmed distinct from certificate_provider (a real create
+  // response had certificate_provider "icentra" but certification_body "pmi", derived from which
+  // accreditation badges were set). Not part of CreateProgramRequest; don't try to write it.
+  certification_body: CertificateProvider;
   accreditations: ProgramAccreditation[];
   cover_image_url: string;
   next_cohort: string | null; // pre-formatted display date, e.g. "25 Sep 2026", or null if none scheduled

@@ -149,7 +149,9 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
       ? "PMI Authorized"
       : program.has_pecb_badge
         ? "PECB Authorized"
-        : program.level_display,
+        : program.has_icentra_badge
+          ? "iCentra Authorized"
+          : program.level_display,
     code: program.code,
     priceAmount: cohort.effective_price_usd,
     priceCurrency: "USD",
@@ -159,7 +161,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
 
   return (
     <div>
-      <section className="bg-gradient-to-br from-main to-deep-blue px-6 py-14 text-white">
+      <section className="bg-linear-to-br from-main to-deep-blue px-6 py-14 text-white">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
           <div>
             <p className="text-sm text-white/60">

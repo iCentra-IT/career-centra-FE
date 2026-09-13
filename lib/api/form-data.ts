@@ -32,3 +32,17 @@ export function toFormData<T extends object>(payload: T): FormData {
 // browser can set "multipart/form-data; boundary=…" itself — a hardcoded multipart Content-Type
 // here would be missing that boundary and produce a malformed request.
 export const MULTIPART_HEADERS = { headers: { "Content-Type": undefined } };
+
+// The backend accepts either encoding: plain JSON when there's no file to upload (confirmed by a
+// real sample payload/response from the backend dev — a fileless program create sent as a normal
+// JSON object with nested arrays/objects, no bracket-notation flattening needed), or multipart
+// when a field is an actual File (confirmed separately by "not a file, check the encoding type on
+// the form" when cover_image was JSON-encoded instead of a real upload). Picking JSON whenever
+// possible avoids the bracket-notation encoding entirely for the common no-file-change case.
+export function toRequestBody<T extends object>(
+  payload: T,
+): { body: T | FormData; headers?: Record<string, undefined> } {
+  const hasFile = Object.values(payload).some((value) => value instanceof File);
+  if (hasFile) return { body: toFormData(payload), headers: MULTIPART_HEADERS.headers };
+  return { body: payload };
+}

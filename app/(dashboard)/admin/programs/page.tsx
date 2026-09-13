@@ -70,7 +70,11 @@ const AdminProgramsPage = () => {
             )}
             {programs.map((program) => {
               const accreditation =
-                [program.has_pmi_badge && "PMI", program.has_pecb_badge && "PECB"]
+                [
+                  program.has_pmi_badge && "PMI",
+                  program.has_pecb_badge && "PECB",
+                  program.has_icentra_badge && "iCentra",
+                ]
                   .filter(Boolean)
                   .join(", ") || "—";
               const price = programDisplayPrice(program);

@@ -16,7 +16,9 @@ export function ProgramCard({ program, buttonTone = "cyan" }: ProgramCardProps) 
     ? "PMI Authorized"
     : program.has_pecb_badge
       ? "PECB Authorized"
-      : program.level_display;
+      : program.has_icentra_badge
+        ? "iCentra Authorized"
+        : program.level_display;
   const buttonClass = buttonTone === "cyan" ? "bg-glass text-deep-blue" : "bg-secondary text-white";
   const price = programDisplayPrice(program);
 
