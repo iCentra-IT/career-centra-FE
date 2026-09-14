@@ -16,6 +16,7 @@ const NAV_ITEMS = [
     icon: <SettingsIcon />,
     children: [
       { label: "Profile", href: "/facilitators/settings/profile" },
+      { label: "Public Profile", href: "/facilitators/settings/public-profile" },
       { label: "Security", href: "/facilitators/settings/security" },
     ],
   },

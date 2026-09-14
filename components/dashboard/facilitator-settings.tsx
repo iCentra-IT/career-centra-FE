@@ -5,10 +5,17 @@ import { FacilitatorProfileEditor } from "@/components/dashboard/facilitator-pro
 
 const TABS = [
   { key: "profile", label: "Profile", href: "/facilitators/settings/profile" },
+  { key: "public-profile", label: "Public Profile", href: "/facilitators/settings/public-profile" },
   { key: "security", label: "Security", href: "/facilitators/settings/security" },
 ] as const;
 
-export function FacilitatorSettings({ tab }: { tab: "profile" | "security" }) {
+export type FacilitatorSettingsTab = (typeof TABS)[number]["key"];
+
+// Account info (name/email — PATCH /api/auth/me/) and the public facilitator profile (bio,
+// credentials, avatar — PATCH /api/facilitators/profiles/{id}/) are two different records behind
+// two different save actions, so they're kept on separate tabs rather than stacked on one screen
+// with two "Save" buttons.
+export function FacilitatorSettings({ tab }: { tab: FacilitatorSettingsTab }) {
   return (
     <div>
       <div className="flex gap-6 border-b border-gray-100">
@@ -29,10 +36,9 @@ export function FacilitatorSettings({ tab }: { tab: "profile" | "security" }) {
 
       <div className="mt-8">
         {tab === "profile" ? (
-          <>
-            <ProfileTab />
-            <FacilitatorProfileEditor />
-          </>
+          <ProfileTab />
+        ) : tab === "public-profile" ? (
+          <FacilitatorProfileEditor />
         ) : (
           <SecurityTab />
         )}

@@ -110,8 +110,8 @@ function FacilitatorProfileForm({ profile }: { profile: FacilitatorProfile }) {
   };
 
   return (
-    <div className="mt-10 border-t border-gray-100 pt-8">
-      <h2 className="text-lg font-semibold text-gray-900">Facilitator Profile</h2>
+    <div>
+      <h2 className="text-lg font-semibold text-gray-900">Public Profile</h2>
       <p className="mt-1 text-sm text-gray-500">
         This is what learners see about you in the public facilitator directory.
       </p>
