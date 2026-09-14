@@ -5,7 +5,9 @@ import { usePrograms } from "@/hooks/queries/programs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TagListField } from "@/components/dashboard/tag-list-field";
+import { FaqListField } from "@/components/dashboard/faq-list-field";
 import type { CreateCareerPathRequest } from "@/types/career-paths";
+import type { ProgramFaq } from "@/types/programs";
 
 function TrashIcon() {
   return (
@@ -28,6 +30,8 @@ export interface CareerPathFormValues {
   certifications: string[];
   skills: string[];
   suitable_roles: string[];
+  whoShouldAttend: string[];
+  faqs: ProgramFaq[];
   programIds: number[];
 }
 
@@ -46,6 +50,8 @@ const EMPTY_VALUES: CareerPathFormValues = {
   certifications: [],
   skills: [],
   suitable_roles: [],
+  whoShouldAttend: [],
+  faqs: [],
   programIds: [],
 };
 
@@ -69,6 +75,10 @@ export function CareerPathForm({
   const [suitableRoles, setSuitableRoles] = useState(
     initialValues?.suitable_roles ?? EMPTY_VALUES.suitable_roles,
   );
+  const [whoShouldAttend, setWhoShouldAttend] = useState(
+    initialValues?.whoShouldAttend ?? EMPTY_VALUES.whoShouldAttend,
+  );
+  const [faqs, setFaqs] = useState(initialValues?.faqs ?? EMPTY_VALUES.faqs);
   const [programIds, setProgramIds] = useState(initialValues?.programIds ?? EMPTY_VALUES.programIds);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -90,6 +100,9 @@ export function CareerPathForm({
     if (certifications.filter((v) => v.trim()).length === 0) next.certifications = "Add at least one certification";
     if (skills.filter((v) => v.trim()).length === 0) next.skills = "Add at least one skill";
     if (suitableRoles.filter((v) => v.trim()).length === 0) next.suitable_roles = "Add at least one suitable role";
+    if (whoShouldAttend.filter((v) => v.trim()).length === 0)
+      next.who_should_attend = "Add at least one point";
+    if (faqs.filter((f) => f.question.trim()).length === 0) next.faqs = "Add at least one FAQ";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -106,6 +119,8 @@ export function CareerPathForm({
       certifications: certifications.map((v) => v.trim()).filter(Boolean),
       skills: skills.map((v) => v.trim()).filter(Boolean),
       suitable_roles: suitableRoles.map((v) => v.trim()).filter(Boolean),
+      who_should_attend: whoShouldAttend.map((v) => v.trim()).filter(Boolean),
+      faqs: faqs.filter((f) => f.question.trim()),
       is_active: true,
     });
   };
@@ -200,6 +215,14 @@ export function CareerPathForm({
         onChange={setSuitableRoles}
         error={errors.suitable_roles}
       />
+      <TagListField
+        label="Who Should Attend"
+        addLabel="Add Point"
+        values={whoShouldAttend}
+        onChange={setWhoShouldAttend}
+        error={errors.who_should_attend}
+      />
+      <FaqListField values={faqs} onChange={setFaqs} error={errors.faqs} />
 
       <div className="mt-2 flex gap-3">
         <button

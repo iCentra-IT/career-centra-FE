@@ -70,6 +70,7 @@ export const queryKeys = {
   facilitatorProfiles: {
     all: ["facilitator-profiles"] as const,
     detail: (id: number) => ["facilitator-profiles", id] as const,
+    me: ["facilitator-profiles", "me"] as const,
   },
 
   facilitatorDashboard: {

@@ -36,8 +36,8 @@ const inviteSchema = z.object({
 type InviteFormValues = z.infer<typeof inviteSchema>;
 
 const TABS = [
-  { key: "applications", label: "Facilitator Applications" },
   { key: "approved", label: "Approved Facilitators" },
+  { key: "applications", label: "Facilitator Applications" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -468,7 +468,7 @@ function DeleteFacilitatorButton({ facilitator }: { facilitator: FacilitatorProf
 }
 
 const AdminFacilitatorsPage = () => {
-  const [activeTab, setActiveTab] = useState<TabKey>("applications");
+  const [activeTab, setActiveTab] = useState<TabKey>("approved");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [selected, setSelected] = useState<FacilitatorApplication | null>(null);

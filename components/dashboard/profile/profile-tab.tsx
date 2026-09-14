@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,6 +9,8 @@ import { useProfile } from "@/hooks/queries/auth";
 import { usePatchProfile } from "@/hooks/mutations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
 
 const profileSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -34,6 +36,10 @@ export function ProfileTab() {
   const { data: profile, isLoading } = useProfile();
   const patchProfile = usePatchProfile();
 
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | undefined>();
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: { first_name: "", last_name: "" },
@@ -45,25 +51,89 @@ export function ProfileTab() {
     }
   }, [profile, form]);
 
-  const onSubmit = (values: ProfileFormValues) =>
-    patchProfile.mutate(values, {
-      onSuccess: () => toast.success("Profile updated."),
-      onError: (err) => toast.error(err.message),
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file after removing it
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Please choose an image file");
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      setAvatarError("Image must be 2MB or smaller");
+      return;
+    }
+
+    setAvatarError(undefined);
+    setAvatarPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
     });
+    setAvatarFile(file);
+  };
+
+  const removeAvatarSelection = () => {
+    setAvatarPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setAvatarFile(null);
+  };
+
+  // Object URLs aren't garbage-collected on their own — release the last one when this unmounts.
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onSubmit = (values: ProfileFormValues) =>
+    patchProfile.mutate(
+      { ...values, avatar: avatarFile ?? undefined },
+      {
+        onSuccess: () => {
+          toast.success("Profile updated.");
+          removeAvatarSelection();
+        },
+        onError: (err) => toast.error(err.message),
+      },
+    );
 
   return (
     <div>
       <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
       <p className="mt-1 text-sm text-gray-500">Keep your profile up to date</p>
 
-      <button
-        type="button"
-        disabled
-        title="Avatar upload not available yet"
-        className="mt-6 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 text-gray-400"
-      >
-        <CameraIcon />
-      </button>
+      <div className="mt-6 flex items-center gap-4">
+        {avatarPreview || profile?.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element -- a blob: preview or an arbitrary hosted URL, next/image can't optimize either
+          <img
+            src={avatarPreview ?? profile?.avatar_url}
+            alt={profile?.full_name ?? "Avatar"}
+            className="h-20 w-20 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+            <CameraIcon />
+          </div>
+        )}
+        <label className="cursor-pointer rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+          Change photo
+          <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+        </label>
+        {avatarPreview && (
+          <button
+            type="button"
+            onClick={removeAvatarSelection}
+            className="text-xs font-medium text-red-500 hover:text-red-600"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      {avatarError && <p className="mt-2 text-xs text-red-500">{avatarError}</p>}
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
@@ -121,9 +191,10 @@ export function ProfileTab() {
           </Button>
           <button
             type="button"
-            onClick={() =>
-              profile && form.reset({ first_name: profile.first_name, last_name: profile.last_name })
-            }
+            onClick={() => {
+              removeAvatarSelection();
+              if (profile) form.reset({ first_name: profile.first_name, last_name: profile.last_name });
+            }}
             className="rounded-md border border-gray-200 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             Close

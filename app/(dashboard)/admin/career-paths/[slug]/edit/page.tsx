@@ -35,6 +35,8 @@ const EditCareerPathPage = () => {
             certifications: pathway.certifications,
             skills: pathway.skills,
             suitable_roles: pathway.suitable_roles,
+            whoShouldAttend: pathway.who_should_attend,
+            faqs: pathway.faqs,
             programIds: pathway.programs.map((p) => p.id),
           }}
           onSubmit={(payload) =>

@@ -32,14 +32,22 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (!error) return;
-    if (!error.errors) {
-      toast.error(error.message);
-      return;
-    }
-    for (const [field, messages] of Object.entries(error.errors)) {
+    const fieldErrors = error.errors ?? {};
+
+    // Show inline errors for fields the form actually has, but not every failure is field-shaped
+    // (e.g. non_field_errors, account-locked/rate-limited messages) — those were previously
+    // dropped entirely (no toast, no inline error) since they don't match "email"/"password".
+    // Toast a fallback whenever nothing on the form ends up carrying the error — normalizeError
+    // already picks the most relevant real backend message for error.message in that case.
+    let matchedField = false;
+    for (const [field, messages] of Object.entries(fieldErrors)) {
       if (field === "email" || field === "password") {
+        matchedField = true;
         setError(field, { message: messages[0] });
       }
+    }
+    if (!matchedField) {
+      toast.error(error.message);
     }
   }, [error, setError]);
 

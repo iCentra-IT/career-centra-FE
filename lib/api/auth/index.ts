@@ -19,6 +19,7 @@ import {
 } from "@/types/auth";
 import { apiClient } from "../client";
 import { ApiResponse, unwrapObject } from "@/types/api";
+import { toRequestBody } from "../form-data";
 import { User } from "@/types/user";
 
 export async function registerStudent(
@@ -47,9 +48,11 @@ export async function getProfile(): Promise<User> {
 export async function updateProfile(
   payload: UpdateProfileRequest,
 ): Promise<UpdateProfileResponse> {
+  const { body, headers } = toRequestBody(payload);
   const { data } = await apiClient.put<ApiResponse<UpdateProfileResponse>>(
     "/api/auth/me/",
-    payload,
+    body,
+    headers ? { headers } : undefined,
   );
   return data.data;
 }
@@ -57,9 +60,11 @@ export async function updateProfile(
 export async function patchProfile(
   payload: PatchProfileRequest,
 ): Promise<UpdateProfileResponse> {
+  const { body, headers } = toRequestBody(payload);
   const { data } = await apiClient.patch<ApiResponse<UpdateProfileResponse>>(
     "/api/auth/me/",
-    payload,
+    body,
+    headers ? { headers } : undefined,
   );
   return data.data;
 }

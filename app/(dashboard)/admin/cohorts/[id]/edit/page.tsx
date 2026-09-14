@@ -29,7 +29,7 @@ const schema = z.object({
   seat_capacity: z.coerce.number().min(1, "Class capacity is required"),
   price_usd: z.coerce.number().min(0, "USD price is required"),
   price_ngn: z.coerce.number().min(0, "NGN price is required"),
-  facilitator_name: z.string().min(1, "Facilitator is required"),
+  facilitator_id: z.string().min(1, "Facilitator is required"),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -51,6 +51,9 @@ const EditCohortPage = () => {
 
   useEffect(() => {
     if (!cohort) return;
+    // Cohort (read side) doesn't expose facilitator IDs yet, only the plain facilitator_name
+    // string — best-effort match it against the approved facilitators list to preselect.
+    const matchedFacilitator = facilitators?.find((f) => f.full_name === cohort.facilitator_name);
     reset({
       program: String(cohort.program.id),
       starts_on: cohort.starts_on,
@@ -60,11 +63,14 @@ const EditCohortPage = () => {
       seat_capacity: cohort.seat_capacity,
       price_usd: parseFloat(cohort.effective_price_usd),
       price_ngn: parseFloat(cohort.effective_price_ngn),
-      facilitator_name: cohort.facilitator_name,
+      facilitator_id: matchedFacilitator ? String(matchedFacilitator.id) : "",
     });
-  }, [cohort, reset]);
+  }, [cohort, facilitators, reset]);
 
   const onSubmit = (values: FormValues) => {
+    const facilitatorId = Number(values.facilitator_id);
+    const facilitator = facilitators?.find((f) => f.id === facilitatorId);
+
     patchCohort.mutate(
       {
         program: Number(values.program),
@@ -75,7 +81,8 @@ const EditCohortPage = () => {
         seat_capacity: values.seat_capacity,
         price_override_usd: values.price_usd.toFixed(2),
         price_override_ngn: values.price_ngn.toFixed(2),
-        facilitator_name: values.facilitator_name,
+        facilitators: [facilitatorId],
+        facilitator_name: facilitator?.full_name ?? "",
       },
       {
         onSuccess: () => {
@@ -191,19 +198,19 @@ const EditCohortPage = () => {
           </label>
           <select
             className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-            {...register("facilitator_name")}
+            {...register("facilitator_id")}
           >
             <option value="" disabled>
               Select facilitator
             </option>
             {facilitators?.map((facilitator) => (
-              <option key={facilitator.id} value={facilitator.full_name}>
+              <option key={facilitator.id} value={facilitator.id}>
                 {facilitator.full_name}
               </option>
             ))}
           </select>
-          {errors.facilitator_name && (
-            <p className="text-xs text-red-500">{errors.facilitator_name.message}</p>
+          {errors.facilitator_id && (
+            <p className="text-xs text-red-500">{errors.facilitator_id.message}</p>
           )}
         </div>
 

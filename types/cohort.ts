@@ -102,6 +102,10 @@ export interface CreateCohortRequest {
   seat_capacity: number;
   price_override_usd: string;
   price_override_ngn: string;
+  // Confirmed both sent together by a later payload dump: facilitators links real facilitator
+  // profile IDs (array — a cohort can apparently have more than one), while facilitator_name stays
+  // the plain display string. Neither is confirmed to be present on the read side (Cohort) yet.
+  facilitators: number[];
   facilitator_name: string;
   is_active: boolean;
 }

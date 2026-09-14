@@ -34,6 +34,9 @@ export interface UpdateProfileRequest {
   email: string;
   first_name: string;
   last_name: string;
+  // UNCONFIRMED — see the matching note on User.avatar_url in types/user.ts. Omit to leave an
+  // existing avatar untouched on a PATCH.
+  avatar?: File;
 }
 
 export type UpdateProfileResponse = User;

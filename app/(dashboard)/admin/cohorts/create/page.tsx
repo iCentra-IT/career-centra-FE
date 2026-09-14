@@ -26,7 +26,7 @@ const schema = z.object({
   seat_capacity: z.coerce.number().min(1, "Class capacity is required"),
   price_usd: z.coerce.number().min(0, "USD price is required"),
   price_ngn: z.coerce.number().min(0, "NGN price is required"),
-  facilitator_name: z.string().min(1, "Facilitator is required"),
+  facilitator_id: z.string().min(1, "Facilitator is required"),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -43,6 +43,9 @@ const CreateCohortPage = () => {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const onSubmit = (values: FormValues) => {
+    const facilitatorId = Number(values.facilitator_id);
+    const facilitator = facilitators?.find((f) => f.id === facilitatorId);
+
     createCohort.mutate(
       {
         program: Number(values.program),
@@ -53,7 +56,8 @@ const CreateCohortPage = () => {
         seat_capacity: values.seat_capacity,
         price_override_usd: values.price_usd.toFixed(2),
         price_override_ngn: values.price_ngn.toFixed(2),
-        facilitator_name: values.facilitator_name,
+        facilitators: [facilitatorId],
+        facilitator_name: facilitator?.full_name ?? "",
         is_active: true,
       },
       {
@@ -176,19 +180,19 @@ const CreateCohortPage = () => {
           <select
             defaultValue=""
             className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-            {...register("facilitator_name")}
+            {...register("facilitator_id")}
           >
             <option value="" disabled>
               Select facilitator
             </option>
             {facilitators?.map((facilitator) => (
-              <option key={facilitator.id} value={facilitator.full_name}>
+              <option key={facilitator.id} value={facilitator.id}>
                 {facilitator.full_name}
               </option>
             ))}
           </select>
-          {errors.facilitator_name && (
-            <p className="text-xs text-red-500">{errors.facilitator_name.message}</p>
+          {errors.facilitator_id && (
+            <p className="text-xs text-red-500">{errors.facilitator_id.message}</p>
           )}
         </div>
 

@@ -34,14 +34,26 @@ export class NormalizedError extends Error {
   }
 }
 
+// When the backend responds with only `errors` (no top-level message/detail — the common DRF
+// validation-error shape), pick a real message out of it instead of falling through to axios's
+// own generic text ("Request failed with status code 400"), which tells the user nothing about
+// what actually went wrong. non_field_errors is DRF's convention for a form-level (rather than
+// per-field) error, so it's the most relevant one to surface first when present.
+function firstErrorMessage(errors?: Record<string, string[]>): string | undefined {
+  if (!errors) return undefined;
+  const nonField = errors.non_field_errors?.[0];
+  if (nonField) return nonField;
+  for (const messages of Object.values(errors)) {
+    if (messages?.[0]) return messages[0];
+  }
+  return undefined;
+}
+
 export function normalizeError(error: unknown): NormalizedError {
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    return new NormalizedError(
-      error.response?.data?.message ?? error.response?.data?.detail ?? error.message,
-      error.response?.status,
-      error.response?.data?.errors,
-      error.response?.data,
-    );
+    const data = error.response?.data;
+    const message = data?.message ?? data?.detail ?? firstErrorMessage(data?.errors) ?? error.message;
+    return new NormalizedError(message, error.response?.status, data?.errors, data);
   }
   return new NormalizedError('An unexpected error occurred');
 }

@@ -48,6 +48,11 @@ export interface User {
   email_verified: boolean;
   is_active: boolean;
   date_joined: string; // ISO 8601
+  // UNCONFIRMED — no backend sample for this field yet. Added on the same convention as every
+  // other file-upload field in this app (cover_image_url, facilitator avatar_url): the write side
+  // is `avatar` (a File, see UpdateProfileRequest in types/auth.ts), the read side comes back as
+  // `avatar_url`. Needs a real PATCH /api/auth/me/ response to confirm this is really the field name.
+  avatar_url?: string;
 }
 
 // GET/POST/PATCH /api/auth/admin/users/ — confirmed real shape, same fields as User plus is_staff.

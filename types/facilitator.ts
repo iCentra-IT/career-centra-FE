@@ -167,8 +167,8 @@ export interface FacilitatorProgramListItem {
   duration_weeks: number;
 }
 
-// GET /api/facilitators/programs/ — the list is wrapped as { programs: [...] } rather than the
-// usual { success, data } / paginated envelope, so it needs no unwrap helper.
+// GET /api/facilitators/programs/ — confirmed by a real capture to use the usual
+// { success, message, data } envelope, with `data` itself shaped as { programs: [...] }.
 export interface FacilitatorProgramsResponse {
   programs: FacilitatorProgramListItem[];
 }

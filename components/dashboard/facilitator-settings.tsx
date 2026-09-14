@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProfileTab } from "@/components/dashboard/profile/profile-tab";
 import { SecurityTab } from "@/components/dashboard/profile/security-tab";
+import { FacilitatorProfileEditor } from "@/components/dashboard/facilitator-profile-editor";
 
 const TABS = [
   { key: "profile", label: "Profile", href: "/facilitators/settings/profile" },
@@ -26,7 +27,16 @@ export function FacilitatorSettings({ tab }: { tab: "profile" | "security" }) {
         ))}
       </div>
 
-      <div className="mt-8">{tab === "profile" ? <ProfileTab /> : <SecurityTab />}</div>
+      <div className="mt-8">
+        {tab === "profile" ? (
+          <>
+            <ProfileTab />
+            <FacilitatorProfileEditor />
+          </>
+        ) : (
+          <SecurityTab />
+        )}
+      </div>
     </div>
   );
 }

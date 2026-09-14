@@ -29,6 +29,13 @@ export async function getFacilitatorProfile(id: number): Promise<FacilitatorProf
   return unwrapObject<FacilitatorProfile>(data);
 }
 
+// The logged-in facilitator's own profile — resolves its real id so the settings page can then
+// PATCH /api/facilitators/profiles/{id}/ without needing to look it up via the admin-facing list.
+export async function getMyFacilitatorProfile(): Promise<FacilitatorProfile> {
+  const { data } = await apiClient.get("/api/facilitators/profiles/me/");
+  return unwrapObject<FacilitatorProfile>(data);
+}
+
 // avatar (when present) is a real file upload, so this always goes as multipart/form-data —
 // same convention as programs' cover_image.
 export async function createFacilitatorProfile(
@@ -115,10 +122,12 @@ export async function getFacilitatorDashboard(): Promise<FacilitatorDashboard> {
   return unwrapObject<FacilitatorDashboard>(data);
 }
 
-// Wrapped as { programs: [...] } rather than the usual envelope — no unwrap helper needed.
+// Confirmed real shape by a real capture: the usual {success, message, data} envelope, with
+// `data` itself being { programs: [...] } — not a bare { programs: [...] } at the top level as
+// first assumed.
 export async function getFacilitatorPrograms(): Promise<FacilitatorProgramListItem[]> {
-  const { data } = await apiClient.get<FacilitatorProgramsResponse>("/api/facilitators/programs/");
-  return data.programs ?? [];
+  const { data } = await apiClient.get("/api/facilitators/programs/");
+  return unwrapObject<FacilitatorProgramsResponse>(data).programs ?? [];
 }
 
 export async function getFacilitatorProgramDetail(cohortId: number): Promise<FacilitatorProgramDetail> {
