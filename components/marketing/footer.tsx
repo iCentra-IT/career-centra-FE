@@ -25,13 +25,13 @@ const LEGAL_LINKS = [
 ];
 
 function Logo() {
-  // The logo asset's navy wordmark reads poorly on this footer's dark bg-deep-blue, and there's no
-  // dedicated light/white variant in the public folder — brightness-0 + invert renders it as a
-  // clean white silhouette instead (a standard technique for placing a colored logo on a dark
-  // surface without a separate asset).
+  // The logo asset's navy/cyan wordmark reads poorly on this footer's dark bg-deep-blue, and
+  // there's no dedicated light/white variant in the public folder — brightness-0 + invert renders
+  // it as a clean white silhouette instead (a standard technique for placing a colored logo on a
+  // dark surface without a separate asset). Works the same on the SVG as it did on the PNG.
   return (
     <Image
-      src="/CareerCentra-full-logo.png"
+      src="/CareerCentra-full-logo.svg"
       alt="CareerCentra"
       width={180}
       height={50}

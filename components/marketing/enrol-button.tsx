@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store/authStore";
-import { useStudentProfile } from "@/hooks/queries/students";
 import { useInitiateCheckout } from "@/hooks/mutations/enrollment";
 
 export function EnrolButton({
@@ -25,7 +24,6 @@ export function EnrolButton({
   const router = useRouter();
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
-  const { data: studentProfile } = useStudentProfile();
   const initiateCheckout = useInitiateCheckout();
 
   // const [showCoupon, setShowCoupon] = useState(false);
@@ -38,14 +36,9 @@ export function EnrolButton({
     }
     if (!cohortId) return;
 
-    const countryCode = studentProfile?.country || "US";
-    const currency = countryCode === "NG" ? "NGN" : "USD";
-
     initiateCheckout.mutate(
       {
         cohort_ids: [cohortId],
-        country_code: countryCode,
-        currency,
         coupon_code: coupon.trim(),
       },
       {

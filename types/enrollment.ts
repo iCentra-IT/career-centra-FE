@@ -60,8 +60,6 @@ export interface EnrollmentReceipt {
 
 export interface CheckoutInitiateRequest {
   cohort_ids: number[]; // the endpoint takes a list even for a single-cohort "Enrol now"
-  country_code: string; // e.g. "NG"
-  currency: string; // "NGN" | "USD"
   coupon_code: string; // empty string if none applied
 }
 

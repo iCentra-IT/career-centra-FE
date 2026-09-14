@@ -3,7 +3,7 @@ import Image from "next/image";
 export function ConfirmLogo() {
   return (
     <div className="flex items-center justify-center">
-      <Image src="/CareerCentra-full-logo.png" alt="CareerCentra" width={104} height={44} priority />
+      <Image src="/CareerCentra-full-logo.svg" alt="CareerCentra" width={104} height={44} priority />
     </div>
   );
 }

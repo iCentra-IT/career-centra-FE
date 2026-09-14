@@ -68,7 +68,7 @@ function ChevronIcon() {
 function Logo() {
   return (
     <Link href="/" className="flex items-center">
-      <Image src="/CareerCentra-full-logo.png" alt="CareerCentra" width={130} height={56} priority />
+      <Image src="/CareerCentra-full-logo.svg" alt="CareerCentra" width={130} height={56} priority />
     </Link>
   );
 }
