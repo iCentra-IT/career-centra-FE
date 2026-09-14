@@ -64,12 +64,12 @@ function ViewCouponModal({ coupon, onClose }: { coupon: Coupon; onClose: () => v
               {coupon.valid_until ? formatOrdinalDateTime(coupon.valid_until) : "No expiry"}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Applies to</span>
-            <span className="font-medium text-gray-900">
-              {coupon.applicable_program_ids.length === 0
+          <div className="flex justify-between gap-4">
+            <span className="shrink-0 text-gray-400">Applies to</span>
+            <span className="text-right font-medium text-gray-900">
+              {coupon.applicable_programs.length === 0
                 ? "All programs"
-                : `${coupon.applicable_program_ids.length} program(s)`}
+                : coupon.applicable_programs.map((p) => p.title).join(", ")}
             </span>
           </div>
           <div className="flex justify-between">

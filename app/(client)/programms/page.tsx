@@ -4,6 +4,8 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { usePrograms } from "@/hooks/queries/programs";
+import { useCohorts } from "@/hooks/queries/cohort";
+import { nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
@@ -87,6 +89,7 @@ function ProgramsPageContent() {
     price_min: minPrice || undefined,
     price_max: maxPrice || undefined,
   });
+  const { data: cohortsData } = useCohorts();
 
   const filtered = useMemo(() => {
     const list = [...(programs?.results ?? [])];
@@ -270,7 +273,12 @@ function ProgramsPageContent() {
                 <p className="text-sm text-gray-400">No programs match these filters.</p>
               )}
               {pageItems.map((program) => (
-                <ProgramCard key={program.id} program={program} buttonTone="blue" />
+                <ProgramCard
+                  key={program.id}
+                  program={program}
+                  buttonTone="blue"
+                  cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
+                />
               ))}
             </div>
 

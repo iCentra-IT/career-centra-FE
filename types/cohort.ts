@@ -67,6 +67,15 @@ export interface Cohort {
   updated_at: string;
 }
 
+// The cohort to show for a program in a list/card context — the soonest one still open for
+// enrollment. Used to restore "next cohort" display on program cards, which GET /api/programs/
+// itself can't provide since it doesn't embed cohorts (see types/programs.ts).
+export function nextOpenCohortForProgram(cohorts: Cohort[], programId: number): Cohort | undefined {
+  return cohorts
+    .filter((c) => c.program.id === programId && c.is_enrollment_open && !c.is_sold_out)
+    .sort((a, b) => a.starts_on.localeCompare(b.starts_on))[0];
+}
+
 // Cohort detail — adds nested sessions/modules and fields not present on the list item.
 // NOTE: the detail response's "program" is actually much richer than CohortProgramSummary
 // (adds outline-style fields like learning_outcomes, faqs, prerequisites, certification, and

@@ -27,6 +27,10 @@ const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "admin", label: "Admin" },
 ];
 
+// Staff-admins only have leverage over facilitator and student accounts — admins and other
+// staff-admins are outside their scope (view-only in the table, can't be assigned via Create/Edit).
+const STAFF_ADMIN_MANAGEABLE_ROLES: UserRole[] = ["student", "facilitator"];
+
 const STATUS_OPTIONS: { value: UserStatus; label: string }[] = [
   { value: "active", label: "Active" },
   { value: "pending_verification", label: "Pending" },
@@ -109,10 +113,12 @@ type CreateUserFormValues = z.infer<typeof createUserSchema>;
 function EditUserModal({
   user,
   canAssignRole,
+  roleOptions,
   onClose,
 }: {
   user: AdminUser;
   canAssignRole: boolean;
+  roleOptions: { value: UserRole; label: string }[];
   onClose: () => void;
 }) {
   const [role, setRole] = useState<UserRole>(user.role);
@@ -170,11 +176,11 @@ function EditUserModal({
             <select
               value={role}
               disabled={!canAssignRole}
-              title={!canAssignRole ? "Only Admins can reassign roles" : undefined}
+              title={!canAssignRole ? "You don't have permission to reassign this account's role" : undefined}
               onChange={(e) => setRole(e.target.value as UserRole)}
               className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
             >
-              {ROLE_OPTIONS.map((opt) => (
+              {roleOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -295,7 +301,17 @@ export function RoleBasedAccessTab() {
   const { data: users, isLoading } = useAdminUsers();
   const createUser = useCreateAdminUser();
   const currentUser = useAuthStore((s) => s.user);
-  const canAssignRole = currentUser?.role === "admin";
+  const isAdmin = currentUser?.role === "admin";
+  const isStaffAdmin = currentUser?.role === "staff-admin";
+  const canAssignRole = isAdmin || isStaffAdmin;
+  // Admins can assign any role; staff-admins can only create/reassign facilitator and student
+  // accounts — they can't promote anyone to staff-admin or admin.
+  const assignableRoleOptions = isAdmin
+    ? ROLE_OPTIONS
+    : ROLE_OPTIONS.filter((opt) => STAFF_ADMIN_MANAGEABLE_ROLES.includes(opt.value));
+  // What a staff-admin can act on — admins and other staff-admins are outside their scope.
+  const canManageUser = (user: AdminUser) =>
+    isAdmin || (isStaffAdmin && STAFF_ADMIN_MANAGEABLE_ROLES.includes(user.role));
 
   const {
     register,
@@ -417,28 +433,46 @@ export function RoleBasedAccessTab() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((user) => (
-                <tr key={user.id} className="border-b border-gray-50 last:border-0">
-                  <td className="px-5 py-4">
-                    <button
-                      type="button"
-                      onClick={() => setEditUser(user)}
-                      className="font-medium text-gray-900 hover:text-secondary"
-                    >
-                      {user.full_name}
-                    </button>
-                  </td>
-                  <td className="px-5 py-4 text-gray-600">{user.email}</td>
-                  <td className="px-5 py-4 text-gray-600">{roleLabel(user.role)}</td>
-                  <td className="px-5 py-4 text-gray-600">{formatShortDate(user.date_joined)}</td>
-                  <td className="px-5 py-4">
-                    <StatusBadge label={statusLabel(user.status)} tone={statusTone(user.status)} />
-                  </td>
-                  <td className="px-5 py-4">
-                    <ActivateToggleButton user={user} isSelf={user.id === currentUser?.id} />
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((user) => {
+                const manageable = canManageUser(user);
+                return (
+                  <tr key={user.id} className="border-b border-gray-50 last:border-0">
+                    <td className="px-5 py-4">
+                      {manageable ? (
+                        <button
+                          type="button"
+                          onClick={() => setEditUser(user)}
+                          className="font-medium text-gray-900 hover:text-secondary"
+                        >
+                          {user.full_name}
+                        </button>
+                      ) : (
+                        <span
+                          className="font-medium text-gray-900"
+                          title="You can only manage facilitator and student accounts"
+                        >
+                          {user.full_name}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-gray-600">{user.email}</td>
+                    <td className="px-5 py-4 text-gray-600">{roleLabel(user.role)}</td>
+                    <td className="px-5 py-4 text-gray-600">{formatShortDate(user.date_joined)}</td>
+                    <td className="px-5 py-4">
+                      <StatusBadge label={statusLabel(user.status)} tone={statusTone(user.status)} />
+                    </td>
+                    <td className="px-5 py-4">
+                      {manageable ? (
+                        <ActivateToggleButton user={user} isSelf={user.id === currentUser?.id} />
+                      ) : (
+                        <span className="text-xs text-gray-300" title="You can only manage facilitator and student accounts">
+                          —
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -537,11 +571,11 @@ export function RoleBasedAccessTab() {
                 </label>
                 <select
                   disabled={!canAssignRole}
-                  title={!canAssignRole ? "Only Admins can assign roles — new users default to Student" : undefined}
+                  title={!canAssignRole ? "You don't have permission to assign roles — new users default to Student" : undefined}
                   className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                   {...register("role")}
                 >
-                  {ROLE_OPTIONS.map((opt) => (
+                  {assignableRoleOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
@@ -578,7 +612,12 @@ export function RoleBasedAccessTab() {
       </Modal>
 
       {editUser && (
-        <EditUserModal user={editUser} canAssignRole={canAssignRole} onClose={() => setEditUser(null)} />
+        <EditUserModal
+          user={editUser}
+          canAssignRole={canAssignRole}
+          roleOptions={assignableRoleOptions}
+          onClose={() => setEditUser(null)}
+        />
       )}
     </div>
   );

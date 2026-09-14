@@ -2,6 +2,12 @@
 
 export type DiscountType = 'percentage' | 'fixed_amount' | string;
 
+export interface CouponApplicableProgram {
+  id: number;
+  title: string;
+  slug: string;
+}
+
 export interface Coupon {
   id: number;
   code: string;
@@ -14,7 +20,10 @@ export interface Coupon {
   valid_from: string | null; // ISO datetime, null seen — no start restriction
   valid_until: string | null; // ISO datetime, null seen — no expiry
   is_active: boolean;
-  applicable_program_ids: number[]; // empty array seen — applies to all programs
+  // Confirmed real field name on the response — NOT applicable_program_ids (that's the write-side
+  // field only; reading it here always came back undefined and crashed the coupon view modal).
+  // Empty array seen — applies to all programs.
+  applicable_programs: CouponApplicableProgram[];
   created_at: string;
   updated_at: string;
 }

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePrograms } from "@/hooks/queries/programs";
 import { useCareerPaths } from "@/hooks/queries/career-paths";
+import { useCohorts } from "@/hooks/queries/cohort";
+import { nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { matchPathwayCategory } from "@/lib/pathways";
@@ -284,6 +286,7 @@ const TESTIMONIALS = [
 const HomePage = () => {
   const { data: programs, isLoading: programsLoading } = usePrograms();
   const { data: pathways, isLoading: pathwaysLoading } = useCareerPaths();
+  const { data: cohortsData } = useCohorts();
   const featured = programs?.results?.slice(0, 4) ?? [];
 
   return (
@@ -462,7 +465,12 @@ const HomePage = () => {
             <p className="text-sm text-gray-400">No programs published yet.</p>
           )}
           {featured.slice(0, 4).map((program) => (
-            <ProgramCard key={program.id} program={program} buttonTone="cyan" />
+            <ProgramCard
+              key={program.id}
+              program={program}
+              buttonTone="cyan"
+              cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
+            />
           ))}
         </div>
       </section>

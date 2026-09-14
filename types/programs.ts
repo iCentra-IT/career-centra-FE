@@ -77,10 +77,10 @@ export interface PublicProgramListing {
   base_price_usd: string;
   base_price_ngn: string;
   // effective_price_* mirrors base_price_* on every captured item (no per-listing override seen
-  // yet) — default_price/currency is the one to actually display: for pricing_mode "dual" it was
-  // effective_price_ngn re-labelled "NGN"; for "usd_only" the sample showed a real oddity —
-  // default_price "0.00"/currency "NGN" even though effective_price_usd was the real 1500.00 — so
-  // default_price isn't reliable for a usd_only program. See programDisplayPrice below.
+  // yet). default_price/currency are kept here since they're real fields on this endpoint, but
+  // nothing reads them — default_price was confirmed wrong for "usd_only" programs (came back
+  // "0.00"/"NGN" for a real $1500 program), so priceForMode/programDisplayPrice below compute the
+  // display price themselves from pricing_mode + base_price_usd/base_price_ngn instead.
   effective_price_usd: string;
   effective_price_ngn: string;
   default_price: string;
@@ -101,18 +101,29 @@ export interface PublicProgramListing {
   updated_at: string;
 }
 
-// Display price for a program in list views. Per pricing_mode:
-// - "dual": default_price/currency is correct (NGN, matching effective_price_ngn).
-// - "usd_only": default_price/currency was seen coming back wrong ("0.00"/"NGN") on a real
-//   captured usd_only program whose real price was effective_price_usd "1500.00" — fall back to
-//   that instead of trusting default_price for this mode.
+// The price/currency to display for a given pricing_mode, computed rather than trusted from a
+// "default_price" field — that field is only present on the GET /api/programs/ list endpoint (not
+// on the single-program detail endpoint, and not on cohorts at all), and even there it was
+// confirmed wrong for "usd_only" (a real captured usd_only program showed default_price "0.00"/
+// currency "NGN" while its real price, effective_price_usd, was "1500.00"). Every "dual"-mode
+// sample's default_price exactly matched its NGN amount/"NGN", so computing it this way from
+// whichever USD/NGN pair the caller has (base_price_* for a program, effective_price_* for a
+// cohort) reproduces the same result everywhere, without depending on a field that isn't always
+// there and isn't always right.
+export function priceForMode(
+  pricingMode: PricingMode,
+  usdAmount: string,
+  ngnAmount: string,
+): { amount: string; currency: string } {
+  if (pricingMode === "usd_only") return { amount: usdAmount, currency: "USD" };
+  return { amount: ngnAmount, currency: "NGN" };
+}
+
+// Display price for a program in list/card views.
 export function programDisplayPrice(
   program: PublicProgramListing,
 ): { amount: string; currency: string } {
-  if (program.pricing_mode === "usd_only") {
-    return { amount: program.effective_price_usd, currency: "USD" };
-  }
-  return { amount: program.default_price, currency: program.currency };
+  return priceForMode(program.pricing_mode, program.base_price_usd, program.base_price_ngn);
 }
 
 // List view — lighter payload, no "outline"

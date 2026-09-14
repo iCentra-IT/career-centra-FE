@@ -16,12 +16,14 @@ type TabKey = (typeof ALL_TABS)[number]["key"];
 
 const AdminProfilePage = () => {
   const user = useAuthStore((s) => s.user);
-  // Role-Based Access manages staff/admin accounts — restricted to admins, not staff-admins.
-  const isAdmin = user?.role === "admin";
-  const tabs = isAdmin ? ALL_TABS : ALL_TABS.filter((tab) => tab.key !== "rba");
+  // Staff-admins can see Role-Based Access too, but RoleBasedAccessTab itself scopes their
+  // leverage down to facilitator/student accounts only — admins and other staff-admins are
+  // view-only for them.
+  const canSeeRba = user?.role === "admin" || user?.role === "staff-admin";
+  const tabs = canSeeRba ? ALL_TABS : ALL_TABS.filter((tab) => tab.key !== "rba");
 
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
-  const currentTab = activeTab === "rba" && !isAdmin ? "profile" : activeTab;
+  const currentTab = activeTab === "rba" && !canSeeRba ? "profile" : activeTab;
 
   return (
     <div>
@@ -44,7 +46,7 @@ const AdminProfilePage = () => {
 
       <div className="mt-8">
         {currentTab === "profile" && <ProfileTab />}
-        {currentTab === "rba" && isAdmin && <RoleBasedAccessTab />}
+        {currentTab === "rba" && canSeeRba && <RoleBasedAccessTab />}
         {currentTab === "security" && <SecurityTab />}
       </div>
     </div>

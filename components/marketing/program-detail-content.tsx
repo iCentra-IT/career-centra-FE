@@ -6,6 +6,7 @@ import { useProgram } from "@/hooks/queries/programs";
 import { useCohortsByProgram } from "@/hooks/queries/cohort";
 import { useRelatedPathPrograms } from "@/hooks/queries/career-paths";
 import type { Cohort } from "@/types/cohort";
+import { priceForMode } from "@/types/programs";
 import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -135,29 +136,39 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
       )
     : null;
 
+  // program.facilitators has come back empty on every program seen so far — the confirmed source
+  // of facilitator info is the cohort (facilitator_name), not the program itself.
   const leadFacilitator = program.facilitators?.[0];
+  const cohortFacilitatorName = currentCohort?.facilitator_name;
   const price = currentCohort
-    ? { amount: currentCohort.effective_price_usd, currency: "USD" }
-    : { amount: program.base_price_usd, currency: "USD" };
+    ? priceForMode(program.pricing_mode, currentCohort.effective_price_usd, currentCohort.effective_price_ngn)
+    : priceForMode(program.pricing_mode, program.base_price_usd, program.base_price_ngn);
 
-  const cartItemFor = (cohort: Cohort) => ({
-    programId: program.id,
-    slug: program.slug,
-    title: program.title,
-    summary: program.summary,
-    badge: program.has_pmi_badge
-      ? "PMI Authorized"
-      : program.has_pecb_badge
-        ? "PECB Authorized"
-        : program.has_icentra_badge
-          ? "iCentra Authorized"
-          : program.level_display,
-    code: program.code,
-    priceAmount: cohort.effective_price_usd,
-    priceCurrency: "USD",
-    cohortId: cohort.id,
-    cohortStartsOn: cohort.starts_on,
-  });
+  const cartItemFor = (cohort: Cohort) => {
+    const cohortPrice = priceForMode(
+      program.pricing_mode,
+      cohort.effective_price_usd,
+      cohort.effective_price_ngn,
+    );
+    return {
+      programId: program.id,
+      slug: program.slug,
+      title: program.title,
+      summary: program.summary,
+      badge: program.has_pmi_badge
+        ? "PMI Authorized"
+        : program.has_pecb_badge
+          ? "PECB Authorized"
+          : program.has_icentra_badge
+            ? "iCentra Authorized"
+            : program.level_display,
+      code: program.code,
+      priceAmount: cohortPrice.amount,
+      priceCurrency: cohortPrice.currency,
+      cohortId: cohort.id,
+      cohortStartsOn: cohort.starts_on,
+    };
+  };
 
   return (
     <div>
@@ -184,7 +195,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               <span>{program.audience_display}</span>
             </div>
 
-            {leadFacilitator && (
+            {leadFacilitator ? (
               <div className="mt-6 flex max-w-lg items-center gap-4 rounded-xl bg-white/10 p-4">
                 {leadFacilitator.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -212,6 +223,20 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                   )}
                 </div>
               </div>
+            ) : (
+              cohortFacilitatorName && (
+                <div className="mt-6 flex max-w-lg items-center gap-4 rounded-xl bg-white/10 p-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-semibold">
+                    {cohortFacilitatorName[0] ?? "?"}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-glass">
+                      Lead Instructor
+                    </p>
+                    <p className="font-semibold">{cohortFacilitatorName}</p>
+                  </div>
+                </div>
+              )
             )}
           </div>
 
@@ -430,6 +455,11 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               <div className="mt-5 flex flex-col gap-3 sm:hidden">
                 {programCohorts.map((cohort) => {
                   const seatsLeft = cohort.seat_capacity - cohort.seats_taken;
+                  const cohortPrice = priceForMode(
+                    program.pricing_mode,
+                    cohort.effective_price_usd,
+                    cohort.effective_price_ngn,
+                  );
                   return (
                     <div key={cohort.id} className="rounded-2xl border border-gray-100 bg-white p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -452,7 +482,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                         <p>
                           <span className="text-gray-400">Price:</span>{" "}
                           <span className="font-semibold text-main">
-                            {formatMoney(cohort.effective_price_usd, "USD")}
+                            {formatMoney(cohortPrice.amount, cohortPrice.currency)}
                           </span>
                         </p>
                       </div>
@@ -478,30 +508,37 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {programCohorts.map((cohort) => (
-                      <tr key={cohort.id} className="border-b border-gray-50 last:border-0">
-                        <td className="px-5 py-4 text-gray-900">
-                          {formatShortDate(cohort.starts_on)} – {formatShortDate(cohort.ends_on)}
-                        </td>
-                        <td className="px-5 py-4 text-gray-600">
-                          {cohort.facilitator_name || "—"}
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="rounded-full bg-secondary/10 px-2.5 py-1 text-xs font-medium text-secondary">
-                            {cohort.seat_capacity - cohort.seats_taken} left
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-gray-900">
-                          {formatMoney(cohort.effective_price_usd, "USD")}
-                        </td>
-                        <td className="px-5 py-4">
-                          <AddToCartButton
-                            item={cartItemFor(cohort)}
-                            className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                          />
-                        </td>
-                      </tr>
-                    ))}
+                    {programCohorts.map((cohort) => {
+                      const cohortPrice = priceForMode(
+                        program.pricing_mode,
+                        cohort.effective_price_usd,
+                        cohort.effective_price_ngn,
+                      );
+                      return (
+                        <tr key={cohort.id} className="border-b border-gray-50 last:border-0">
+                          <td className="px-5 py-4 text-gray-900">
+                            {formatShortDate(cohort.starts_on)} – {formatShortDate(cohort.ends_on)}
+                          </td>
+                          <td className="px-5 py-4 text-gray-600">
+                            {cohort.facilitator_name || "—"}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="rounded-full bg-secondary/10 px-2.5 py-1 text-xs font-medium text-secondary">
+                              {cohort.seat_capacity - cohort.seats_taken} left
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-gray-900">
+                            {formatMoney(cohortPrice.amount, cohortPrice.currency)}
+                          </td>
+                          <td className="px-5 py-4">
+                            <AddToCartButton
+                              item={cartItemFor(cohort)}
+                              className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
