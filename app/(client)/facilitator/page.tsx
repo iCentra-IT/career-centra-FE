@@ -9,10 +9,11 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TagListField } from "@/components/dashboard/tag-list-field";
+import { FacilitatorAvatar, FacilitatorDetailModal } from "@/components/marketing/facilitator-detail";
 import { useApprovedFacilitators } from "@/hooks/queries/facilitator-profiles";
 import { useCreateFacilitatorApplication } from "@/hooks/mutations/facilitator-applications";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
-import type { CreateFacilitatorApplicationRequest } from "@/types/facilitator";
+import type { ApprovedFacilitator, CreateFacilitatorApplicationRequest } from "@/types/facilitator";
 
 const MAX_CV_BYTES = 5 * 1024 * 1024; // 5MB — matches the backend's documented cv_file limit
 
@@ -94,6 +95,7 @@ const FacilitatorPage = () => {
   const [certificationsHeld, setCertificationsHeld] = useState<string[]>([""]);
   const [domainAreasError, setDomainAreasError] = useState<string | undefined>();
   const [certificationsError, setCertificationsError] = useState<string | undefined>();
+  const [selectedFacilitator, setSelectedFacilitator] = useState<ApprovedFacilitator | null>(null);
   const { data: facilitators, isLoading: facilitatorsLoading } = useApprovedFacilitators();
   const createApplication = useCreateFacilitatorApplication();
 
@@ -209,29 +211,16 @@ const FacilitatorPage = () => {
         ) : (
           <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
             {facilitators?.map((facilitator) => (
-              <div
+              <button
                 key={facilitator.id}
-                className="flex gap-4 rounded-2xl border border-gray-100 p-5"
+                type="button"
+                onClick={() => setSelectedFacilitator(facilitator)}
+                className="flex gap-4 rounded-2xl border border-gray-100 p-5 text-left hover:border-secondary/40 hover:bg-secondary/5"
               >
-                {facilitator.avatar_url ? (
-                  <img
-                    src={facilitator.avatar_url}
-                    alt={facilitator.full_name}
-                    className="h-12 w-12 shrink-0 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-sm font-semibold text-secondary">
-                    {facilitator.full_name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase()}
-                  </div>
-                )}
+                <FacilitatorAvatar facilitator={facilitator} className="h-12 w-12 shrink-0 rounded-full text-sm" />
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-gray-900">{facilitator.full_name}</h3>
-                  <p className="mt-1 text-sm text-gray-500">{facilitator.short_bio}</p>
+                  <p className="mt-1 line-clamp-3 text-sm text-gray-500">{facilitator.short_bio}</p>
                   {facilitator.credential_tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {facilitator.credential_tags.map((tag) => (
@@ -245,11 +234,18 @@ const FacilitatorPage = () => {
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
       </section>
+
+      {selectedFacilitator && (
+        <FacilitatorDetailModal
+          facilitator={selectedFacilitator}
+          onClose={() => setSelectedFacilitator(null)}
+        />
+      )}
 
       <section ref={formRef} className="mx-auto max-w-6xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">

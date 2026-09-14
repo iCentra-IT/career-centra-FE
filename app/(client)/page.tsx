@@ -285,7 +285,8 @@ const TESTIMONIALS = [
 
 const HomePage = () => {
   const { data: programs, isLoading: programsLoading } = usePrograms();
-  const { data: pathways, isLoading: pathwaysLoading } = useCareerPaths();
+  const { data: pathwaysData, isLoading: pathwaysLoading } = useCareerPaths();
+  const pathways = pathwaysData?.results;
   const { data: cohortsData } = useCohorts();
   const featured = programs?.results?.slice(0, 4) ?? [];
 
@@ -380,11 +381,11 @@ const HomePage = () => {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-main">
                   <Icon />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                <h3 className="mt-4 capitalize text-lg font-semibold text-gray-900">
                   {pathway.title}
                 </h3>
                 <p className="mt-2 text-sm text-gray-500">
-                  {pathway.description}
+                  {pathway.excerpt}
                 </p>
 
                 <p className="mt-4 text-xs font-medium uppercase tracking-wide text-gray-400">

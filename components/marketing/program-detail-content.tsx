@@ -6,7 +6,7 @@ import { useProgram } from "@/hooks/queries/programs";
 import { useCohortsByProgram } from "@/hooks/queries/cohort";
 import { useRelatedPathPrograms } from "@/hooks/queries/career-paths";
 import type { Cohort } from "@/types/cohort";
-import { priceForMode } from "@/types/programs";
+import { programOrCohortPrice } from "@/types/programs";
 import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -14,6 +14,11 @@ import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { EnrolButton } from "@/components/marketing/enrol-button";
 import { AddToCartButton } from "@/components/marketing/add-to-cart-button";
 import { CareerPathProgramCard } from "@/components/marketing/career-path-program-card";
+import {
+  FacilitatorAvatar,
+  FacilitatorDetailModal,
+  type FacilitatorDetail,
+} from "@/components/marketing/facilitator-detail";
 
 const TABS = [
   { label: "Learning Outcome", id: "learning-outcomes" },
@@ -69,6 +74,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
   const [openModule, setOpenModule] = useState<number | null>(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [activeTabId, setActiveTabId] = useState<string>(TABS[0].id);
+  const [selectedFacilitator, setSelectedFacilitator] = useState<FacilitatorDetail | null>(null);
   const [headerOffset, setHeaderOffset] = useState(0);
   const tabBarRef = useRef<HTMLDivElement>(null);
 
@@ -140,16 +146,10 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
   // of facilitator info is the cohort (facilitator_name), not the program itself.
   const leadFacilitator = program.facilitators?.[0];
   const cohortFacilitatorName = currentCohort?.facilitator_name;
-  const price = currentCohort
-    ? priceForMode(program.pricing_mode, currentCohort.effective_price_usd, currentCohort.effective_price_ngn)
-    : priceForMode(program.pricing_mode, program.base_price_usd, program.base_price_ngn);
+  const price = programOrCohortPrice(program.pricing_mode, program, currentCohort);
 
   const cartItemFor = (cohort: Cohort) => {
-    const cohortPrice = priceForMode(
-      program.pricing_mode,
-      cohort.effective_price_usd,
-      cohort.effective_price_ngn,
-    );
+    const cohortPrice = programOrCohortPrice(program.pricing_mode, program, cohort);
     return {
       programId: program.id,
       slug: program.slug,
@@ -196,20 +196,13 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
             </div>
 
             {leadFacilitator ? (
-              <div className="mt-6 flex max-w-lg items-center gap-4 rounded-xl bg-white/10 p-4">
-                {leadFacilitator.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={leadFacilitator.avatar_url}
-                    alt={displayTitle(leadFacilitator.full_name)}
-                    className="h-12 w-12 shrink-0 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-semibold">
-                    {displayTitle(leadFacilitator.full_name)?.[0] ?? "?"}
-                  </div>
-                )}
-                <div>
+              <button
+                type="button"
+                onClick={() => setSelectedFacilitator(leadFacilitator)}
+                className="mt-6 flex max-w-lg items-center gap-4 rounded-xl bg-white/10 p-4 text-left hover:bg-white/15"
+              >
+                <FacilitatorAvatar facilitator={leadFacilitator} className="h-12 w-12 shrink-0 rounded-full text-xs" />
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wide text-glass">
                     Lead Instructor
                   </p>
@@ -219,10 +212,10 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                       `, ${leadFacilitator.credential_tags.join(", ")}`}
                   </p>
                   {leadFacilitator.short_bio && (
-                    <p className="text-xs text-white/60">{leadFacilitator.short_bio}</p>
+                    <p className="line-clamp-2 text-xs text-white/60">{leadFacilitator.short_bio}</p>
                   )}
                 </div>
-              </div>
+              </button>
             ) : (
               cohortFacilitatorName && (
                 <div className="mt-6 flex max-w-lg items-center gap-4 rounded-xl bg-white/10 p-4">
@@ -455,11 +448,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               <div className="mt-5 flex flex-col gap-3 sm:hidden">
                 {programCohorts.map((cohort) => {
                   const seatsLeft = cohort.seat_capacity - cohort.seats_taken;
-                  const cohortPrice = priceForMode(
-                    program.pricing_mode,
-                    cohort.effective_price_usd,
-                    cohort.effective_price_ngn,
-                  );
+                  const cohortPrice = programOrCohortPrice(program.pricing_mode, program, cohort);
                   return (
                     <div key={cohort.id} className="rounded-2xl border border-gray-100 bg-white p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -509,11 +498,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                   </thead>
                   <tbody>
                     {programCohorts.map((cohort) => {
-                      const cohortPrice = priceForMode(
-                        program.pricing_mode,
-                        cohort.effective_price_usd,
-                        cohort.effective_price_ngn,
-                      );
+                      const cohortPrice = programOrCohortPrice(program.pricing_mode, program, cohort);
                       return (
                         <tr key={cohort.id} className="border-b border-gray-50 last:border-0">
                           <td className="px-5 py-4 text-gray-900">
@@ -595,6 +580,13 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
           </section>
         )}
       </div>
+
+      {selectedFacilitator && (
+        <FacilitatorDetailModal
+          facilitator={selectedFacilitator}
+          onClose={() => setSelectedFacilitator(null)}
+        />
+      )}
     </div>
   );
 }

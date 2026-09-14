@@ -7,9 +7,12 @@ import {
 } from "@/types/exchange-rate";
 import { apiClient } from "../client";
 
-export async function getExchangeRates(): Promise<PaginatedResponse<ExchangeRate>> {
+export async function getExchangeRates(
+  filters?: { page?: number },
+): Promise<PaginatedResponse<ExchangeRate>> {
   const { data } = await apiClient.get<PaginatedResponse<ExchangeRate>>(
     "/api/admin/exchange-rates/",
+    { params: filters },
   );
   return data;
 }

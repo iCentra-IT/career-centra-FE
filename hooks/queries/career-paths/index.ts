@@ -3,10 +3,10 @@ import { getCareerPath, getCareerPathPrograms, getCareerPaths } from "@/lib/api/
 import { queryKeys } from "@/lib/api/query-keys";
 import { useQueries, useQuery } from "@tanstack/react-query";
 
-export function useCareerPaths() {
+export function useCareerPaths(page?: number) {
   return useQuery({
-    queryKey: queryKeys.careerPaths.all,
-    queryFn: getCareerPaths,
+    queryKey: page ? queryKeys.careerPaths.list({ page }) : queryKeys.careerPaths.all,
+    queryFn: () => getCareerPaths(page ? { page } : undefined),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -32,7 +32,8 @@ export function useCareerPathPrograms(slug: string) {
 // path (only a handful) and finding the one whose program list contains this slug. React-query
 // dedupes/caches each detail against the same key the career-path pages already use.
 export function useRelatedPathPrograms(programSlug: string) {
-  const { data: paths } = useCareerPaths();
+  const { data: pathsData } = useCareerPaths();
+  const paths = pathsData?.results;
 
   const details = useQueries({
     queries: (paths ?? []).map((path) => ({

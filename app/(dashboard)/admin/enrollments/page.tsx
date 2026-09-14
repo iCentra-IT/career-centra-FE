@@ -8,6 +8,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyTableState } from "@/components/ui/empty-table";
 import { TableSkeleton } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
 import { formatMoney, formatShortDate } from "@/lib/format";
 import type { AdminEnrollment } from "@/types/enrollment";
 
@@ -56,8 +57,11 @@ function IssueCertificateButton({ enrollment }: { enrollment: AdminEnrollment })
 
 const AdminEnrollmentsPage = () => {
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useAdminEnrollments();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useAdminEnrollments(page);
 
+  // Search filters only the currently loaded page — the backend paginates this list (confirmed
+  // real shape) but doesn't take a search param, so a real cross-page search isn't possible here.
   const filtered = useMemo(() => {
     const results = data?.results ?? [];
     if (!search.trim()) return results;
@@ -136,6 +140,12 @@ const AdminEnrollmentsPage = () => {
           </table>
         )}
       </div>
+
+      {!isLoading && (data?.total_pages ?? 1) > 1 && (
+        <div className="mt-6 flex justify-end">
+          <Pagination page={page} totalPages={data?.total_pages ?? 1} onPageChange={setPage} />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PublicProgramListing, priceForMode, programDisplayPrice } from "@/types/programs";
+import { PublicProgramListing, programOrCohortPrice } from "@/types/programs";
 import type { Cohort } from "@/types/cohort";
 import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 import { BadgeIcon } from "@/components/ui/badge-icon";
@@ -23,9 +23,7 @@ export function ProgramCard({ program, buttonTone = "cyan", cohort }: ProgramCar
         ? "iCentra Authorized"
         : program.level_display;
   const buttonClass = buttonTone === "cyan" ? "bg-glass text-deep-blue" : "bg-secondary text-white";
-  const price = cohort
-    ? priceForMode(program.pricing_mode, cohort.effective_price_usd, cohort.effective_price_ngn)
-    : programDisplayPrice(program);
+  const price = programOrCohortPrice(program.pricing_mode, program, cohort);
 
   return (
     <div className="flex flex-col justify-between rounded-2xl bg-linear-to-br from-main to-deep-blue p-5 text-white">

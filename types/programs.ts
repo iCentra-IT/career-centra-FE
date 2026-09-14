@@ -43,6 +43,9 @@ export interface ProgramListFilters {
   certification_body?: CertificateProvider;
   price_min?: string;
   price_max?: string;
+  // Confirmed real: a captured response showed count 26 / total_pages 2 (page size 20) with a
+  // `next` URL of "...?page=2" — standard DRF PageNumberPagination.
+  page?: number;
 }
 
 // GET /api/programs/ list item — confirmed real shape (paginated: {success, count, total_pages,
@@ -116,6 +119,12 @@ export function priceForMode(
   ngnAmount: string,
 ): { amount: string; currency: string } {
   if (pricingMode === "usd_only") return { amount: usdAmount, currency: "USD" };
+  // Some real "dual"-mode programs have been created with base_price_ngn left at "0.00" (never
+  // actually filled in) while base_price_usd is a real price — showing "₦0.00" for those reads as
+  // a bug ("this course is free?"), so fall back to the USD amount rather than trust a zero NGN
+  // price that's almost certainly just an unset field, not a genuine ₦0 course.
+  const ngn = parseFloat(ngnAmount);
+  if (!ngn) return { amount: usdAmount, currency: "USD" };
   return { amount: ngnAmount, currency: "NGN" };
 }
 
@@ -124,6 +133,23 @@ export function programDisplayPrice(
   program: PublicProgramListing,
 ): { amount: string; currency: string } {
   return priceForMode(program.pricing_mode, program.base_price_usd, program.base_price_ngn);
+}
+
+// Display price for a program card/detail view that has a specific cohort attached. Prefers the
+// cohort's own effective_price_* (a real per-cohort override) — but every real cohort captured so
+// far has BOTH effective_price_usd and effective_price_ngn sitting at "0.00" (no override actually
+// set), which produced "$0.00"/"₦0.00" cards for programs that have a perfectly real price on the
+// program record itself. So: only trust the cohort's price when at least one side of it is
+// genuinely non-zero; otherwise fall back to the program's base price, same as no cohort at all.
+export function programOrCohortPrice(
+  pricingMode: PricingMode,
+  program: { base_price_usd: string; base_price_ngn: string },
+  cohort?: { effective_price_usd: string; effective_price_ngn: string },
+): { amount: string; currency: string } {
+  if (cohort && (parseFloat(cohort.effective_price_usd) || parseFloat(cohort.effective_price_ngn))) {
+    return priceForMode(pricingMode, cohort.effective_price_usd, cohort.effective_price_ngn);
+  }
+  return priceForMode(pricingMode, program.base_price_usd, program.base_price_ngn);
 }
 
 // List view — lighter payload, no "outline"

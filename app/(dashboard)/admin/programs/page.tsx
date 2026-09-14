@@ -12,12 +12,14 @@ import { EyeIcon } from "@/components/ui/eye-icon";
 import { TrashIcon } from "@/components/ui/trash-icon";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { TableSkeletonRows } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
 import { formatMoney, formatOrdinalDateTime } from "@/lib/format";
 
 const COLUMNS = ["Program", "Track", "Level", "Accreditation", "Price", "Status", "Update", "Action"];
 
 const AdminProgramsPage = () => {
-  const { data, isLoading } = usePrograms();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = usePrograms({ page });
   const programs = data?.results ?? [];
   const [deleteTarget, setDeleteTarget] = useState<{ slug: string; title: string } | null>(null);
   const deleteProgram = useDeleteProgram();
@@ -128,6 +130,12 @@ const AdminProgramsPage = () => {
           </tbody>
         </table>
       </div>
+
+      {!isLoading && (data?.total_pages ?? 1) > 1 && (
+        <div className="mt-6 flex justify-end">
+          <Pagination page={page} totalPages={data?.total_pages ?? 1} onPageChange={setPage} />
+        </div>
+      )}
 
       <ConfirmDeleteModal
         open={!!deleteTarget}

@@ -15,6 +15,7 @@ import { PencilIcon } from "@/components/ui/pencil-icon";
 import { TrashIcon } from "@/components/ui/trash-icon";
 import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { EmptyTableState } from "@/components/ui/empty-table";
+import { Pagination } from "@/components/ui/pagination";
 import { formatOrdinalDateTime } from "@/lib/format";
 import type { ExchangeRate, ExchangeRateCurrency } from "@/types/exchange-rate";
 
@@ -135,7 +136,8 @@ function ExchangeRateFormModal({
 }
 
 const ExchangeRatesPage = () => {
-  const { data, isLoading } = useExchangeRates();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useExchangeRates(page);
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ExchangeRate | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ExchangeRate | null>(null);
@@ -249,6 +251,12 @@ const ExchangeRatesPage = () => {
           </table>
         )}
       </div>
+
+      {!isLoading && (data?.total_pages ?? 1) > 1 && (
+        <div className="mt-6 flex justify-end">
+          <Pagination page={page} totalPages={data?.total_pages ?? 1} onPageChange={setPage} />
+        </div>
+      )}
 
       {formOpen && <ExchangeRateFormModal editing={editTarget} onClose={closeForm} />}
 

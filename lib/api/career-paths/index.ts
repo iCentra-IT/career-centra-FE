@@ -7,7 +7,7 @@ import {
   UpdateCareerPathRequest,
   PatchCareerPathRequest,
 } from "@/types/career-paths";
-import { ApiResponse } from "@/types/api";
+import { ApiResponse, PaginatedResponse } from "@/types/api";
 import { apiClient } from "../client";
 
 // The list endpoint's "results" is itself another {success, message, data} envelope, not a bare
@@ -25,9 +25,22 @@ interface CareerPathsListEnvelope {
   };
 }
 
-export async function getCareerPaths(): Promise<CareerPath[]> {
-  const { data } = await apiClient.get<CareerPathsListEnvelope>("/api/career-paths/");
-  return data.results.data;
+// Re-shaped into the standard PaginatedResponse — the double-wrap above is just this endpoint's
+// own quirk; callers shouldn't have to know about it, and previously the count/total_pages/next/
+// previous were silently discarded here, which is exactly why nothing past the first page was
+// ever reachable.
+export async function getCareerPaths(filters?: { page?: number }): Promise<PaginatedResponse<CareerPath>> {
+  const { data } = await apiClient.get<CareerPathsListEnvelope>("/api/career-paths/", {
+    params: filters,
+  });
+  return {
+    success: data.success,
+    count: data.count,
+    total_pages: data.total_pages,
+    next: data.next,
+    previous: data.previous,
+    results: data.results.data,
+  };
 }
 
 export async function getCareerPath(slug: string): Promise<CareerPathDetail> {

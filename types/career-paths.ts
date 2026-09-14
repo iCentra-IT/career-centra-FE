@@ -5,6 +5,8 @@ export interface CareerPath {
   id: number;
   title: string;
   slug: string;
+  header: string;
+  excerpt: string;
   description: string;
   levels: string[]; // raw values like "foundation" — no _display variant given, capitalize for UI
   suitable_roles: string[];
@@ -37,6 +39,8 @@ export interface CareerPathProgram {
 
 export interface CreateCareerPathRequest {
   title: string;
+  header: string;
+  excerpt: string;
   description: string;
   programs: number[]; // program IDs
   levels: string[];

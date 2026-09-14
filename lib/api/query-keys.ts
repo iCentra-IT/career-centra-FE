@@ -23,6 +23,7 @@ export const queryKeys = {
 
   careerPaths: {
     all: ["career-paths"] as const,
+    list: <T extends object>(filters?: T) => ["career-paths", "list", filters] as const,
     detail: (slug: string) => ["career-paths", slug] as const,
     programs: (slug: string) => ["career-paths", slug, "programs"] as const,
   },
@@ -107,6 +108,7 @@ export const queryKeys = {
 
   exchangeRates: {
     all: ["exchange-rates"] as const,
+    list: <T extends object>(filters?: T) => ["exchange-rates", "list", filters] as const,
     detail: (id: number) => ["exchange-rates", id] as const,
   },
 

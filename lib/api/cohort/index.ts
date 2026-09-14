@@ -9,7 +9,9 @@ import { apiClient } from '../client';
 // `program` is an optional, unconfirmed filter param (mirrors the pattern GET /api/programs/ uses
 // for its own filters) — callers that need "cohorts for this program" should still filter the
 // results client-side by `cohort.program.id`, since it's not guaranteed the backend honors this.
-export async function getCohorts(filters?: { program?: number }): Promise<PaginatedResponse<Cohort>> {
+// `page` mirrors /api/programs/'s confirmed DRF PageNumberPagination — not independently confirmed
+// on this endpoint yet, but the same pagination envelope strongly suggests it works the same way.
+export async function getCohorts(filters?: { program?: number; page?: number }): Promise<PaginatedResponse<Cohort>> {
   const { data } = await apiClient.get<PaginatedResponse<Cohort>>('/api/cohorts/', { params: filters });
   return data;
 }

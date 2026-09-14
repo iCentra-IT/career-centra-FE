@@ -63,7 +63,7 @@ function PathwayCard({ pathway, icon: Icon }: { pathway: CareerPath; icon: () =>
           </div>
           <div>
             <h2 className="text-lg font-semibold text-main">{pathway.title}</h2>
-            <p className="mt-1 max-w-xl text-sm text-gray-500">{pathway.description}</p>
+            <p className="mt-1 max-w-xl text-sm text-gray-500">{pathway.excerpt}</p>
           </div>
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:w-40">
@@ -152,7 +152,8 @@ function PathwayCard({ pathway, icon: Icon }: { pathway: CareerPath; icon: () =>
 }
 
 const CareerPathsPage = () => {
-  const { data: pathways, isLoading } = useCareerPaths();
+  const { data: pathwaysData, isLoading } = useCareerPaths();
+  const pathways = pathwaysData?.results;
 
   return (
     <div>

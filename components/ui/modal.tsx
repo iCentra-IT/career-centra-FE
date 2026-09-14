@@ -6,9 +6,18 @@ interface ModalProps {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  // "sm" (default) matches every existing form/confirm modal in the dashboard — kept as the
+  // default so this stays a no-op for them. "lg" is for content-heavy modals (e.g. a facilitator's
+  // full details) that read as cramped at max-w-sm on a desktop screen.
+  size?: "sm" | "lg";
 }
 
-export function Modal({ open, onClose, children }: ModalProps) {
+const SIZE_CLASSES: Record<NonNullable<ModalProps["size"]>, string> = {
+  sm: "max-w-sm",
+  lg: "max-w-2xl",
+};
+
+export function Modal({ open, onClose, children, size = "sm" }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -25,7 +34,9 @@ export function Modal({ open, onClose, children }: ModalProps) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-6 shadow-lg sm:p-8">
+      <div
+        className={`relative max-h-[90vh] w-full ${SIZE_CLASSES[size]} overflow-y-auto rounded-2xl bg-white p-6 shadow-lg sm:p-8`}
+      >
         <button
           type="button"
           onClick={onClose}

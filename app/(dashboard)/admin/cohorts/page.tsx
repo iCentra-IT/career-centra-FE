@@ -12,6 +12,7 @@ import { TrashIcon } from "@/components/ui/trash-icon";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { Modal } from "@/components/ui/modal";
 import { TableSkeletonRows } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
 import { formatDateRange } from "@/lib/format";
 import type { Cohort } from "@/types/cohort";
 
@@ -104,7 +105,8 @@ function ViewCohortModal({ cohort, onClose }: { cohort: Cohort; onClose: () => v
 }
 
 const AdminCohortsPage = () => {
-  const { data: cohorts, isLoading } = useCohorts();
+  const [page, setPage] = useState(1);
+  const { data: cohorts, isLoading } = useCohorts(page);
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [statusFilters, setStatusFilters] = useState<Set<StatusOption>>(new Set());
@@ -288,6 +290,12 @@ const AdminCohortsPage = () => {
           </tbody>
         </table>
       </div>
+
+      {!isLoading && (cohorts?.total_pages ?? 1) > 1 && (
+        <div className="mt-6 flex justify-end">
+          <Pagination page={page} totalPages={cohorts?.total_pages ?? 1} onPageChange={setPage} />
+        </div>
+      )}
 
       {viewTarget && <ViewCohortModal cohort={viewTarget} onClose={() => setViewTarget(null)} />}
 

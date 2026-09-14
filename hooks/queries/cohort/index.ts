@@ -3,10 +3,13 @@ import { getCohorts, getCohort, getSession, getSessions } from '@/lib/api/cohort
 import { queryKeys } from '@/lib/api/query-keys';
 import { useQuery } from '@tanstack/react-query';
 
-export function useCohorts() {
+// Passing `page` switches to a page-specific cache entry (for a paginated admin table); omitting it
+// keeps the old "give me whatever the default page is" behavior other callers already rely on for
+// cross-referencing cohorts by program id.
+export function useCohorts(page?: number) {
   return useQuery({
-    queryKey: queryKeys.cohorts.all,
-    queryFn: () => getCohorts(),
+    queryKey: page ? queryKeys.cohorts.list({ page }) : queryKeys.cohorts.all,
+    queryFn: () => getCohorts(page ? { page } : undefined),
     staleTime: 2 * 60 * 1000, // seat counts change as people enroll — keep this shorter than programs
   });
 }

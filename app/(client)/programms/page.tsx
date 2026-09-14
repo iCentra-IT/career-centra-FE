@@ -8,9 +8,8 @@ import { useCohorts } from "@/hooks/queries/cohort";
 import { nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
-
-const PAGE_SIZE = 9;
 
 type SortOption = "relevance" | "price_asc" | "price_desc" | "newest";
 
@@ -78,9 +77,10 @@ function ProgramsPageContent() {
   const [sort, setSort] = useState<SortOption>("relevance");
   const [page, setPage] = useState(1);
 
-  // Filtering (search/category/level/certification body/price range) is confirmed server-side via
-  // GET /api/programs/'s query params — only sorting and display pagination stay client-side since
-  // the backend doesn't document a sort or page param.
+  // Filtering (search/category/level/certification body/price range) and pagination are both
+  // confirmed server-side via GET /api/programs/'s query params (a real capture showed count 26 /
+  // total_pages 2 at a 20-per-page size) — only sorting stays client-side since the backend
+  // doesn't document a sort param, so it's applied to whichever page is currently loaded.
   const { data: programs, isLoading } = usePrograms({
     search: search.trim() || undefined,
     program_type: category || undefined,
@@ -88,10 +88,11 @@ function ProgramsPageContent() {
     certification_body: certBody || undefined,
     price_min: minPrice || undefined,
     price_max: maxPrice || undefined,
+    page,
   });
   const { data: cohortsData } = useCohorts();
 
-  const filtered = useMemo(() => {
+  const pageItems = useMemo(() => {
     const list = [...(programs?.results ?? [])];
 
     if (sort === "price_asc") list.sort((a, b) => parseFloat(a.base_price_usd) - parseFloat(b.base_price_usd));
@@ -101,9 +102,8 @@ function ProgramsPageContent() {
     return list;
   }, [programs, sort]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const totalCount = programs?.count ?? pageItems.length;
+  const totalPages = programs?.total_pages ?? 1;
 
   const clearFilters = () => {
     setSearch("");
@@ -263,7 +263,7 @@ function ProgramsPageContent() {
 
             {!isLoading && (
               <p className="mt-4 text-sm text-gray-400">
-                {filtered.length} program{filtered.length === 1 ? "" : "s"} found
+                {totalCount} program{totalCount === 1 ? "" : "s"} found
               </p>
             )}
 
@@ -282,43 +282,12 @@ function ProgramsPageContent() {
               ))}
             </div>
 
-            {filtered.length > 0 && (
+            {!isLoading && totalCount > 0 && (
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
                 <p className="text-sm text-gray-400">
-                  Showing {pageItems.length} of {filtered.length} programs
+                  Showing {pageItems.length} of {totalCount} programs
                 </p>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    ‹
-                  </button>
-                  {Array.from({ length: pageCount }).map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setPage(i + 1)}
-                      className={`flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium ${
-                        currentPage === i + 1
-                          ? "bg-main text-white"
-                          : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    disabled={currentPage === pageCount}
-                    onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    ›
-                  </button>
-                </div>
+                <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
               </div>
             )}
           </div>

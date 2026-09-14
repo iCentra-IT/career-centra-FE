@@ -25,6 +25,8 @@ function TrashIcon() {
 
 export interface CareerPathFormValues {
   title: string;
+  header: string;
+  excerpt: string;
   description: string;
   levels: string[];
   certifications: string[];
@@ -45,6 +47,8 @@ interface CareerPathFormProps {
 
 const EMPTY_VALUES: CareerPathFormValues = {
   title: "",
+  header: "",
+  excerpt: "",
   description: "",
   levels: [],
   certifications: [],
@@ -66,6 +70,8 @@ export function CareerPathForm({
   const programs = programsData?.results ?? [];
 
   const [title, setTitle] = useState(initialValues?.title ?? EMPTY_VALUES.title);
+  const [header, setHeader] = useState(initialValues?.header ?? EMPTY_VALUES.header);
+  const [excerpt, setExcerpt] = useState(initialValues?.excerpt ?? EMPTY_VALUES.excerpt);
   const [description, setDescription] = useState(initialValues?.description ?? EMPTY_VALUES.description);
   const [levels, setLevels] = useState(initialValues?.levels ?? EMPTY_VALUES.levels);
   const [certifications, setCertifications] = useState(
@@ -99,10 +105,8 @@ export function CareerPathForm({
     if (levels.filter((v) => v.trim()).length === 0) next.levels = "Add at least one learning level";
     if (certifications.filter((v) => v.trim()).length === 0) next.certifications = "Add at least one certification";
     if (skills.filter((v) => v.trim()).length === 0) next.skills = "Add at least one skill";
-    if (suitableRoles.filter((v) => v.trim()).length === 0) next.suitable_roles = "Add at least one suitable role";
     if (whoShouldAttend.filter((v) => v.trim()).length === 0)
       next.who_should_attend = "Add at least one point";
-    if (faqs.filter((f) => f.question.trim()).length === 0) next.faqs = "Add at least one FAQ";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -113,6 +117,8 @@ export function CareerPathForm({
 
     onSubmit({
       title: title.trim(),
+      header: header.trim(),
+      excerpt: excerpt.trim(),
       description: description.trim(),
       programs: programIds,
       levels: levels.map((v) => v.trim()).filter(Boolean),
@@ -135,6 +141,26 @@ export function CareerPathForm({
         onChange={(e) => setTitle(e.target.value)}
         error={errors.title}
       />
+
+      <Input
+        label="Header"
+        placeholder="Short headline shown at the top of the career path page"
+        value={header}
+        onChange={(e) => setHeader(e.target.value)}
+        error={errors.header}
+      />
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm text-gray-900">Excerpt</label>
+        <textarea
+          rows={2}
+          maxLength={200}
+          placeholder="Short teaser shown on career path cards/listings"
+          value={excerpt}
+          onChange={(e) => setExcerpt(e.target.value)}
+          className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+        />
+      </div>
 
       <div className="flex flex-col gap-2">
         <label className="text-sm text-gray-900">Description</label>
@@ -212,6 +238,7 @@ export function CareerPathForm({
         label="Suitable Roles"
         addLabel="Add role"
         values={suitableRoles}
+        required={false}
         onChange={setSuitableRoles}
         error={errors.suitable_roles}
       />
@@ -222,7 +249,7 @@ export function CareerPathForm({
         onChange={setWhoShouldAttend}
         error={errors.who_should_attend}
       />
-      <FaqListField values={faqs} onChange={setFaqs} error={errors.faqs} />
+      <FaqListField values={faqs} onChange={setFaqs} error={errors.faqs} required={false} />
 
       <div className="mt-2 flex gap-3">
         <button

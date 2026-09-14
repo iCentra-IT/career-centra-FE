@@ -6,5 +6,6 @@ export default async function CareerPathPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  console.log("CareerPathPage: slug", slug);
   return <CareerPathDetailContent slug={slug} />;
 }

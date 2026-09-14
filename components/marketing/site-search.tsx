@@ -22,7 +22,8 @@ export function SiteSearch({ className }: { className?: string }) {
 
   const { data: results, isFetching } = useSearch(query);
   const { data: programs } = usePrograms();
-  const { data: pathways } = useCareerPaths();
+  const { data: pathwaysData } = useCareerPaths();
+  const pathways = pathwaysData?.results;
 
   useEffect(() => {
     if (!open) return;

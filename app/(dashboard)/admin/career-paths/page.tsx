@@ -11,6 +11,7 @@ import { EyeIcon } from "@/components/ui/eye-icon";
 import { TrashIcon } from "@/components/ui/trash-icon";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { TableSkeletonRows } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
 import { formatOrdinalDateTime, displayTitle } from "@/lib/format";
 import type { CareerPath } from "@/types/career-paths";
 
@@ -79,7 +80,9 @@ function CareerPathRow({
 }
 
 const AdminCareerPathsPage = () => {
-  const { data: pathways, isLoading } = useCareerPaths();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useCareerPaths(page);
+  const pathways = data?.results;
   const [deleteTarget, setDeleteTarget] = useState<CareerPath | null>(null);
   const deleteCareerPath = useDeleteCareerPath();
 
@@ -135,6 +138,12 @@ const AdminCareerPathsPage = () => {
           </tbody>
         </table>
       </div>
+
+      {!isLoading && (data?.total_pages ?? 1) > 1 && (
+        <div className="mt-6 flex justify-end">
+          <Pagination page={page} totalPages={data?.total_pages ?? 1} onPageChange={setPage} />
+        </div>
+      )}
 
       <ConfirmDeleteModal
         open={!!deleteTarget}

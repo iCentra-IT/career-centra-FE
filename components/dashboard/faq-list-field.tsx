@@ -28,9 +28,10 @@ interface FaqListFieldProps {
   values: ProgramFaq[];
   onChange: (values: ProgramFaq[]) => void;
   error?: string;
+  required?: boolean;
 }
 
-export function FaqListField({ values, onChange, error }: FaqListFieldProps) {
+export function FaqListField({ values, onChange, error, required = true }: FaqListFieldProps) {
   const updateAt = (index: number, field: keyof ProgramFaq, value: string) => {
     const next = [...values];
     next[index] = { ...next[index], [field]: value };
@@ -44,7 +45,7 @@ export function FaqListField({ values, onChange, error }: FaqListFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <label className="text-sm text-gray-900">
-        Frequently Asked Questions <span className="text-secondary">*</span>
+        Frequently Asked Questions {required && <span className="text-secondary">*</span>}
       </label>
 
       {values.map((faq, i) => (

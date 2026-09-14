@@ -30,6 +30,8 @@ const EditCareerPathPage = () => {
           onClose={() => router.push("/admin/career-paths")}
           initialValues={{
             title: pathway.title,
+            header: pathway.header,
+            excerpt: pathway.excerpt,
             description: pathway.description,
             levels: pathway.levels,
             certifications: pathway.certifications,

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCareerPath } from "@/hooks/queries/career-paths";
+import { useCohorts } from "@/hooks/queries/cohort";
+import { nextOpenCohortForProgram } from "@/types/cohort";
 import { CareerPathProgramCard } from "@/components/marketing/career-path-program-card";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { displayTitle } from "@/lib/format";
@@ -36,6 +38,7 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 
 export function CareerPathDetailContent({ slug }: { slug: string }) {
   const { data: pathway, isLoading } = useCareerPath(slug);
+  const { data: cohortsData } = useCohorts();
   const [levelFilter, setLevelFilter] = useState<string>("");
 
   if (isLoading) {
@@ -54,11 +57,21 @@ export function CareerPathDetailContent({ slug }: { slug: string }) {
 
   return (
     <div>
-      <section id="hero" className="scroll-mt-24 bg-gradient-to-br from-main to-deep-blue px-6 py-14 text-white">
+      <section id="hero" className="scroll-mt-24 bg-linear-to-br from-main to-deep-blue px-6 py-14 text-white">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[1fr_260px]">
           <div>
-            <h1 className="text-4xl font-bold sm:text-5xl">{title}</h1>
-            <p className="mt-3 max-w-xl text-white/70">{pathway.description}</p>
+            <p className="text-sm text-white/60">
+              <Link href="/" className="hover:text-white">
+                Home
+              </Link>{" "}
+              ›{" "}
+              <Link href="/career-paths" className="hover:text-white">
+                Career Paths
+              </Link>{" "}
+              › {title}
+            </p>
+            <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{pathway.header || title}</h1>
+            <p className="mt-3 max-w-xl text-white/70">{pathway.excerpt || pathway.description}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/registration"
@@ -189,7 +202,12 @@ export function CareerPathDetailContent({ slug }: { slug: string }) {
               <p className="text-sm text-gray-400">No programs linked to this track yet.</p>
             )}
             {visiblePrograms.map((program) => (
-              <CareerPathProgramCard key={program.id} program={program} buttonTone="blue" />
+              <CareerPathProgramCard
+                key={program.id}
+                program={program}
+                buttonTone="blue"
+                cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
+              />
             ))}
           </div>
         </section>
