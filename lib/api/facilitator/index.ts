@@ -6,7 +6,11 @@ import {
   CreateFacilitatorProfileRequest,
   FacilitatorApplication,
   FacilitatorApplicationFilters,
+  FacilitatorDashboard,
   FacilitatorProfile,
+  FacilitatorProgramDetail,
+  FacilitatorProgramListItem,
+  FacilitatorProgramsResponse,
   InviteFacilitatorRequest,
   PatchFacilitatorApplicationRequest,
   PatchFacilitatorProfileRequest,
@@ -103,4 +107,21 @@ export async function patchFacilitatorApplication(
     payload,
   );
   return unwrapObject<FacilitatorApplication>(data);
+}
+
+// The facilitator's own dashboard — stats, upcoming sessions, recent updates.
+export async function getFacilitatorDashboard(): Promise<FacilitatorDashboard> {
+  const { data } = await apiClient.get("/api/facilitators/dashboard/");
+  return unwrapObject<FacilitatorDashboard>(data);
+}
+
+// Wrapped as { programs: [...] } rather than the usual envelope — no unwrap helper needed.
+export async function getFacilitatorPrograms(): Promise<FacilitatorProgramListItem[]> {
+  const { data } = await apiClient.get<FacilitatorProgramsResponse>("/api/facilitators/programs/");
+  return data.programs ?? [];
+}
+
+export async function getFacilitatorProgramDetail(cohortId: number): Promise<FacilitatorProgramDetail> {
+  const { data } = await apiClient.get(`/api/facilitators/programs/${cohortId}/`);
+  return unwrapObject<FacilitatorProgramDetail>(data);
 }

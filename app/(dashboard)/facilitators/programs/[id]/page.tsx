@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useFacilitatorProgramDetail } from "@/hooks/queries/facilitator-dashboard";
 import { FacilitatorSessionCard } from "@/components/dashboard/facilitator-session-card";
-import { FACILITATOR_CLASS_DETAILS } from "@/lib/facilitator-placeholder";
+import { formatShortDate } from "@/lib/format";
+import { DetailPageSkeleton } from "@/components/ui/skeleton";
 
 function VideoIcon() {
   return (
@@ -12,16 +16,14 @@ function VideoIcon() {
   );
 }
 
-export default async function FacilitatorClassDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const detail = FACILITATOR_CLASS_DETAILS[id];
+const FacilitatorClassDetailPage = () => {
+  const params = useParams<{ id: string }>();
+  const cohortId = Number(params.id);
+  const { data: detail, isLoading } = useFacilitatorProgramDetail(cohortId);
 
+  if (isLoading) return <DetailPageSkeleton />;
   if (!detail) {
-    notFound();
+    return <div className="px-6 py-20 text-center text-sm text-gray-400">Class not found.</div>;
   }
 
   return (
@@ -32,19 +34,20 @@ export default async function FacilitatorClassDetailPage({
       <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-gray-900">{detail.title}</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{detail.program_title}</h2>
             <p className="mt-1 text-sm text-gray-500">
-              {detail.startsOn} → {detail.endsOn} · {detail.leadFacilitator}
+              {formatShortDate(detail.starts_on)} → {formatShortDate(detail.ends_on)} ·{" "}
+              {detail.facilitator_display}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
               <VideoIcon />
-              {detail.deliveryMode}
+              {detail.delivery_mode_display}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
               <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-              {detail.isActive ? "Active" : "Inactive"}
+              {detail.status}
             </span>
           </div>
         </div>
@@ -61,10 +64,10 @@ export default async function FacilitatorClassDetailPage({
           </div>
 
           <div className="mt-4 flex flex-col gap-3">
-            {detail.sessions.length === 0 ? (
+            {detail.upcoming_sessions.length === 0 ? (
               <p className="text-sm text-gray-400">No classes scheduled yet.</p>
             ) : (
-              detail.sessions.map((session) => (
+              detail.upcoming_sessions.map((session) => (
                 <FacilitatorSessionCard key={session.id} session={session} />
               ))
             )}
@@ -73,4 +76,6 @@ export default async function FacilitatorClassDetailPage({
       </div>
     </div>
   );
-}
+};
+
+export default FacilitatorClassDetailPage;

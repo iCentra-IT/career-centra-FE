@@ -72,6 +72,12 @@ export const queryKeys = {
     detail: (id: number) => ["facilitator-profiles", id] as const,
   },
 
+  facilitatorDashboard: {
+    overview: ["facilitator-dashboard", "overview"] as const,
+    programs: ["facilitator-dashboard", "programs"] as const,
+    programDetail: (cohortId: number) => ["facilitator-dashboard", "programs", cohortId] as const,
+  },
+
   notifications: {
     all: ["notifications"] as const,
   },

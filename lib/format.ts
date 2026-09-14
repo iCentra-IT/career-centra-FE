@@ -16,6 +16,17 @@ export function formatOrdinalDateTime(iso: string) {
   return `${day}${suffix} ${month}, ${year} • ${time}`;
 }
 
+// Time-only fields (session start_time/end_time) have shown up serialized oddly — a full ISO time
+// with milliseconds and a trailing "Z" instead of a plain "HH:MM" — so this just reads the leading
+// hour/minute regardless of what follows and formats it as "2:05 PM".
+export function formatTimeOfDay(value: string): string {
+  const match = value.match(/^(\d{2}):(\d{2})/);
+  if (!match) return value;
+  const date = new Date();
+  date.setHours(Number(match[1]), Number(match[2]), 0, 0);
+  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
 export function formatShortDate(iso: string) {
   const date = new Date(iso);
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });

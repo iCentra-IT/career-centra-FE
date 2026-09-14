@@ -170,7 +170,7 @@ const AdminCohortsPage = () => {
           href="/admin/cohorts/create"
           className="rounded-full bg-main px-5 py-2.5 text-sm font-medium text-white hover:bg-deep-blue"
         >
-          Add Program
+          Add Cohort
         </Link>
       </div>
 

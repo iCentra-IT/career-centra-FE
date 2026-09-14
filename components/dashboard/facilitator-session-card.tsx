@@ -1,4 +1,5 @@
-import type { FacilitatorSession } from "@/lib/facilitator-placeholder";
+import type { FacilitatorSessionSummary } from "@/types/facilitator";
+import { formatShortDate, formatTimeOfDay } from "@/lib/format";
 
 function JoinIcon() {
   return (
@@ -9,19 +10,19 @@ function JoinIcon() {
   );
 }
 
-export function FacilitatorSessionCard({ session }: { session: FacilitatorSession }) {
+export function FacilitatorSessionCard({ session }: { session: FacilitatorSessionSummary }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 bg-white p-5">
       <div className="min-w-0">
         <p className="truncate text-base font-semibold text-gray-900">{session.title}</p>
         <p className="mt-1 truncate text-sm text-gray-500">
-          {session.programTitle} · {session.date} · {session.startTime}—{session.endTime}{" "}
-          {session.timezone}
+          {session.program_title} · {formatShortDate(session.date)} ·{" "}
+          {formatTimeOfDay(session.start_time)}–{formatTimeOfDay(session.end_time)}
         </p>
       </div>
-      {session.joinUrl ? (
+      {session.meeting_url ? (
         <a
-          href={session.joinUrl}
+          href={session.meeting_url}
           target="_blank"
           rel="noopener noreferrer"
           className="flex shrink-0 items-center gap-2 rounded-full bg-main px-5 py-2.5 text-sm font-medium text-white hover:bg-deep-blue"

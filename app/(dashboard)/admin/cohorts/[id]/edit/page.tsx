@@ -9,16 +9,26 @@ import { toast } from "sonner";
 import { useCohort } from "@/hooks/queries/cohort";
 import { usePatchCohort } from "@/hooks/mutations/cohort";
 import { usePrograms } from "@/hooks/queries/programs";
+import { useApprovedFacilitators } from "@/hooks/queries/facilitator-profiles";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSkeleton } from "@/components/ui/skeleton";
+
+const DELIVERY_MODE_OPTIONS = [
+  { value: "online", label: "Live Online" },
+  { value: "hybrid", label: "Blended" },
+  { value: "in_person", label: "In Person" },
+];
 
 const schema = z.object({
   program: z.string().min(1, "Program is required"),
   starts_on: z.string().min(1, "Cohort date is required"),
   duration_weeks: z.coerce.number().min(1, "Duration is required"),
+  delivery_mode: z.string().min(1, "Delivery mode is required"),
+  location: z.string().optional(),
   seat_capacity: z.coerce.number().min(1, "Class capacity is required"),
-  price_usd: z.coerce.number().min(0, "Price is required"),
+  price_usd: z.coerce.number().min(0, "USD price is required"),
+  price_ngn: z.coerce.number().min(0, "NGN price is required"),
   facilitator_name: z.string().min(1, "Facilitator is required"),
 });
 type FormValues = z.infer<typeof schema>;
@@ -29,6 +39,7 @@ const EditCohortPage = () => {
   const router = useRouter();
   const { data: cohort, isLoading } = useCohort(cohortId);
   const { data: programs } = usePrograms();
+  const { data: facilitators } = useApprovedFacilitators();
   const patchCohort = usePatchCohort(cohortId);
 
   const {
@@ -44,23 +55,26 @@ const EditCohortPage = () => {
       program: String(cohort.program.id),
       starts_on: cohort.starts_on,
       duration_weeks: cohort.duration_weeks,
+      delivery_mode: cohort.delivery_mode,
+      location: cohort.location,
       seat_capacity: cohort.seat_capacity,
       price_usd: parseFloat(cohort.effective_price_usd),
+      price_ngn: parseFloat(cohort.effective_price_ngn),
       facilitator_name: cohort.facilitator_name,
     });
   }, [cohort, reset]);
 
   const onSubmit = (values: FormValues) => {
-    const startsOn = new Date(values.starts_on);
-    const endsOn = new Date(startsOn.getTime() + values.duration_weeks * 7 * 86_400_000);
-
     patchCohort.mutate(
       {
         program: Number(values.program),
         starts_on: values.starts_on,
-        ends_on: endsOn.toISOString().slice(0, 10),
+        duration_weeks: values.duration_weeks,
+        delivery_mode: values.delivery_mode,
+        location: values.location?.trim() ?? "",
         seat_capacity: values.seat_capacity,
         price_override_usd: values.price_usd.toFixed(2),
+        price_override_ngn: values.price_ngn.toFixed(2),
         facilitator_name: values.facilitator_name,
       },
       {
@@ -107,6 +121,31 @@ const EditCohortPage = () => {
           {...register("starts_on")}
         />
 
+        <div className="flex flex-col gap-2">
+          <label className="text-sm text-gray-900">
+            Delivery Mode <span className="text-secondary">*</span>
+          </label>
+          <select
+            className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+            {...register("delivery_mode")}
+          >
+            {DELIVERY_MODE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {errors.delivery_mode && (
+            <p className="text-xs text-red-500">{errors.delivery_mode.message}</p>
+          )}
+        </div>
+
+        <Input
+          label="Location"
+          placeholder="e.g. Lagos, Nigeria (leave blank for fully online)"
+          {...register("location")}
+        />
+
         <Input
           label="Duration"
           type="number"
@@ -125,23 +164,48 @@ const EditCohortPage = () => {
           {...register("seat_capacity")}
         />
 
-        <Input
-          label="Price"
-          type="number"
-          step="0.01"
-          required
-          placeholder="0.00"
-          error={errors.price_usd?.message}
-          {...register("price_usd")}
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Price (USD)"
+            type="number"
+            step="0.01"
+            required
+            placeholder="$0.00"
+            error={errors.price_usd?.message}
+            {...register("price_usd")}
+          />
+          <Input
+            label="Price (NGN)"
+            type="number"
+            step="0.01"
+            required
+            placeholder="₦0.00"
+            error={errors.price_ngn?.message}
+            {...register("price_ngn")}
+          />
+        </div>
 
-        <Input
-          label="Facilitator"
-          required
-          placeholder="Enter facilitator name"
-          error={errors.facilitator_name?.message}
-          {...register("facilitator_name")}
-        />
+        <div className="flex flex-col gap-2">
+          <label className="text-sm text-gray-900">
+            Facilitator <span className="text-secondary">*</span>
+          </label>
+          <select
+            className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+            {...register("facilitator_name")}
+          >
+            <option value="" disabled>
+              Select facilitator
+            </option>
+            {facilitators?.map((facilitator) => (
+              <option key={facilitator.id} value={facilitator.full_name}>
+                {facilitator.full_name}
+              </option>
+            ))}
+          </select>
+          {errors.facilitator_name && (
+            <p className="text-xs text-red-500">{errors.facilitator_name.message}</p>
+          )}
+        </div>
 
         <div className="mt-2 flex gap-3">
           <button

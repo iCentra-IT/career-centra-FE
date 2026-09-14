@@ -112,3 +112,76 @@ export interface CreateFacilitatorApplicationResponse {
   status: string;
   submitted_at: string;
 }
+
+// Confirmed real shapes for the facilitator's own dashboard: GET /api/facilitators/dashboard/,
+// GET /api/facilitators/programs/, GET /api/facilitators/programs/{cohort_id}/.
+
+export interface FacilitatorDashboardStats {
+  assigned_programs: number;
+  upcoming_cohorts: number;
+  total_learners: number;
+  sessions_this_week: number;
+}
+
+// start_time/end_time have shown up serialized as a full ISO time with milliseconds and a
+// trailing "Z" instead of a plain "HH:MM" — use lib/format.ts's formatTimeOfDay to display these.
+export interface FacilitatorSessionSummary {
+  id: number;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  meeting_url: string;
+  program_title: string;
+  cohort_id: number;
+}
+
+export interface FacilitatorRecentUpdate {
+  id: number;
+  notification_type: string;
+  notification_type_display: string;
+  title: string;
+  body: string;
+  action_url: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface FacilitatorDashboard {
+  full_name: string;
+  avatar_url: string;
+  stats: FacilitatorDashboardStats;
+  upcoming_sessions: FacilitatorSessionSummary[];
+  recent_updates: FacilitatorRecentUpdate[];
+}
+
+export interface FacilitatorProgramListItem {
+  cohort_id: number;
+  program_title: string;
+  level: string;
+  level_display: string;
+  badge: string;
+  status: string;
+  enrolled_count: number;
+  starts_on: string;
+  duration_weeks: number;
+}
+
+// GET /api/facilitators/programs/ — the list is wrapped as { programs: [...] } rather than the
+// usual { success, data } / paginated envelope, so it needs no unwrap helper.
+export interface FacilitatorProgramsResponse {
+  programs: FacilitatorProgramListItem[];
+}
+
+export interface FacilitatorProgramDetail {
+  cohort_id: number;
+  program_title: string;
+  starts_on: string;
+  ends_on: string;
+  facilitator_display: string;
+  delivery_mode: string;
+  delivery_mode_display: string;
+  status: string;
+  session_count: number;
+  upcoming_sessions: FacilitatorSessionSummary[];
+}

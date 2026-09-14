@@ -82,10 +82,14 @@ export interface CohortDetail extends Cohort {
   modules: CohortModule[];
 }
 
+// Confirmed real shape — sends duration_weeks, not ends_on (the backend derives the end date
+// itself), plus delivery_mode/location which weren't previously known to be writable.
 export interface CreateCohortRequest {
   program: number; // program ID, not the nested object — confirmed by the request sample
   starts_on: string;
-  ends_on: string;
+  duration_weeks: number;
+  delivery_mode: string; // "online" confirmed; likely also "hybrid" | "in_person"
+  location: string;
   seat_capacity: number;
   price_override_usd: string;
   price_override_ngn: string;
