@@ -199,7 +199,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               <button
                 type="button"
                 onClick={() => setSelectedFacilitator(leadFacilitator)}
-                className="mt-6 flex max-w-lg items-center gap-4 rounded-xl bg-white/10 p-4 text-left hover:bg-white/15"
+                className="mt-6 flex max-w-lg items-start gap-4 rounded-xl bg-white/10 p-4 text-left hover:bg-white/15"
               >
                 <FacilitatorAvatar facilitator={leadFacilitator} className="h-12 w-12 shrink-0 rounded-full text-xs" />
                 <div className="min-w-0">
@@ -572,7 +572,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
             <h2 className="mt-1 text-2xl font-semibold text-gray-900">
               {careerPath ? `More in ${displayTitle(careerPath.title)}` : "Related courses"}
             </h2>
-            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {relatedPrograms.slice(0, 4).map((related) => (
                 <CareerPathProgramCard key={related.id} program={related} buttonTone="blue" />
               ))}

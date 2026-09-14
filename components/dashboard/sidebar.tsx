@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -49,11 +50,13 @@ export function Sidebar({ items }: { items: NavItem[] }) {
         } ${collapsed ? "lg:w-20 lg:px-2" : "lg:w-64 lg:px-4"}`}
       >
         <div className={`flex items-center gap-2 px-2 ${collapsed ? "lg:justify-center" : ""}`}>
-          <svg width="24" height="24" viewBox="0 0 28 28" fill="none" aria-hidden="true" className="shrink-0">
-            <circle cx="14" cy="14" r="12" stroke="#0c236c" strokeWidth="3" />
-            <circle cx="14" cy="10" r="2.5" fill="#1875f0" />
-            <path d="M8 20c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5" stroke="#0c236c" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-          </svg>
+          <Image
+            src="/CareerCentra-logo-icon.png"
+            alt="CareerCentra"
+            width={24}
+            height={25}
+            className="shrink-0"
+          />
           <span className={`text-xl font-semibold text-main ${collapsed ? "lg:hidden" : ""}`}>
             CareerCentra
           </span>

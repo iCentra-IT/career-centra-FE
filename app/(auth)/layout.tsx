@@ -1,20 +1,10 @@
+import Image from "next/image";
 import React from "react";
 
 function Logo() {
   return (
-    <div className="flex items-center justify-center gap-2">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <circle cx="14" cy="14" r="12" stroke="#0c236c" strokeWidth="3" />
-        <circle cx="14" cy="10" r="2.5" fill="#1875f0" />
-        <path
-          d="M8 20c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5"
-          stroke="#0c236c"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          fill="none"
-        />
-      </svg>
-      <span className="text-2xl font-semibold text-main">iCentra</span>
+    <div className="flex items-center justify-center">
+      <Image src="/CareerCentra-full-logo.png" alt="CareerCentra" width={104} height={44} priority />
     </div>
   );
 }

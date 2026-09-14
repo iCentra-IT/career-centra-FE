@@ -1,10 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePrograms } from "@/hooks/queries/programs";
 import { useCareerPaths } from "@/hooks/queries/career-paths";
 import { useCohorts } from "@/hooks/queries/cohort";
-import { nextOpenCohortForProgram } from "@/types/cohort";
+import { compareByNearestCohort, nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { matchPathwayCategory } from "@/lib/pathways";
@@ -288,7 +289,13 @@ const HomePage = () => {
   const { data: pathwaysData, isLoading: pathwaysLoading } = useCareerPaths();
   const pathways = pathwaysData?.results;
   const { data: cohortsData } = useCohorts();
-  const featured = programs?.results?.slice(0, 4) ?? [];
+  // Feature the programs with the soonest upcoming cohort first, not just whatever order the
+  // catalog returned them in.
+  const featured = useMemo(() => {
+    const list = [...(programs?.results ?? [])];
+    list.sort(compareByNearestCohort(cohortsData?.results ?? []));
+    return list.slice(0, 4);
+  }, [programs, cohortsData]);
 
   return (
     <div>
@@ -488,13 +495,13 @@ const HomePage = () => {
           Progress from foundation to specialised expertise at your own pace.
         </p>
 
-        <div className="mt-12 flex flex-wrap items-start justify-center gap-4">
+        <div className="mt-12 grid grid-cols-1 items-start justify-center gap-4 md:flex md:flex-wrap">
           {LEVELS.map((level, i) => {
             const active = i === 1;
             return (
-              <div key={level.label} className="flex items-center gap-4">
+              <div key={level.label} className="flex w-full items-center gap-4 md:w-auto">
                 <div
-                  className={`relative rounded-xl border px-6 py-4 text-left ${
+                  className={`relative w-full rounded-xl border px-6 py-4 text-left md:w-auto ${
                     active
                       ? "border-main bg-main text-white"
                       : "border-gray-200 bg-white text-gray-700"
@@ -518,7 +525,7 @@ const HomePage = () => {
                   </p>
                 </div>
                 {i < LEVELS.length - 1 && (
-                  <span className="text-gray-300 hidden md:blockthis global ">›</span>
+                  <span className="hidden text-gray-300 md:block">›</span>
                 )}
               </div>
             );

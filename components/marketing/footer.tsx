@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 
@@ -24,21 +25,18 @@ const LEGAL_LINKS = [
 ];
 
 function Logo() {
+  // The logo asset's navy wordmark reads poorly on this footer's dark bg-deep-blue, and there's no
+  // dedicated light/white variant in the public folder — brightness-0 + invert renders it as a
+  // clean white silhouette instead (a standard technique for placing a colored logo on a dark
+  // surface without a separate asset).
   return (
-    <div className="flex items-center gap-2">
-      {/* <svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <circle cx="14" cy="14" r="12" stroke="#00dbff" strokeWidth="3" />
-        <circle cx="14" cy="10" r="2.5" fill="#00afeb" />
-        <path
-          d="M8 20c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5"
-          stroke="#00dbff"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          fill="none"
-        />
-      </svg> */}
-      <span className="text-2xl font-semibold">CareerCentra</span>
-    </div>
+    <Image
+      src="/CareerCentra-full-logo.png"
+      alt="CareerCentra"
+      width={180}
+      height={50}
+      className="brightness-0 invert"
+    />
   );
 }
 
@@ -114,10 +112,10 @@ export function MarketingFooter() {
               <SocialBadge href="https://x.com" label="X (Twitter)">
                 <XIcon />
               </SocialBadge>
-              <SocialBadge href="https://facebook.com" label="Facebook">
+              <SocialBadge href="https://www.facebook.com/share/19a78hWFxt/?mibextid=wwXIfr" label="Facebook">
                 <FacebookIcon />
               </SocialBadge>
-              <SocialBadge href="https://instagram.com" label="Instagram">
+              <SocialBadge href="https://www.instagram.com/careercentra?stkn=eHo0cTdrbGVwNXc5" label="Instagram">
                 <InstagramIcon />
               </SocialBadge>
               <SocialBadge href="https://youtube.com" label="YouTube">

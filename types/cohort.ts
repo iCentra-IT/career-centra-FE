@@ -76,6 +76,20 @@ export function nextOpenCohortForProgram(cohorts: Cohort[], programId: number): 
     .sort((a, b) => a.starts_on.localeCompare(b.starts_on))[0];
 }
 
+// Sorts programs so the ones with the soonest upcoming cohort come first (used to feature/order
+// programs on the home page and the catalog listing) — programs with no open cohort at all sort
+// to the end rather than being dropped, since "no cohort yet" isn't the same as "not offered".
+export function compareByNearestCohort(cohorts: Cohort[]) {
+  return (a: { id: number }, b: { id: number }): number => {
+    const aCohort = nextOpenCohortForProgram(cohorts, a.id);
+    const bCohort = nextOpenCohortForProgram(cohorts, b.id);
+    if (aCohort && bCohort) return aCohort.starts_on.localeCompare(bCohort.starts_on);
+    if (aCohort) return -1;
+    if (bCohort) return 1;
+    return 0;
+  };
+}
+
 // Cohort detail — adds nested sessions/modules and fields not present on the list item.
 // NOTE: the detail response's "program" is actually much richer than CohortProgramSummary
 // (adds outline-style fields like learning_outcomes, faqs, prerequisites, certification, and

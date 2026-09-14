@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { usePrograms } from "@/hooks/queries/programs";
 import { useCohorts } from "@/hooks/queries/cohort";
-import { nextOpenCohortForProgram } from "@/types/cohort";
+import { compareByNearestCohort, nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
@@ -95,12 +95,14 @@ function ProgramsPageContent() {
   const pageItems = useMemo(() => {
     const list = [...(programs?.results ?? [])];
 
+    // Default "relevance" ordering surfaces the programs with the soonest upcoming cohort first.
+    if (sort === "relevance") list.sort(compareByNearestCohort(cohortsData?.results ?? []));
     if (sort === "price_asc") list.sort((a, b) => parseFloat(a.base_price_usd) - parseFloat(b.base_price_usd));
     if (sort === "price_desc") list.sort((a, b) => parseFloat(b.base_price_usd) - parseFloat(a.base_price_usd));
     if (sort === "newest") list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return list;
-  }, [programs, sort]);
+  }, [programs, sort, cohortsData]);
 
   const totalCount = programs?.count ?? pageItems.length;
   const totalPages = programs?.total_pages ?? 1;
@@ -134,10 +136,55 @@ function ProgramsPageContent() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-10">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
-          <aside className="flex flex-col gap-5">
-            <h2 className="text-sm font-semibold text-gray-900">Filter Programs</h2>
+        <div className="relative flex-1">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <SearchIcon />
+          </span>
+          <input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search programs..."
+            className="w-full rounded-md border border-gray-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+          />
+        </div>
 
+        <div className="mt-4 flex flex-wrap gap-2 hidden md:block">
+          <button
+            type="button"
+            onClick={() => {
+              setCategory("");
+              setPage(1);
+            }}
+            className={`rounded-full px-4 py-2 text-sm font-medium ${
+              category === "" ? "bg-main text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            All Programs
+          </button>
+          {PATHWAY_CATEGORIES.map((cat) => (
+            <button
+              key={cat.programType}
+              type="button"
+              onClick={() => {
+                setCategory(cat.programType);
+                setPage(1);
+              }}
+              className={`rounded-full px-4 py-2 text-sm font-medium ${
+                category === cat.programType
+                  ? "bg-main text-white"
+                  : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 rounded-xl border border-gray-100 bg-gray-50/60 p-4 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="w-full sm:w-auto sm:min-w-40 hidden md:block">
             <Select
               label="Certification Level"
               value={level}
@@ -147,9 +194,9 @@ function ProgramsPageContent() {
               }}
               options={[{ label: "All Levels", value: "" }, ...LEVEL_FILTER_OPTIONS]}
             />
-            <Select label="Delivery Format" value="" options={[{ label: "All Formats", value: "" }]} disabled />
-            <Select label="Duration" value="" options={[{ label: "Any Duration", value: "" }]} disabled />
-            <Select label="Upcoming Cohort" value="" options={[{ label: "Any Date", value: "" }]} disabled />
+          </div>
+
+          <div className="w-full sm:w-auto sm:min-w-40">
             <Select
               label="Certification Body"
               value={certBody}
@@ -164,134 +211,87 @@ function ProgramsPageContent() {
                 { label: "PECB", value: "pecb" },
               ]}
             />
+          </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-gray-500">Price Range</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  placeholder="$0"
-                  value={minPrice}
-                  onChange={(e) => {
-                    setMinPrice(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-                />
-                <span className="text-gray-300">–</span>
-                <input
-                  type="number"
-                  placeholder="$5,000"
-                  value={maxPrice}
-                  onChange={(e) => {
-                    setMaxPrice(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-                />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="self-start text-sm font-medium text-secondary hover:underline"
-            >
-              Clear all filters
-            </button>
-          </aside>
-
-          <div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="relative flex-1">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <SearchIcon />
-                </span>
-                <input
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  placeholder="Search programs..."
-                  className="w-full rounded-md border border-gray-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-                />
-              </div>
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortOption)}
-                className="rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-              >
-                <option value="relevance">Sort: Relevance</option>
-                <option value="price_asc">Sort: Price (low to high)</option>
-                <option value="price_desc">Sort: Price (high to low)</option>
-                <option value="newest">Sort: Newest</option>
-              </select>
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setCategory("");
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto hidden md:block">
+            <label className="text-xs font-medium text-gray-500">Price Range</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="$0"
+                value={minPrice}
+                onChange={(e) => {
+                  setMinPrice(e.target.value);
                   setPage(1);
                 }}
-                className={`rounded-full px-4 py-2 text-sm font-medium ${
-                  category === "" ? "bg-main text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                All Programs
-              </button>
-              {PATHWAY_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.programType}
-                  type="button"
-                  onClick={() => {
-                    setCategory(cat.programType);
-                    setPage(1);
-                  }}
-                  className={`rounded-full px-4 py-2 text-sm font-medium ${
-                    category === cat.programType
-                      ? "bg-main text-white"
-                      : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
+                className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary sm:w-24"
+              />
+              <span className="text-gray-300">–</span>
+              <input
+                type="number"
+                placeholder="$5,000"
+                value={maxPrice}
+                onChange={(e) => {
+                  setMaxPrice(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary sm:w-24"
+              />
             </div>
-
-            {!isLoading && (
-              <p className="mt-4 text-sm text-gray-400">
-                {totalCount} program{totalCount === 1 ? "" : "s"} found
-              </p>
-            )}
-
-            <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {isLoading && <CardGridSkeleton count={9} />}
-              {!isLoading && pageItems.length === 0 && (
-                <p className="text-sm text-gray-400">No programs match these filters.</p>
-              )}
-              {pageItems.map((program) => (
-                <ProgramCard
-                  key={program.id}
-                  program={program}
-                  buttonTone="blue"
-                  cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
-                />
-              ))}
-            </div>
-
-            {!isLoading && totalCount > 0 && (
-              <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
-                <p className="text-sm text-gray-400">
-                  Showing {pageItems.length} of {totalCount} programs
-                </p>
-                <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-              </div>
-            )}
           </div>
+
+          <div className="w-full sm:w-auto sm:min-w-45 hidden md:block">
+            <label className="text-xs font-medium text-gray-500">Sort By</label>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortOption)}
+              className="mt-1.5 w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+            >
+              <option value="relevance">Sort: Relevance</option>
+              <option value="price_asc">Sort: Price (low to high)</option>
+              <option value="price_desc">Sort: Price (high to low)</option>
+              <option value="newest">Sort: Newest</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-sm font-medium text-secondary hidden md:block hover:underline sm:mb-2.5"
+          >
+            Clear all filters
+          </button>
         </div>
+
+        {!isLoading && (
+          <p className="mt-4 text-sm text-gray-400">
+            {totalCount} program{totalCount === 1 ? "" : "s"} found
+          </p>
+        )}
+
+        <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {isLoading && <CardGridSkeleton count={8} />}
+          {!isLoading && pageItems.length === 0 && (
+            <p className="text-sm text-gray-400">No programs match these filters.</p>
+          )}
+          {pageItems.map((program) => (
+            <ProgramCard
+              key={program.id}
+              program={program}
+              buttonTone="blue"
+              cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
+            />
+          ))}
+        </div>
+
+        {!isLoading && totalCount > 0 && (
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-sm text-gray-400">
+              Showing {pageItems.length} of {totalCount} programs
+            </p>
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        )}
       </section>
     </div>
   );

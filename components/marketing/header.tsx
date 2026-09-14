@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
@@ -66,19 +67,8 @@ function ChevronIcon() {
 
 function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2">
-      {/* <svg width="22" height="22" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <circle cx="14" cy="14" r="12" stroke="#0c236c" strokeWidth="3" />
-        <circle cx="14" cy="10" r="2.5" fill="#1875f0" />
-        <path
-          d="M8 20c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5"
-          stroke="#0c236c"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          fill="none"
-        />
-      </svg> */}
-      <span className="text-lg font-semibold text-main">CareerCentra</span>
+    <Link href="/" className="flex items-center">
+      <Image src="/CareerCentra-full-logo.png" alt="CareerCentra" width={130} height={56} priority />
     </Link>
   );
 }
