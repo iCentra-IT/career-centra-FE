@@ -9,12 +9,13 @@ import type { Cohort } from "@/types/cohort";
 import { programOrCohortPrice } from "@/types/programs";
 import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
-import { getYouTubeVideoId, youTubeEmbedUrl, youTubeThumbnailUrl } from "@/lib/youtube";
+import { getYouTubeVideoId } from "@/lib/youtube";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { EnrolButton } from "@/components/marketing/enrol-button";
 import { AddToCartButton } from "@/components/marketing/add-to-cart-button";
 import { CareerPathProgramCard } from "@/components/marketing/career-path-program-card";
+import { ReviewVideo } from "@/components/marketing/review-video";
 import {
   FacilitatorAvatar,
   FacilitatorDetailModal,
@@ -51,53 +52,6 @@ function PlusMinusIcon({ open }: { open: boolean }) {
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{children}</p>;
-}
-
-function PlayIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path d="M7.5 5.8l7 4.2-7 4.2V5.8z" fill="#0c236c" />
-    </svg>
-  );
-}
-
-// Click-to-play so a program with several reviews doesn't load every iframe (and its cookies) up
-// front — a YouTube thumbnail stands in until the learner presses play, then swaps to an inline
-// youtube-nocookie.com embed. They never leave the site to watch.
-function ReviewVideo({ videoId }: { videoId: string }) {
-  const [playing, setPlaying] = useState(false);
-
-  return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-900 shadow-sm">
-      {playing ? (
-        <iframe
-          src={youTubeEmbedUrl(videoId)}
-          title="Learner review video"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="absolute inset-0 h-full w-full"
-        />
-      ) : (
-        <button
-          type="button"
-          onClick={() => setPlaying(true)}
-          aria-label="Play learner review video"
-          className="group absolute inset-0 flex items-center justify-center"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element -- an img.youtube.com thumbnail, not worth configuring next/image's domains for */}
-          <img
-            src={youTubeThumbnailUrl(videoId)}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover transition-opacity group-hover:opacity-80"
-          />
-          <span className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/20" />
-          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-lg transition-transform group-hover:scale-105">
-            <PlayIcon />
-          </span>
-        </button>
-      )}
-    </div>
-  );
 }
 
 // Compact "10–14 Feb 2025" for a same-month cohort instead of repeating the month/year on both

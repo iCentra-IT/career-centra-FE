@@ -662,7 +662,15 @@ export function ProgramForm({
             {errors2.certification && <p className="text-xs text-red-500">{errors2.certification}</p>}
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Learner Reviews</p>
+              <p className="text-xs text-gray-400">
+                Paste YouTube video links (e.g. https://youtu.be/xxxx or https://www.youtube.com/watch?v=xxxx) —
+                they show under the &quot;Testimonials&quot; tab on the program page and play inline, so
+                learners won&apos;t need to leave the site.
+              </p>
+            </div>
             <TagListField
               label="Review Videos (YouTube links)"
               addLabel="Add Video Link"
@@ -670,10 +678,6 @@ export function ProgramForm({
               onChange={setReviewVideoUrls}
               required={false}
             />
-            <p className="text-xs text-gray-400">
-              Paste YouTube video links (e.g. https://youtu.be/xxxx or https://www.youtube.com/watch?v=xxxx).
-              They play inline on the program page — learners won&apos;t need to leave the site.
-            </p>
           </div>
 
           <div className="mt-2 flex gap-3">

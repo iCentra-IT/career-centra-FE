@@ -7,9 +7,14 @@ import { useCareerPaths } from "@/hooks/queries/career-paths";
 import { useCohorts } from "@/hooks/queries/cohort";
 import { compareByNearestCohort, nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
+import { ReviewVideo } from "@/components/marketing/review-video";
 import { CardGridSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { matchPathwayCategory } from "@/lib/pathways";
+import { getYouTubeVideoId } from "@/lib/youtube";
 import Image from "next/image";
+
+// A single featured video testimonial shown above the text quotes below.
+const FEATURED_TESTIMONIAL_VIDEO_URL = "https://youtu.be/9cDMsxORR2s";
 
 function BriefcaseIcon() {
   return (
@@ -297,6 +302,8 @@ const HomePage = () => {
     return list.slice(0, 4);
   }, [programs, cohortsData]);
 
+  const featuredTestimonialVideoId = getYouTubeVideoId(FEATURED_TESTIMONIAL_VIDEO_URL);
+
   return (
     <div>
       {/* Hero */}
@@ -566,7 +573,13 @@ const HomePage = () => {
           What Our Learners Say
         </h2>
 
-        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        {featuredTestimonialVideoId && (
+          <div className="mx-auto mt-10 max-w-5xl">
+            <ReviewVideo videoId={featuredTestimonialVideoId} title="Learner testimonial video" />
+          </div>
+        )}
+
+        {/* <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {TESTIMONIALS.map((t) => (
             <div
               key={t.role}
@@ -588,7 +601,7 @@ const HomePage = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
       </section>
 
       {/* CTA: advisor */}
