@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearch } from "@/hooks/queries/search";
-import { usePrograms } from "@/hooks/queries/programs";
-import { useCareerPaths } from "@/hooks/queries/career-paths";
 
 function SearchIcon() {
   return (
@@ -21,9 +19,6 @@ export function SiteSearch({ className }: { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   const { data: results, isFetching } = useSearch(query);
-  const { data: programs } = usePrograms();
-  const { data: pathwaysData } = useCareerPaths();
-  const pathways = pathwaysData?.results;
 
   useEffect(() => {
     if (!open) return;
@@ -34,14 +29,8 @@ export function SiteSearch({ className }: { className?: string }) {
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
-  // Search only returns titles, so cross-reference the already-loaded lists to get real links.
-  const matchedPrograms = (results?.programs ?? [])
-    .map((title) => programs?.results?.find((p) => p.title === title))
-    .filter((p): p is NonNullable<typeof p> => !!p);
-
-  const matchedPathways = (results?.career_paths ?? [])
-    .map((title) => pathways?.find((p) => p.title === title))
-    .filter((p): p is NonNullable<typeof p> => !!p);
+  const matchedPrograms = results?.programs ?? [];
+  const matchedPathways = results?.career_paths ?? [];
 
   const hasQuery = query.trim().length > 1;
   const hasResults = matchedPrograms.length > 0 || matchedPathways.length > 0;

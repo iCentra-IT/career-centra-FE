@@ -82,6 +82,9 @@ export interface ProgramFormValues {
   modules: ModuleFormValue[];
   hasCertification: boolean;
   certification: CertificationFormValue;
+  // YouTube video links shown as learner reviews on the program page — plain URLs; ids/timestamps
+  // are server-assigned and only exist once read back from GET.
+  reviewVideoUrls: string[];
 }
 
 interface ProgramFormProps {
@@ -124,6 +127,7 @@ const EMPTY_VALUES: ProgramFormValues = {
   modules: [],
   hasCertification: false,
   certification: EMPTY_CERTIFICATION,
+  reviewVideoUrls: [],
 };
 
 export function ProgramForm({
@@ -161,6 +165,11 @@ export function ProgramForm({
   const [priceNgn, setPriceNgn] = useState(initialValues?.priceNgn ?? EMPTY_VALUES.priceNgn);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  // Distinct from coverImageFile being null on its own (which just means "no new file picked
+  // yet") — this tracks that the admin explicitly cleared the already-uploaded image, so the
+  // existing preview should stop showing and the submit payload should send `cover_image: null`
+  // instead of omitting the field (which would leave the old image untouched).
+  const [coverImageRemoved, setCoverImageRemoved] = useState(false);
   const [errors1, setErrors1] = useState<Record<string, string>>({});
 
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,6 +197,7 @@ export function ProgramForm({
       return URL.createObjectURL(file);
     });
     setCoverImageFile(file);
+    setCoverImageRemoved(false);
   };
 
   const removeCoverImage = () => {
@@ -196,6 +206,7 @@ export function ProgramForm({
       return null;
     });
     setCoverImageFile(null);
+    setCoverImageRemoved(true);
   };
 
   // Object URLs aren't garbage-collected on their own — release the last one when the form goes away.
@@ -223,7 +234,9 @@ export function ProgramForm({
   const [certification, setCertification] = useState(
     initialValues?.certification ?? EMPTY_VALUES.certification,
   );
-  const [reviewPoints, setReviewPoints] = useState([] as string[]);
+  const [reviewVideoUrls, setReviewVideoUrls] = useState(
+    initialValues?.reviewVideoUrls ?? EMPTY_VALUES.reviewVideoUrls,
+  );
   const [errors2, setErrors2] = useState<Record<string, string>>({});
 
   const validateStep1 = () => {
@@ -275,7 +288,7 @@ export function ProgramForm({
       has_pecb_badge: pecbBadge,
       has_icentra_badge: icentraBadge,
       certificate_provider: certificateProvider,
-      cover_image: coverImageFile ?? undefined,
+      cover_image: coverImageFile ?? (coverImageRemoved ? null : undefined),
       learning_outcomes: learningOutcomes.map((v) => v.trim()).filter(Boolean),
       who_should_attend: whoShouldAttend.map((v) => v.trim()).filter(Boolean),
       prerequisites: prerequisites
@@ -302,6 +315,10 @@ export function ProgramForm({
               pass_rate: certification.passRate.trim(),
             }
           : null,
+      reviews: reviewVideoUrls
+        .map((v) => v.trim())
+        .filter(Boolean)
+        .map((video_url) => ({ video_url })),
       is_active: true,
     });
   };
@@ -366,7 +383,8 @@ export function ProgramForm({
                 </button>
               </div>
             ) : (
-              existingCoverImageUrl && (
+              existingCoverImageUrl &&
+              !coverImageRemoved && (
                 <div className="flex items-center gap-3">
                   {/* eslint-disable-next-line @next/next/no-img-element -- an arbitrary hosted URL, not worth configuring next/image's domains for */}
                   <img
@@ -374,9 +392,21 @@ export function ProgramForm({
                     alt="Current cover"
                     className="h-16 w-24 rounded-md border border-gray-100 object-cover"
                   />
-                  <p className="text-xs text-gray-400">Current image — pick a new file to replace it.</p>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs text-gray-400">Current image — pick a new file to replace it.</p>
+                    <button
+                      type="button"
+                      onClick={removeCoverImage}
+                      className="self-start text-xs font-medium text-red-500 hover:text-red-600"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               )
+            )}
+            {coverImageRemoved && !coverImagePreview && (
+              <p className="text-xs text-gray-400">Cover image will be removed when you save.</p>
             )}
             {errors1.coverImage && <p className="text-xs text-red-500">{errors1.coverImage}</p>}
           </div>
@@ -632,13 +662,19 @@ export function ProgramForm({
             {errors2.certification && <p className="text-xs text-red-500">{errors2.certification}</p>}
           </div>
 
-          <TagListField
-            label="Review"
-            addLabel="Add Point"
-            values={reviewPoints}
-            onChange={setReviewPoints}
-            required={false}
-          />
+          <div className="flex flex-col gap-2">
+            <TagListField
+              label="Review Videos (YouTube links)"
+              addLabel="Add Video Link"
+              values={reviewVideoUrls}
+              onChange={setReviewVideoUrls}
+              required={false}
+            />
+            <p className="text-xs text-gray-400">
+              Paste YouTube video links (e.g. https://youtu.be/xxxx or https://www.youtube.com/watch?v=xxxx).
+              They play inline on the program page — learners won&apos;t need to leave the site.
+            </p>
+          </div>
 
           <div className="mt-2 flex gap-3">
             <button

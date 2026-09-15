@@ -59,11 +59,13 @@ export interface FacilitatorProfile {
 export type ApprovedFacilitator = FacilitatorProfile;
 
 // avatar is a real file upload (same multipart convention as programs' cover_image) — omit to
-// leave an existing avatar untouched on a PATCH.
+// leave an existing avatar untouched on a PATCH; send `null` to explicitly clear it (this request
+// always goes out as multipart, so lib/api/facilitator/index.ts sends the clear as an empty-string
+// form field rather than relying on JSON `null`).
 export interface CreateFacilitatorProfileRequest {
   full_name: string;
   application_id?: number;
-  avatar?: File;
+  avatar?: File | null;
   short_bio?: string;
   credential_tags?: string[];
   is_published?: boolean;
@@ -77,7 +79,7 @@ export interface InviteFacilitatorRequest {
   email: string;
   first_name?: string;
   last_name?: string;
-  avatar?: File;
+  avatar?: File | null;
   short_bio?: string;
   credential_tags?: string[];
   is_published?: boolean;

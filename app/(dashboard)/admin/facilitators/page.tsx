@@ -231,7 +231,7 @@ function ApplicationDrawer({
 }
 
 function InviteFacilitatorModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null | undefined>(undefined);
   const [shortBio, setShortBio] = useState("");
   const [credentialTags, setCredentialTags] = useState<string[]>([""]);
   const [isPublished, setIsPublished] = useState(true);
@@ -246,7 +246,7 @@ function InviteFacilitatorModal({ open, onClose }: { open: boolean; onClose: () 
 
   const resetAll = () => {
     reset();
-    setAvatarFile(null);
+    setAvatarFile(undefined);
     setShortBio("");
     setCredentialTags([""]);
     setIsPublished(true);
@@ -256,7 +256,7 @@ function InviteFacilitatorModal({ open, onClose }: { open: boolean; onClose: () 
     inviteFacilitator.mutate(
       {
         ...values,
-        avatar: avatarFile ?? undefined,
+        avatar: avatarFile,
         short_bio: shortBio.trim() || undefined,
         credential_tags: credentialTags.map((t) => t.trim()).filter(Boolean),
         is_published: isPublished,
@@ -350,7 +350,7 @@ function EditFacilitatorModal({
   onClose: () => void;
 }) {
   const [fullName, setFullName] = useState(facilitator.full_name);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null | undefined>(undefined);
   const [shortBio, setShortBio] = useState(facilitator.short_bio);
   const [credentialTags, setCredentialTags] = useState<string[]>(
     facilitator.credential_tags.length > 0 ? facilitator.credential_tags : [""],
@@ -362,7 +362,7 @@ function EditFacilitatorModal({
     patchProfile.mutate(
       {
         full_name: fullName.trim(),
-        avatar: avatarFile ?? undefined,
+        avatar: avatarFile,
         short_bio: shortBio.trim(),
         credential_tags: credentialTags.map((t) => t.trim()).filter(Boolean),
         is_published: isPublished,

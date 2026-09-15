@@ -6,7 +6,10 @@ interface ImageFileFieldProps {
   label: string;
   existingImageUrl?: string;
   maxBytes?: number;
-  file: File | null;
+  // `undefined` = untouched (still showing existingImageUrl if any); `null` = the admin explicitly
+  // removed the image (existing or freshly picked) and it should be cleared on save; a `File` =
+  // a newly picked replacement.
+  file: File | null | undefined;
   onChange: (file: File | null) => void;
 }
 
@@ -47,6 +50,8 @@ export function ImageFileField({
     onChange(picked);
   };
 
+  // Clears whatever is currently shown — a freshly picked file or the already-uploaded image —
+  // and tells the parent to drop the image entirely (`null`, distinct from `undefined`/untouched).
   const remove = () => {
     setPreview((prev) => {
       if (prev) URL.revokeObjectURL(prev);
@@ -62,7 +67,7 @@ export function ImageFileField({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const shownUrl = preview ?? (!file ? existingImageUrl : undefined);
+  const shownUrl = preview ?? (file === undefined ? existingImageUrl : undefined);
 
   return (
     <div className="flex flex-col gap-2">
@@ -73,20 +78,20 @@ export function ImageFileField({
         onChange={handleChange}
         className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-secondary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary hover:file:bg-secondary/20"
       />
-      {shownUrl && (
+      {shownUrl ? (
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={shownUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
-          {preview && (
-            <button
-              type="button"
-              onClick={remove}
-              className="text-xs font-medium text-red-500 hover:text-red-600"
-            >
-              Remove
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={remove}
+            className="text-xs font-medium text-red-500 hover:text-red-600"
+          >
+            Remove
+          </button>
         </div>
+      ) : (
+        file === null && <p className="text-xs text-gray-400">Image will be removed when you save.</p>
       )}
       {error && <p className="text-xs text-red-500">{error}</p>}
     </div>

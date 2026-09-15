@@ -25,8 +25,24 @@ export function CareerPathProgramCard({ program, buttonTone = "cyan", cohort }: 
   const price = programOrCohortPrice(program.pricing_mode, program, cohort);
 
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-linear-to-br from-main to-deep-blue p-5 text-white">
-      <div>
+    <div
+      className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-linear-to-br from-main to-deep-blue bg-cover bg-center p-5 text-white"
+      // style={
+      //   program.cover_image_url
+      //     ? { backgroundImage: `url("${program.cover_image_url}")` }
+      //     : undefined
+      // }
+    >
+      {/* When a cover image is set it sits behind this same gradient, tinted rather than solid so
+          the photo actually reads through it while the card text stays legible; with no image the
+          gradient alone fills the card, same as before. */}
+      {program.cover_image_url && (
+        <div
+          className="absolute inset-0 bg-linear-to-br from-main/65 to-deep-blue/80"
+          aria-hidden="true"
+        />
+      )}
+      <div className="relative">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
           <BadgeIcon />
           {badge}
@@ -37,7 +53,7 @@ export function CareerPathProgramCard({ program, buttonTone = "cyan", cohort }: 
         <h3 className="mt-1 text-base font-semibold">{displayTitle(program.title)}</h3>
         <p className="mt-2 text-sm text-white/70 line-clamp-3">{program.summary}</p>
       </div>
-      <div className="mt-6">
+      <div className="relative mt-6">
         <div className="flex items-center justify-between gap-2">
           <p className="inline-block rounded-md bg-white/10 px-3 py-1.5 text-xs text-white/80">
             {cohort ? `Starts ${formatShortDate(cohort.starts_on)}` : "Cohort dates coming soon"}

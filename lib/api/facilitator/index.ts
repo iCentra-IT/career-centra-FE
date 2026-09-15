@@ -37,13 +37,21 @@ export async function getMyFacilitatorProfile(): Promise<FacilitatorProfile> {
 }
 
 // avatar (when present) is a real file upload, so this always goes as multipart/form-data —
-// same convention as programs' cover_image.
+// same convention as programs' cover_image. toFormData omits a `null` avatar entirely (its nested
+// encoding treats null as "unset"), so an explicit removal is appended separately as an empty
+// string — the standard way to clear a DRF file field over multipart.
+function facilitatorFormData(payload: CreateFacilitatorProfileRequest | PatchFacilitatorProfileRequest) {
+  const formData = toFormData(payload);
+  if (payload.avatar === null) formData.set("avatar", "");
+  return formData;
+}
+
 export async function createFacilitatorProfile(
   payload: CreateFacilitatorProfileRequest,
 ): Promise<FacilitatorProfile> {
   const { data } = await apiClient.post(
     "/api/facilitators/profiles/",
-    toFormData(payload),
+    facilitatorFormData(payload),
     MULTIPART_HEADERS,
   );
   return unwrapObject<FacilitatorProfile>(data);
@@ -55,7 +63,7 @@ export async function patchFacilitatorProfile(
 ): Promise<FacilitatorProfile> {
   const { data } = await apiClient.patch(
     `/api/facilitators/profiles/${id}/`,
-    toFormData(payload),
+    facilitatorFormData(payload),
     MULTIPART_HEADERS,
   );
   return unwrapObject<FacilitatorProfile>(data);

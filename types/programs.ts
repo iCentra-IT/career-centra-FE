@@ -234,6 +234,14 @@ export interface ProgramFacilitator {
   credential_tags: string[];
 }
 
+// A learner review — video-only (a YouTube link), no rating/text fields seen in the payload.
+// id/created_at are server-assigned, same convention as faqs/prerequisites/modules below.
+export interface ProgramReview {
+  id: number;
+  video_url: string;
+  created_at: string;
+}
+
 // Detail view — adds the rich fields used on the program detail page
 export interface Program extends ProgramListItem {
   outline: string;
@@ -244,6 +252,7 @@ export interface Program extends ProgramListItem {
   modules: ProgramModule[];
   certification: ProgramCertification | null;
   facilitators: ProgramFacilitator[];
+  reviews: ProgramReview[];
 }
 
 // Write-side module/lesson shapes — no id/lesson_count, those are server-assigned/derived.
@@ -267,6 +276,11 @@ export interface CreateProgramCertification {
   pass_rate: string;
 }
 
+// Write-side review shape — no id/created_at, those are server-assigned.
+export interface CreateProgramReview {
+  video_url: string;
+}
+
 export interface CreateProgramRequest {
   title: string;
   code: string;
@@ -288,14 +302,17 @@ export interface CreateProgramRequest {
   certificate_provider: CertificateProvider;
   // Confirmed a real file upload (DRF ImageField) — "not a file, check the encoding type on the
   // form" is DRF's rejection when this arrives as JSON/a string instead of multipart. Omit to
-  // leave an existing image untouched on a PATCH.
-  cover_image?: File;
+  // leave an existing image untouched on a PATCH; send `null` to explicitly clear it (this always
+  // goes out as plain JSON since removing the image without picking a new one means the payload
+  // has no File in it, so toRequestBody picks the JSON path where `null` serializes cleanly).
+  cover_image?: File | null;
   learning_outcomes?: string[];
   who_should_attend?: string[];
   faqs?: ProgramFaq[];
   prerequisites?: { kind: ProgramPrerequisite["kind"]; text: string; order: number }[];
   modules?: CreateProgramModule[];
   certification?: CreateProgramCertification | null;
+  reviews?: CreateProgramReview[];
   is_active: boolean;
 }
 

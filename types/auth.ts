@@ -35,8 +35,9 @@ export interface UpdateProfileRequest {
   first_name: string;
   last_name: string;
   // UNCONFIRMED — see the matching note on User.avatar_url in types/user.ts. Omit to leave an
-  // existing avatar untouched on a PATCH.
-  avatar?: File;
+  // existing avatar untouched on a PATCH; send `null` to explicitly clear it (goes out as plain
+  // JSON via toRequestBody since removing without picking a new file leaves no File in the payload).
+  avatar?: File | null;
 }
 
 export type UpdateProfileResponse = User;

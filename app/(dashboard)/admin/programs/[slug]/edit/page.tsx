@@ -61,6 +61,7 @@ const EditProgramPage = () => {
                   passRate: program.certification.pass_rate,
                 }
               : EMPTY_CERTIFICATION,
+            reviewVideoUrls: program.reviews?.map((r) => r.video_url) ?? [],
           }}
           onSubmit={(payload) =>
             patchProgram.mutate(payload, {

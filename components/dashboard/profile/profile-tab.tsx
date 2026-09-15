@@ -39,6 +39,10 @@ export function ProfileTab() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | undefined>();
+  // Distinct from avatarFile being null on its own — tracks that the existing avatar was
+  // explicitly cleared, so it should stop showing and the submit payload should send `avatar:
+  // null` instead of omitting the field (which would leave the current avatar untouched).
+  const [avatarRemoved, setAvatarRemoved] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -71,6 +75,7 @@ export function ProfileTab() {
       return URL.createObjectURL(file);
     });
     setAvatarFile(file);
+    setAvatarRemoved(false);
   };
 
   const removeAvatarSelection = () => {
@@ -79,6 +84,18 @@ export function ProfileTab() {
       return null;
     });
     setAvatarFile(null);
+    setAvatarRemoved(true);
+  };
+
+  // After a successful save the query refetches with fresh avatar_url, so local override state
+  // (preview/removed) should drop back to "untouched" rather than carry over.
+  const resetAvatarState = () => {
+    setAvatarPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setAvatarFile(null);
+    setAvatarRemoved(false);
   };
 
   // Object URLs aren't garbage-collected on their own — release the last one when this unmounts.
@@ -91,11 +108,11 @@ export function ProfileTab() {
 
   const onSubmit = (values: ProfileFormValues) =>
     patchProfile.mutate(
-      { ...values, avatar: avatarFile ?? undefined },
+      { ...values, avatar: avatarFile ?? (avatarRemoved ? null : undefined) },
       {
         onSuccess: () => {
           toast.success("Profile updated.");
-          removeAvatarSelection();
+          resetAvatarState();
         },
         onError: (err) => toast.error(err.message),
       },
@@ -107,7 +124,7 @@ export function ProfileTab() {
       <p className="mt-1 text-sm text-gray-500">Keep your profile up to date</p>
 
       <div className="mt-6 flex items-center gap-4">
-        {avatarPreview || profile?.avatar_url ? (
+        {avatarPreview || (!avatarRemoved && profile?.avatar_url) ? (
           // eslint-disable-next-line @next/next/no-img-element -- a blob: preview or an arbitrary hosted URL, next/image can't optimize either
           <img
             src={avatarPreview ?? profile?.avatar_url}
@@ -123,7 +140,7 @@ export function ProfileTab() {
           Change photo
           <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
         </label>
-        {avatarPreview && (
+        {(avatarPreview || (!avatarRemoved && profile?.avatar_url)) && (
           <button
             type="button"
             onClick={removeAvatarSelection}
@@ -133,6 +150,9 @@ export function ProfileTab() {
           </button>
         )}
       </div>
+      {avatarRemoved && !avatarPreview && (
+        <p className="mt-2 text-xs text-gray-400">Avatar will be removed when you save.</p>
+      )}
       {avatarError && <p className="mt-2 text-xs text-red-500">{avatarError}</p>}
 
       <form
@@ -192,7 +212,7 @@ export function ProfileTab() {
           <button
             type="button"
             onClick={() => {
-              removeAvatarSelection();
+              resetAvatarState();
               if (profile) form.reset({ first_name: profile.first_name, last_name: profile.last_name });
             }}
             className="rounded-md border border-gray-200 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"

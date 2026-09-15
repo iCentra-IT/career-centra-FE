@@ -50,6 +50,10 @@ function FacilitatorProfileForm({ profile }: { profile: FacilitatorProfile }) {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | undefined>();
+  // Distinct from avatarFile being null on its own — tracks that the existing avatar was
+  // explicitly cleared, so it should stop showing and the submit payload should send `avatar:
+  // null` instead of omitting the field (which would leave the current avatar untouched).
+  const [avatarRemoved, setAvatarRemoved] = useState(false);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,6 +75,7 @@ function FacilitatorProfileForm({ profile }: { profile: FacilitatorProfile }) {
       return URL.createObjectURL(file);
     });
     setAvatarFile(file);
+    setAvatarRemoved(false);
   };
 
   const removeAvatarSelection = () => {
@@ -79,6 +84,18 @@ function FacilitatorProfileForm({ profile }: { profile: FacilitatorProfile }) {
       return null;
     });
     setAvatarFile(null);
+    setAvatarRemoved(true);
+  };
+
+  // After a successful save the query refetches with fresh avatar_url, so local override state
+  // (preview/removed) should drop back to "untouched" rather than carry over.
+  const resetAvatarState = () => {
+    setAvatarPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setAvatarFile(null);
+    setAvatarRemoved(false);
   };
 
   // Object URLs aren't garbage-collected on their own — release the last one when this unmounts.
@@ -97,12 +114,12 @@ function FacilitatorProfileForm({ profile }: { profile: FacilitatorProfile }) {
         short_bio: shortBio.trim(),
         credential_tags: credentialTags.map((tag) => tag.trim()).filter(Boolean),
         is_published: isPublished,
-        avatar: avatarFile ?? undefined,
+        avatar: avatarFile ?? (avatarRemoved ? null : undefined),
       },
       {
         onSuccess: () => {
           toast.success("Facilitator profile updated.");
-          removeAvatarSelection();
+          resetAvatarState();
         },
         onError: (err) => toast.error(err.message),
       },
@@ -120,7 +137,7 @@ function FacilitatorProfileForm({ profile }: { profile: FacilitatorProfile }) {
         <div className="flex flex-col gap-2">
           <label className="text-sm text-gray-900">Avatar</label>
           <div className="flex items-center gap-4">
-            {avatarPreview || profile.avatar_url ? (
+            {avatarPreview || (!avatarRemoved && profile.avatar_url) ? (
               // eslint-disable-next-line @next/next/no-img-element -- a blob: preview or an arbitrary hosted URL, next/image can't optimize either
               <img
                 src={avatarPreview ?? profile.avatar_url}
@@ -136,7 +153,7 @@ function FacilitatorProfileForm({ profile }: { profile: FacilitatorProfile }) {
               Change photo
               <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
             </label>
-            {avatarPreview && (
+            {(avatarPreview || (!avatarRemoved && profile.avatar_url)) && (
               <button
                 type="button"
                 onClick={removeAvatarSelection}
@@ -146,6 +163,9 @@ function FacilitatorProfileForm({ profile }: { profile: FacilitatorProfile }) {
               </button>
             )}
           </div>
+          {avatarRemoved && !avatarPreview && (
+            <p className="text-xs text-gray-400">Avatar will be removed when you save.</p>
+          )}
           {avatarError && <p className="text-xs text-red-500">{avatarError}</p>}
         </div>
 
