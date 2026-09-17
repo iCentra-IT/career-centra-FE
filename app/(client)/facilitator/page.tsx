@@ -175,27 +175,27 @@ const FacilitatorPage = () => {
               Every program is led by practitioners with deep credentials and real delivery
               experience.
             </p>
-            <button
+            {/* <button
               type="button"
               onClick={scrollToForm}
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-secondary px-6 py-3 text-sm font-medium text-white hover:opacity-90"
             >
               Become a Facilitator →
-            </button>
+            </button> */}
           </div>
           <div className="hidden aspect-4/3 overflow-hidden rounded-2xl lg:block">
             <Image
               src="/hero-page.png"
               alt="Facilitator mentoring a learner"
-              width={600}
-              height={450}
+              width={800}
+              height={500}
               className="h-full w-full object-cover"
             />
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-14">
+      {/* <section className="mx-auto max-w-6xl px-6 py-14">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Our Facilitators</p>
         <h2 className="mt-2 text-2xl font-semibold text-gray-900">Meet Your Facilitators</h2>
 
@@ -238,7 +238,7 @@ const FacilitatorPage = () => {
             ))}
           </div>
         )}
-      </section>
+      </section> */}
 
       {selectedFacilitator && (
         <FacilitatorDetailModal
@@ -247,10 +247,10 @@ const FacilitatorPage = () => {
         />
       )}
 
-      <section ref={formRef} className="mx-auto max-w-6xl px-6 pb-20">
+      <section ref={formRef} className="mx-auto max-w-6xl px-6 pb-20 py-14">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Why Teach With Us</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Why Facilitate With Us</p>
             <h2 className="mt-2 text-3xl font-semibold text-gray-900">
               A rewarding facilitator partnership
             </h2>

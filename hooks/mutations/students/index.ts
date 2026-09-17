@@ -1,7 +1,7 @@
 // lib/api/auth/use-update-me.ts
 import { updateProfile, patchProfile } from "@/lib/api/auth";
 import { queryKeys } from "@/lib/api/query-keys";
-import { updateStudentProfile, patchStudentProfile } from "@/lib/api/student";
+import { updateStudentProfile, patchStudentProfile, setCurrencyPreference } from "@/lib/api/student";
 import { NormalizedError } from "@/types/api";
 import {
   UpdateProfileResponse,
@@ -12,6 +12,7 @@ import {
   StudentProfile,
   UpdateStudentProfileRequest,
   PatchStudentProfileRequest,
+  SetCurrencyPreferenceRequest,
 } from "@/types/student";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -69,6 +70,21 @@ export function usePatchStudentProfile() {
     PatchStudentProfileRequest
   >({
     mutationFn: patchStudentProfile,
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.students.profile, data);
+    },
+  });
+}
+
+export function useSetCurrencyPreference() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    StudentProfile,
+    NormalizedError,
+    SetCurrencyPreferenceRequest
+  >({
+    mutationFn: setCurrencyPreference,
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.students.profile, data);
     },

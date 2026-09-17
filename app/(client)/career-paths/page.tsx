@@ -1,10 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { useCareerPaths } from "@/hooks/queries/career-paths";
 import { RowCardSkeleton } from "@/components/ui/skeleton";
 import { matchPathwayCategory } from "@/lib/pathways";
-import type { CareerPath } from "@/types/career-paths";
+import { compareByOrder, type CareerPath } from "@/types/career-paths";
 
 function BriefcaseIcon() {
   return (
@@ -153,7 +154,10 @@ function PathwayCard({ pathway, icon: Icon }: { pathway: CareerPath; icon: () =>
 
 const CareerPathsPage = () => {
   const { data: pathwaysData, isLoading } = useCareerPaths();
-  const pathways = pathwaysData?.results;
+  const pathways = useMemo(
+    () => [...(pathwaysData?.results ?? [])].sort(compareByOrder),
+    [pathwaysData],
+  );
 
   return (
     <div>

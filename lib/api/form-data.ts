@@ -10,7 +10,16 @@ export function appendFormValue(formData: FormData, key: string, value: unknown)
   if (value instanceof File) {
     formData.append(key, value);
   } else if (Array.isArray(value)) {
-    value.forEach((item, index) => appendFormValue(formData, `${key}[${index}]`, item));
+    // A multi-file upload field (e.g. a program's `resources`) uses the standard multipart
+    // convention of repeating the same field name once per file — not the bracketed-index nested
+    // encoding below, which is only for reconstructing arrays of objects/primitives server-side.
+    // (An empty array hits this branch too since `[].every()` is vacuously true, but forEach over
+    // it appends nothing either way, so that's not a behavior change.)
+    if (value.every((item) => item instanceof File)) {
+      value.forEach((file) => formData.append(key, file as File));
+    } else {
+      value.forEach((item, index) => appendFormValue(formData, `${key}[${index}]`, item));
+    }
   } else if (typeof value === "object") {
     for (const [subKey, subValue] of Object.entries(value as Record<string, unknown>)) {
       appendFormValue(formData, `${key}${subKey}`, subValue);
@@ -42,7 +51,9 @@ export const MULTIPART_HEADERS = { headers: { "Content-Type": undefined } };
 export function toRequestBody<T extends object>(
   payload: T,
 ): { body: T | FormData; headers?: Record<string, undefined> } {
-  const hasFile = Object.values(payload).some((value) => value instanceof File);
+  const hasFile = Object.values(payload).some(
+    (value) => value instanceof File || (Array.isArray(value) && value.some((item) => item instanceof File)),
+  );
   if (hasFile) return { body: toFormData(payload), headers: MULTIPART_HEADERS.headers };
   return { body: payload };
 }

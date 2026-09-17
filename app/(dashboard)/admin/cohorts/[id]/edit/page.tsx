@@ -13,6 +13,7 @@ import { useApprovedFacilitators } from "@/hooks/queries/facilitator-profiles";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSkeleton } from "@/components/ui/skeleton";
+import { CohortSessionsManager } from "@/components/dashboard/cohort-sessions-manager";
 
 const DELIVERY_MODE_OPTIONS = [
   { value: "online", label: "Live Online" },
@@ -100,7 +101,12 @@ const EditCohortPage = () => {
   return (
     <div className="max-w-2xl">
       <h1 className="text-lg font-semibold text-gray-900">Edit Cohort</h1>
-      <p className="mt-1 text-sm text-gray-500">Update dates, capacity, facilitator and status.</p>
+      <p className="mt-1 text-sm text-gray-500">
+        Update dates, capacity, facilitator and status.{" "}
+        <a href="#sessions" className="font-medium text-secondary hover:underline">
+          Jump to Class Sessions ↓
+        </a>
+      </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-5">
         <div className="flex flex-col gap-2">
@@ -227,6 +233,17 @@ const EditCohortPage = () => {
           </Button>
         </div>
       </form>
+
+      <div id="sessions" className="mt-10 scroll-mt-6 border-t border-gray-100 pt-8">
+        <h2 className="text-lg font-semibold text-gray-900">Class Sessions</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Add, edit or remove this cohort&apos;s individual class sessions — each one is a
+          scheduled meeting with its own date and time.
+        </p>
+        <div className="mt-5">
+          <CohortSessionsManager cohortId={cohortId} />
+        </div>
+      </div>
     </div>
   );
 };

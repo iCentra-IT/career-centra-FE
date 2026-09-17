@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { usePrograms } from "@/hooks/queries/programs";
 import { useCareerPaths } from "@/hooks/queries/career-paths";
+import { compareByOrder } from "@/types/career-paths";
 import { useCohorts } from "@/hooks/queries/cohort";
 import { compareByNearestCohort, nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
@@ -272,6 +273,24 @@ const REASONS = [
   },
 ];
 
+const IMPACT_STATS = [
+  { value: "16+ Years", label: "Transformation & Capability Experience" },
+  { value: "3 Continents", label: "Global Presence Across Africa, Europe & North America" },
+  { value: "10,000+", label: "Professionals Trained" },
+  { value: "150+", label: "Enterprise Engagements" },
+];
+
+// PMI's is its official Authorized Training Partner seal, matching PECB's own partner badge —
+// swapped in place of a bare PMI wordmark. ISO's slot is now Microsoft's, per the latest brand
+// list. width/height below are each file's real intrinsic pixel size (confirmed against the actual
+// files in public/badges/) — next/image uses these to derive the right aspect ratio for `w-auto`,
+// so getting them wrong squashes/stretches the badge instead of just leaving it unsized.
+const PARTNER_BADGES = [
+  { src: "/badges/pmi-authorized-training-partner.png", alt: "PMI Authorized Training Partner", width: 800, height: 848 },
+  { src: "/badges/pecb-partner.png", alt: "PECB Partner", width: 340, height: 402 },
+  { src: "/badges/microsoft.png", alt: "Microsoft", width: 146, height: 80 },
+];
+
 const TESTIMONIALS = [
   {
     role: "PMP Learner",
@@ -292,7 +311,10 @@ const TESTIMONIALS = [
 const HomePage = () => {
   const { data: programs, isLoading: programsLoading } = usePrograms();
   const { data: pathwaysData, isLoading: pathwaysLoading } = useCareerPaths();
-  const pathways = pathwaysData?.results;
+  const pathways = useMemo(
+    () => [...(pathwaysData?.results ?? [])].sort(compareByOrder),
+    [pathwaysData],
+  );
   const { data: cohortsData } = useCohorts();
   // Feature the programs with the soonest upcoming cohort first, not just whatever order the
   // catalog returned them in.
@@ -355,8 +377,42 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Impact stats + partner trust badges */}
+      <section className="px-6 py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-2 gap-y-8 text-center sm:grid-cols-4">
+            {IMPACT_STATS.map((stat) => (
+              <div key={stat.label}>
+                <p className="text-3xl font-bold text-main sm:text-4xl">{stat.value}</p>
+                <p className="mx-auto mt-2 max-w-[16rem] text-sm text-gray-500">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 border-t border-gray-200" />
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-400">
+              Trusted by professionals and organizations across the world
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-14 gap-y-6">
+              {PARTNER_BADGES.map((badge) => (
+                <Image
+                  key={badge.alt}
+                  src={badge.src}
+                  alt={badge.alt}
+                  width={badge.width}
+                  height={badge.height}
+                  className="h-20 w-auto object-contain sm:h-24"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Career pathways */}
-      <section id="pathways" className="mx-auto max-w-6xl px-6 py-20">
+      <section id="pathways" className="mx-auto max-w-6xl px-6 md:py-10">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
             Career Pathways

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { TagListField } from "@/components/dashboard/tag-list-field";
 import { FaqListField } from "@/components/dashboard/faq-list-field";
 import { ModuleListField, type ModuleFormValue } from "@/components/dashboard/module-list-field";
-import type { CreateProgramRequest, PricingMode, ProgramFaq } from "@/types/programs";
+import { ImageFileField } from "@/components/dashboard/image-file-field";
+import type { CreateProgramRequest, PricingMode, ProgramFaq, ProgramResource } from "@/types/programs";
 import type { CertificateProvider } from "@/types/cart";
 
 // Confirmed full enum from GET /api/programs/'s program_type filter parameter docs.
@@ -50,6 +51,8 @@ const PRICING_MODE_OPTIONS: { value: PricingMode; label: string }[] = [
 ];
 
 const MAX_COVER_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB
+const MAX_BADGE_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB
+const MAX_RESOURCE_FILE_BYTES = 20 * 1024 * 1024; // 20MB — course materials can be larger than an image
 
 export interface CertificationFormValue {
   name: string;
@@ -92,6 +95,9 @@ interface ProgramFormProps {
   // The program's current cover image, if editing one — display-only; a browser can't
   // pre-populate a file input, so a new upload is only sent when the admin picks a new file.
   existingCoverImageUrl?: string;
+  existingBadgeImageUrl?: string;
+  // Resource files already uploaded, if editing one — display-only, same reasoning as above.
+  existingResources?: ProgramResource[];
   submitLabel: string;
   isPending: boolean;
   onSubmit: (payload: CreateProgramRequest) => void;
@@ -133,6 +139,8 @@ const EMPTY_VALUES: ProgramFormValues = {
 export function ProgramForm({
   initialValues,
   existingCoverImageUrl,
+  existingBadgeImageUrl,
+  existingResources,
   submitLabel,
   isPending,
   onSubmit,
@@ -207,6 +215,30 @@ export function ProgramForm({
     });
     setCoverImageFile(null);
     setCoverImageRemoved(true);
+  };
+
+  const [badgeImageFile, setBadgeImageFile] = useState<File | null | undefined>(undefined);
+
+  const [resourceFiles, setResourceFiles] = useState<File[]>([]);
+  const [resourceErrors, setResourceErrors] = useState<string | undefined>();
+
+  const handleResourceFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(e.target.files ?? []);
+    e.target.value = ""; // allow re-selecting after removing one
+    if (picked.length === 0) return;
+
+    const tooLarge = picked.find((f) => f.size > MAX_RESOURCE_FILE_BYTES);
+    if (tooLarge) {
+      setResourceErrors(`"${tooLarge.name}" is over 20MB`);
+      return;
+    }
+
+    setResourceErrors(undefined);
+    setResourceFiles((prev) => [...prev, ...picked]);
+  };
+
+  const removeResourceFile = (index: number) => {
+    setResourceFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Object URLs aren't garbage-collected on their own — release the last one when the form goes away.
@@ -289,6 +321,8 @@ export function ProgramForm({
       has_icentra_badge: icentraBadge,
       certificate_provider: certificateProvider,
       cover_image: coverImageFile ?? (coverImageRemoved ? null : undefined),
+      badge_image: badgeImageFile,
+      resources: resourceFiles.length > 0 ? resourceFiles : undefined,
       learning_outcomes: learningOutcomes.map((v) => v.trim()).filter(Boolean),
       who_should_attend: whoShouldAttend.map((v) => v.trim()).filter(Boolean),
       prerequisites: prerequisites
@@ -409,6 +443,23 @@ export function ProgramForm({
               <p className="text-xs text-gray-400">Cover image will be removed when you save.</p>
             )}
             {errors1.coverImage && <p className="text-xs text-red-500">{errors1.coverImage}</p>}
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Badge Image</p>
+              <p className="text-xs text-gray-400">
+                A custom accreditation seal (e.g. the real PMI/PECB artwork) shown on the program page —
+                separate from the Accreditation Badges checkboxes below.
+              </p>
+            </div>
+            <ImageFileField
+              label="Upload Badge Image"
+              existingImageUrl={existingBadgeImageUrl}
+              maxBytes={MAX_BADGE_IMAGE_BYTES}
+              file={badgeImageFile}
+              onChange={setBadgeImageFile}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -678,6 +729,57 @@ export function ProgramForm({
               onChange={setReviewVideoUrls}
               required={false}
             />
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Course Resources</p>
+              <p className="text-xs text-gray-400">
+                Upload downloadable files (slides, worksheets, etc.) — enrolled learners can download
+                these from their course page.
+              </p>
+            </div>
+
+            {existingResources && existingResources.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <p className="text-xs font-medium text-gray-500">Already uploaded</p>
+                {existingResources.map((resource) => (
+                  <a
+                    key={resource.id}
+                    href={resource.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-sm text-secondary hover:underline"
+                  >
+                    {resource.title}
+                  </a>
+                ))}
+              </div>
+            )}
+
+            <input
+              type="file"
+              multiple
+              onChange={handleResourceFilesChange}
+              className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-secondary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary hover:file:bg-secondary/20"
+            />
+            {resourceFiles.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                {resourceFiles.map((file, i) => (
+                  <div key={`${file.name}-${i}`} className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm text-gray-700">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeResourceFile(i)}
+                      className="shrink-0 text-xs font-medium text-red-500 hover:text-red-600"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {resourceErrors && <p className="text-xs text-red-500">{resourceErrors}</p>}
           </div>
 
           <div className="mt-2 flex gap-3">

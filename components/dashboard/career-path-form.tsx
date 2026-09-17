@@ -5,9 +5,7 @@ import { usePrograms } from "@/hooks/queries/programs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TagListField } from "@/components/dashboard/tag-list-field";
-import { FaqListField } from "@/components/dashboard/faq-list-field";
 import type { CreateCareerPathRequest } from "@/types/career-paths";
-import type { ProgramFaq } from "@/types/programs";
 
 function TrashIcon() {
   return (
@@ -33,8 +31,11 @@ export interface CareerPathFormValues {
   skills: string[];
   suitable_roles: string[];
   whoShouldAttend: string[];
-  faqs: ProgramFaq[];
+  // YouTube video links shown as testimonials on the career path page — plain URLs; ids/timestamps
+  // are server-assigned and only exist once read back from GET.
+  videoReviewUrls: string[];
   programIds: number[];
+  order: string;
 }
 
 interface CareerPathFormProps {
@@ -55,8 +56,9 @@ const EMPTY_VALUES: CareerPathFormValues = {
   skills: [],
   suitable_roles: [],
   whoShouldAttend: [],
-  faqs: [],
+  videoReviewUrls: [],
   programIds: [],
+  order: "",
 };
 
 export function CareerPathForm({
@@ -84,8 +86,11 @@ export function CareerPathForm({
   const [whoShouldAttend, setWhoShouldAttend] = useState(
     initialValues?.whoShouldAttend ?? EMPTY_VALUES.whoShouldAttend,
   );
-  const [faqs, setFaqs] = useState(initialValues?.faqs ?? EMPTY_VALUES.faqs);
+  const [videoReviewUrls, setVideoReviewUrls] = useState(
+    initialValues?.videoReviewUrls ?? EMPTY_VALUES.videoReviewUrls,
+  );
   const [programIds, setProgramIds] = useState(initialValues?.programIds ?? EMPTY_VALUES.programIds);
+  const [order, setOrder] = useState(initialValues?.order ?? EMPTY_VALUES.order);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const selectedPrograms = programs.filter((p) => programIds.includes(p.id));
@@ -126,8 +131,12 @@ export function CareerPathForm({
       skills: skills.map((v) => v.trim()).filter(Boolean),
       suitable_roles: suitableRoles.map((v) => v.trim()).filter(Boolean),
       who_should_attend: whoShouldAttend.map((v) => v.trim()).filter(Boolean),
-      faqs: faqs.filter((f) => f.question.trim()),
+      video_reviews: videoReviewUrls
+        .map((v) => v.trim())
+        .filter(Boolean)
+        .map((video_url) => ({ video_url })),
       is_active: true,
+      order: Number(order) || 0,
     });
   };
 
@@ -249,7 +258,31 @@ export function CareerPathForm({
         onChange={setWhoShouldAttend}
         error={errors.who_should_attend}
       />
-      <FaqListField values={faqs} onChange={setFaqs} error={errors.faqs} required={false} />
+
+      <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">
+        <div>
+          <p className="text-sm font-medium text-gray-900">Testimonial Videos</p>
+          <p className="text-xs text-gray-400">
+            Paste YouTube video links (e.g. https://youtu.be/xxxx or https://www.youtube.com/watch?v=xxxx) —
+            they show under the &quot;Testimonials&quot; tab on the career path page and play inline.
+          </p>
+        </div>
+        <TagListField
+          label="Video Links (YouTube)"
+          addLabel="Add Video Link"
+          values={videoReviewUrls}
+          onChange={setVideoReviewUrls}
+          required={false}
+        />
+      </div>
+
+      <Input
+        label="Display Order"
+        type="number"
+        placeholder="Lower numbers show first"
+        value={order}
+        onChange={(e) => setOrder(e.target.value)}
+      />
 
       <div className="mt-2 flex gap-3">
         <button

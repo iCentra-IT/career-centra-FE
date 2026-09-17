@@ -38,8 +38,9 @@ const EditCareerPathPage = () => {
             skills: pathway.skills,
             suitable_roles: pathway.suitable_roles,
             whoShouldAttend: pathway.who_should_attend,
-            faqs: pathway.faqs,
+            videoReviewUrls: pathway.video_reviews.map((r) => r.video_url),
             programIds: pathway.programs.map((p) => p.id),
+            order: String(pathway.order),
           }}
           onSubmit={(payload) =>
             patchCareerPath.mutate(payload, {

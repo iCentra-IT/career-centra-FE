@@ -29,6 +29,8 @@ const EditProgramPage = () => {
           isPending={patchProgram.isPending}
           onClose={() => router.push("/admin/programs")}
           existingCoverImageUrl={program.cover_image_url || undefined}
+          existingBadgeImageUrl={program.badge_image_url || undefined}
+          existingResources={program.resources}
           initialValues={{
             title: program.title,
             code: program.code,

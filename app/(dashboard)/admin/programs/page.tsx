@@ -15,11 +15,21 @@ import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
 import { formatMoney, formatOrdinalDateTime } from "@/lib/format";
 
+function SearchIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M13 13l-2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const COLUMNS = ["Program", "Track", "Level", "Accreditation", "Price", "Status", "Update", "Action"];
 
 const AdminProgramsPage = () => {
   const [page, setPage] = useState(1);
-  const { data, isLoading } = usePrograms({ page });
+  const [search, setSearch] = useState("");
+  const { data, isLoading } = usePrograms({ page, search: search.trim() || undefined });
   const programs = data?.results ?? [];
   const [deleteTarget, setDeleteTarget] = useState<{ slug: string; title: string } | null>(null);
   const deleteProgram = useDeleteProgram();
@@ -50,7 +60,22 @@ const AdminProgramsPage = () => {
         </Link>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-gray-100 bg-white">
+      <div className="relative mt-6 max-w-sm">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <SearchIcon />
+        </span>
+        <input
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          placeholder="Search programs..."
+          className="w-full rounded-md border border-gray-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+        />
+      </div>
+
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-gray-100 bg-white">
         <table className="w-full min-w-full text-left text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50 text-gray-500">
@@ -66,7 +91,7 @@ const AdminProgramsPage = () => {
             {!isLoading && programs.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">
-                  No programs yet.
+                  {search ? "No programs match your search." : "No programs yet."}
                 </td>
               </tr>
             )}

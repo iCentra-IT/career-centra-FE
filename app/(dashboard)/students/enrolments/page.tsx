@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useStudentEnrollments } from "@/hooks/queries/students";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
+import { CourseResourcesModal } from "@/components/dashboard/course-resources-modal";
 import { displayTitle, formatDateRange, formatMoney } from "@/lib/format";
 
 function capitalize(value: string) {
@@ -14,6 +16,7 @@ function capitalize(value: string) {
 const MyEnrolmentsPage = () => {
   const { data, isLoading } = useStudentEnrollments();
   const enrolments = data?.results ?? [];
+  const [resourcesFor, setResourcesFor] = useState<{ slug: string; title: string } | null>(null);
 
   return (
     <div>
@@ -80,17 +83,38 @@ const MyEnrolmentsPage = () => {
               <p className="mt-3 text-sm text-gray-500">Location: {enrolment.cohort.location}</p>
             )}
 
-            <div className="mt-4 border-t border-gray-50 pt-4">
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-50 pt-4">
               <Link
                 href="/students/schedules"
                 className="inline-flex rounded-full bg-secondary/10 px-4 py-2 text-sm font-medium text-secondary hover:bg-secondary/20"
               >
                 Class schedule
               </Link>
+              <button
+                type="button"
+                onClick={() =>
+                  setResourcesFor({
+                    slug: enrolment.program.slug,
+                    title: displayTitle(enrolment.program.title),
+                  })
+                }
+                className="inline-flex rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Resources
+              </button>
             </div>
           </div>
         ))}
       </div>
+
+      {resourcesFor && (
+        <CourseResourcesModal
+          open
+          onClose={() => setResourcesFor(null)}
+          programSlug={resourcesFor.slug}
+          programTitle={resourcesFor.title}
+        />
+      )}
     </div>
   );
 };

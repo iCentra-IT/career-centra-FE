@@ -9,6 +9,36 @@ import { useCreateLead } from "@/hooks/mutations/leads";
 import type { CreateLeadRequest } from "@/types/lead";
 import { Input } from "@/components/ui/input";
 
+// TODO: replace with the real WhatsApp business number, digits only with country code (no "+",
+// spaces or dashes) — e.g. "2348000000000" for a Nigerian +234 800 000 0000 number.
+const WHATSAPP_NUMBER = "REPLACE_WITH_WHATSAPP_NUMBER";
+
+function CalendarIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect x="3" y="4.5" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M3 8.5h16M7 2.5v4M15 2.5v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path
+        d="M11 3.5a7.5 7.5 0 00-6.4 11.4L3.5 18.5l3.7-1.1A7.5 7.5 0 1011 3.5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 8.8c.1-.6.6-1 1.1-1 .3 0 .5.1.7.6l.4 1c.1.3 0 .5-.2.7l-.4.4c.4.9 1.1 1.6 2 2l.4-.4c.2-.2.4-.3.7-.2l1 .4c.5.2.6.4.6.7 0 .5-.4 1-1 1.1-1.3.3-3.3-.8-4.5-2-1.2-1.2-2.3-3.2-2-4.5z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 // const SUPPORT_TYPES = [
 //   {
 //     title: "Individual Learning Support",
@@ -81,7 +111,7 @@ const ContactPage = () => {
   return (
     <div className="space-y-10">
       <section className="bg-linear-to-br from-main to-deep-blue px-6 py-16 text-white">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-6xl">
           <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
             Learning Support &amp; Advisory
           </span>
@@ -110,6 +140,7 @@ const ContactPage = () => {
         </div>
       </section> */}
 
+      {/* Inquiry form — on hold for now in favor of direct booking/WhatsApp below.
       <section ref={formRef} className="mx-auto max-w-2xl px-6 pb-20 text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Inquiry Form</p>
         <h2 className="mt-2 text-3xl font-semibold text-main">Let&apos;s Help You Move Forward</h2>
@@ -179,6 +210,50 @@ const ContactPage = () => {
             {createLead.isPending ? "Sending…" : "Submit Inquiry →"}
           </button>
         </form>
+      </section>
+      */}
+
+      <section ref={formRef} className="mx-auto max-w-4xl px-6 pb-20 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Get In Touch</p>
+        <h2 className="mt-2 text-3xl font-semibold text-main">Let&apos;s Help You Move Forward</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-gray-500">
+          Pick whichever works best for you — book time directly on our calendar, or chat with us
+          on WhatsApp for a quick response.
+        </p>
+
+        <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-5 text-left sm:grid-cols-2">
+          <a
+            href="https://calendly.com/careercentra/training-consultation"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col rounded-2xl border border-gray-100 bg-gray-50 p-6 hover:border-secondary hover:bg-secondary/5"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-main/10 text-main">
+              <CalendarIcon />
+            </span>
+            <h3 className="mt-4 text-base font-semibold text-gray-900">Book a Session</h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Schedule a free training consultation at a time that works for you.
+            </p>
+            <span className="mt-4 text-sm font-medium text-secondary">Schedule Meeting →</span>
+          </a>
+
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col rounded-2xl border border-gray-100 bg-gray-50 p-6 hover:border-secondary hover:bg-secondary/5"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-main/10 text-main">
+              <WhatsAppIcon />
+            </span>
+            <h3 className="mt-4 text-base font-semibold text-gray-900">Chat on WhatsApp</h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Message our team directly for a quick reply to your questions.
+            </p>
+            <span className="mt-4 text-sm font-medium text-secondary">Start Chat →</span>
+          </a>
+        </div>
       </section>
     </div>
   );

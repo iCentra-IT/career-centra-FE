@@ -16,6 +16,7 @@ import { EnrolButton } from "@/components/marketing/enrol-button";
 import { AddToCartButton } from "@/components/marketing/add-to-cart-button";
 import { CareerPathProgramCard } from "@/components/marketing/career-path-program-card";
 import { ReviewVideo } from "@/components/marketing/review-video";
+import { ProgramTestimonials } from "@/components/marketing/program-testimonials";
 import {
   FacilitatorAvatar,
   FacilitatorDetailModal,
@@ -50,7 +51,7 @@ function PlusMinusIcon({ open }: { open: boolean }) {
   );
 }
 
-function SectionEyebrow({ children }: { children: React.ReactNode }) {
+export function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{children}</p>;
 }
 
@@ -207,6 +208,14 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               </Link>{" "}
               › {pathwayLabel} › {program.code}
             </p>
+            {program.badge_image_url && (
+              // eslint-disable-next-line @next/next/no-img-element -- an arbitrary hosted URL, not worth configuring next/image's domains for
+              <img
+                src={program.badge_image_url}
+                alt={`${program.title} badge`}
+                className="mt-4 h-24 w-24 rounded-full object-contain bg-white/10 p-2"
+              />
+            )}
             <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{displayTitle(program.title)}</h1>
             <p className="mt-3 max-w-xl text-white/70">{program.summary}</p>
 
@@ -553,9 +562,10 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
           )}
         </section>
 
-        <section id="reviews" className="scroll-mt-32 border-t border-gray-100 py-6">
-          <SectionEyebrow>Reviews</SectionEyebrow>
-          <h2 className="mt-1 text-2xl font-semibold text-gray-900">Learner Reviews</h2>
+        <section id="reviews" >
+          {/* <SectionEyebrow>Reviews</SectionEyebrow> */}
+          {/* <h2 className="mt-1 text-2xl font-semibold text-gray-900">Learner Reviews</h2> */}
+          {/* Video reviews are on hold for now — the "Testimonials" tab is text+star reviews only.
           {reviewVideos.length > 0 ? (
             <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {reviewVideos.map((review) => (
@@ -563,10 +573,11 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               ))}
             </div>
           ) : (
-            <p className="mt-5 text-sm text-gray-400">
-              No reviews yet. There&apos;s no reviews system connected for this program.
-            </p>
+            <p className="mt-5 text-sm text-gray-400">No video reviews yet.</p>
           )}
+          */}
+
+          <ProgramTestimonials slug={slug} />
         </section>
 
         {program?.faqs?.length > 0 && (

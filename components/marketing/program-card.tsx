@@ -44,10 +44,20 @@ export function ProgramCard({ program, buttonTone = "cyan", cohort }: ProgramCar
         />
       )}
       <div className="relative">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
-          <BadgeIcon />
-          {badge}
-        </span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+            <BadgeIcon />
+            {badge}
+          </span>
+          {program.badge_image_url && (
+            // eslint-disable-next-line @next/next/no-img-element -- an arbitrary hosted URL, not worth configuring next/image's domains for
+            <img
+              src={program.badge_image_url}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-full bg-white/10 object-contain p-1.5"
+            />
+          )}
+        </div>
         <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-glass">
           {program.code} Certification
         </p>

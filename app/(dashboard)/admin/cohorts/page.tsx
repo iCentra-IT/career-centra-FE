@@ -16,6 +16,15 @@ import { Pagination } from "@/components/ui/pagination";
 import { formatDateRange } from "@/lib/format";
 import type { Cohort } from "@/types/cohort";
 
+function CalendarIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M2 6.5h12M5 1.5v3M11 1.5v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const COLUMNS = [
   "Program",
   "Cohort dates",
@@ -274,6 +283,14 @@ const AdminCohortsPage = () => {
                       aria-label="Edit cohort"
                     >
                       <PencilIcon />
+                    </Link>
+                    <Link
+                      href={`/admin/cohorts/${cohort.id}/edit#sessions`}
+                      className="text-gray-400 hover:text-gray-600"
+                      aria-label="Manage class sessions"
+                      title="Class sessions"
+                    >
+                      <CalendarIcon />
                     </Link>
                     <button
                       type="button"

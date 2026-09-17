@@ -9,6 +9,7 @@ export const queryKeys = {
     all: ["students"] as const,
     detail: (id: string) => ["students", id] as const,
     profile: ["students", "profile"] as const, // add this
+    courseResources: (slug: string) => ["students", "courses", slug, "resources"] as const,
   },
 
   admin: {
@@ -114,5 +115,11 @@ export const queryKeys = {
 
   certificates: {
     all: ["certificates"] as const,
+  },
+
+  testimonials: {
+    program: (slug: string) => ["testimonials", "program", slug] as const,
+    adminAll: (page?: number) => ["testimonials", "admin", page] as const,
+    adminDetail: (id: number) => ["testimonials", "admin", "detail", id] as const,
   },
 } as const;

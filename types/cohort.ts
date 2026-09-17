@@ -41,6 +41,7 @@ export interface CreateCohortSessionRequest {
   start_time: string;
   end_time: string;
   description: string;
+  meeting_url: string;
   order: number;
 }
 

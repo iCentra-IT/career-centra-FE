@@ -2,7 +2,9 @@
 import { ApiResponse } from "@/types/api";
 import {
   CertificatesResponse,
+  CourseResource,
   PatchStudentProfileRequest,
+  SetCurrencyPreferenceRequest,
   StudentCoursesResponse,
   StudentDashboardResponse,
   StudentProfile,
@@ -36,6 +38,23 @@ export async function patchStudentProfile(
   const { data } = await apiClient.patch<ApiResponse<StudentProfile>>(
     "/api/students/profile/",
     payload,
+  );
+  return data.data;
+}
+
+export async function setCurrencyPreference(
+  payload: SetCurrencyPreferenceRequest,
+): Promise<StudentProfile> {
+  const { data } = await apiClient.post<ApiResponse<StudentProfile>>(
+    "/api/students/currency-preference/",
+    payload,
+  );
+  return data.data;
+}
+
+export async function getCourseResources(slug: string): Promise<CourseResource[]> {
+  const { data } = await apiClient.get<ApiResponse<CourseResource[]>>(
+    `/api/students/courses/${slug}/resources/`,
   );
   return data.data;
 }

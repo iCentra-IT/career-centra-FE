@@ -6,8 +6,10 @@ import { useCareerPath } from "@/hooks/queries/career-paths";
 import { useCohorts } from "@/hooks/queries/cohort";
 import { nextOpenCohortForProgram } from "@/types/cohort";
 import { CareerPathProgramCard } from "@/components/marketing/career-path-program-card";
+import { ReviewVideo } from "@/components/marketing/review-video";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { displayTitle } from "@/lib/format";
+import { getYouTubeVideoId } from "@/lib/youtube";
 
 const TABS = [
   { label: "Overview", id: "hero" },
@@ -16,7 +18,6 @@ const TABS = [
   { label: "Programs", id: "programs" },
   { label: "Outcomes", id: "outcomes" },
   { label: "Testimonials", id: "testimonials" },
-  { label: "FAQs", id: "faqs" },
 ];
 
 function CheckIcon() {
@@ -54,6 +55,10 @@ export function CareerPathDetailContent({ slug }: { slug: string }) {
     : pathway.programs;
 
   const title = displayTitle(pathway.title);
+
+  const reviewVideos = (pathway.video_reviews ?? [])
+    .map((review) => ({ id: review.id, videoId: getYouTubeVideoId(review.video_url) }))
+    .filter((review): review is { id: number; videoId: string } => !!review.videoId);
 
   return (
     <div>
@@ -243,17 +248,17 @@ export function CareerPathDetailContent({ slug }: { slug: string }) {
         <section id="testimonials" className="scroll-mt-32 border-t border-gray-100 py-6">
           <SectionEyebrow>Social Proof</SectionEyebrow>
           <h2 className="mt-1 text-2xl font-semibold text-gray-900">Success Stories</h2>
-          <p className="mt-5 text-sm text-gray-400">
-            No success stories published for this pathway yet.
-          </p>
-        </section>
-
-        <section id="faqs" className="scroll-mt-32 border-t border-gray-100 py-6">
-          <SectionEyebrow>FAQs</SectionEyebrow>
-          <h2 className="mt-1 text-2xl font-semibold text-gray-900">Frequently Asked Questions</h2>
-          <p className="mt-5 text-sm text-gray-400">
-            No FAQs published for this pathway yet. See individual programs for their own FAQs.
-          </p>
+          {reviewVideos.length > 0 ? (
+            <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {reviewVideos.map((review) => (
+                <ReviewVideo key={review.id} videoId={review.videoId} title="Career path testimonial video" />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-5 text-sm text-gray-400">
+              No success stories published for this pathway yet.
+            </p>
+          )}
         </section>
       </div>
 

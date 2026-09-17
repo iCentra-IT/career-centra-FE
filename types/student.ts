@@ -23,11 +23,27 @@ export type ReferralSource =
   | 'icentra_website'
   | 'others';
 
+// Same currency set the cart/checkout endpoints accept (types/cart.ts's CartCurrency) — the
+// currency-preference endpoint's own doc only calls out NGN/USD as the toggle pair, but says any
+// supported currency can be set explicitly, so reusing that shared union rather than a narrower one.
+export type CurrencyPreference = "NGN" | "USD" | "EUR" | "GBP" | "GHS" | "KES";
+
+// Confirmed real shape by a live capture of POST /api/students/currency-preference/'s response —
+// noticeably richer than what GET/PUT/PATCH /api/students/profile/ was previously typed as (adds
+// first_name/last_name/email/avatar_url/currency_preference/timezone/language directly on the
+// profile, alongside the nested `user`). Same resource either way, so this is now the one shape.
 export interface StudentProfile {
   id: number;
   user: User;
+  first_name: string;
+  last_name: string;
+  email: string;
+  avatar_url: string;
   phone: string;
   country: string; // ISO country code, e.g. "NG" — could type as CountryCode union if you want strict validation
+  currency_preference: CurrencyPreference;
+  timezone: string;
+  language: string;
   location: string;
   org_name: string;
   position: string;
@@ -36,6 +52,12 @@ export interface StudentProfile {
   referral_source: ReferralSource;
   created_at: string; // ISO 8601
   updated_at: string; // ISO 8601
+}
+
+// POST /api/students/currency-preference/ — omit currency_preference to toggle between NGN/USD,
+// or pass it explicitly to set any supported currency. Returns the full StudentProfile.
+export interface SetCurrencyPreferenceRequest {
+  currency_preference?: CurrencyPreference;
 }
 
 // lib/api/types/student.ts (add)
@@ -195,6 +217,17 @@ export interface ScheduleItem {
 
 export interface StudentScheduleResponse {
   schedule: ScheduleItem[];
+}
+
+// GET /api/students/courses/{slug}/resources/ — the program's downloadable resource files
+// (uploaded via the program's own `resources` multi-file field, see types/programs.ts), gated on
+// the student having a confirmed enrollment in that program.
+export interface CourseResource {
+  id: number;
+  title: string;
+  file_url: string;
+  order: number;
+  created_at: string;
 }
 
 export type PatchStudentProfileRequest = Partial<UpdateStudentProfileRequest>;

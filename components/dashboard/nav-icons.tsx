@@ -196,6 +196,19 @@ export function ExchangeRateIcon() {
   );
 }
 
+export function StarIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 2.5l2.3 4.9 5.2.7-3.8 3.7.9 5.4-4.6-2.5-4.6 2.5.9-5.4-3.8-3.7 5.2-.7L10 2.5z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function ChevronDownIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">

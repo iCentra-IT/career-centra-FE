@@ -10,6 +10,7 @@ import { useCartCount } from "@/hooks/queries/cart";
 import { dashboardHomeFor, profilePathFor } from "@/types/user";
 import { useLogout } from "@/hooks/mutations/auth";
 import { SiteSearch } from "@/components/marketing/site-search";
+import { CurrencySelect } from "@/components/marketing/currency-select";
 
 function CartIcon() {
   return (
@@ -77,7 +78,6 @@ const NAV_LINKS = [
   { label: "Home", href: "/", exact: true },
   { label: "Career Paths", href: "/career-paths" },
   { label: "Programs", href: "/programms" },
-  { label: "Facilitator", href: "/facilitator" },
   { label: "Speak to Advisor", href: "/contact" },
 ];
 
@@ -166,6 +166,7 @@ export function MarketingHeader() {
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Logo />
           <div className="hidden items-center gap-5 text-sm md:flex">
+            <CurrencySelect />
             <CartLink />
             <AccountMenu />
           </div>
@@ -200,13 +201,28 @@ export function MarketingHeader() {
               );
             })}
           </nav>
-          <SiteSearch className="w-full max-w-xs" />
+          <div className="flex flex-1 items-center justify-end gap-4">
+            <SiteSearch className="w-full max-w-xs" />
+            <Link
+              href="/facilitator"
+              className="shrink-0 rounded-full bg-main px-4 py-2 text-sm font-medium text-white hover:bg-deep-blue"
+            >
+              Become a Facilitator
+            </Link>
+          </div>
         </div>
       </div>
 
       {mobileOpen && (
         <div className="absolute left-0 right-0 top-full z-40 max-h-[calc(100vh-56px)] overflow-y-auto border-b border-gray-100 bg-white px-6 py-4 shadow-lg md:hidden">
           <SiteSearch />
+          <Link
+            href="/facilitator"
+            onClick={() => setMobileOpen(false)}
+            className="mt-3 block rounded-md bg-main px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-deep-blue"
+          >
+            Become a Facilitator
+          </Link>
 
           <nav className="mt-4 flex flex-col gap-1">
             {NAV_LINKS.map((link) => {
@@ -227,6 +243,12 @@ export function MarketingHeader() {
           </nav>
 
           <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
+            {user?.role === "student" && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Currency</span>
+                <CurrencySelect />
+              </div>
+            )}
             {user ? (
               <>
                 <Link

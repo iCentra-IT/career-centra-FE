@@ -1,7 +1,7 @@
 // lib/api/students/use-student-profile.ts
 import { getProfile } from "@/lib/api/auth";
 import { queryKeys } from "@/lib/api/query-keys";
-import { getPurchaseHistory, getStudentCertificates, getStudentCourses, getStudentDashboard, getStudentEnrollments, getStudentProfile, getStudentSchedule } from "@/lib/api/student";
+import { getCourseResources, getPurchaseHistory, getStudentCertificates, getStudentCourses, getStudentDashboard, getStudentEnrollments, getStudentProfile, getStudentSchedule } from "@/lib/api/student";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useQuery } from "@tanstack/react-query";
 
@@ -54,4 +54,16 @@ export function useStudentCertificates() {
 
 export function usePurchaseHistory() {
   return useAuthedQuery(queryKeys.studentDashboard.purchaseHistory, getPurchaseHistory, 2 * 60 * 1000);
+}
+
+// `enabled` defaults to true but lets a caller defer the request (e.g. only fetch once a
+// "Resources" modal is actually opened, rather than for every enrolled course card up front).
+export function useCourseResources(slug: string, enabled = true) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: queryKeys.students.courseResources(slug),
+    queryFn: () => getCourseResources(slug),
+    enabled: !!accessToken && !!slug && enabled,
+    staleTime: 5 * 60 * 1000,
+  });
 }

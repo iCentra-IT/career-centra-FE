@@ -98,6 +98,10 @@ export interface PublicProgramListing {
   certification_body: CertificateProvider;
   accreditations: ProgramAccreditation[];
   cover_image_url: string;
+  // Confirmed present on GET /api/programs/ (the list/catalog endpoint) by a later real capture —
+  // an earlier check of this same endpoint didn't show it, so the backend evidently added it to
+  // the list serializer after that. Empty string when unset.
+  badge_image_url: string;
   next_cohort: string | null; // always null on every captured item so far — shape when set is unconfirmed
   is_active: boolean;
   created_at: string;
@@ -185,6 +189,7 @@ export interface ProgramListItem {
   certification_body: CertificateProvider;
   accreditations: ProgramAccreditation[];
   cover_image_url: string;
+  badge_image_url: string; // see the matching note on PublicProgramListing — empty string when unset
   next_cohort: string | null; // pre-formatted display date, e.g. "25 Sep 2026", or null if none scheduled
   is_active: boolean;
   created_at: string;
@@ -242,6 +247,18 @@ export interface ProgramReview {
   created_at: string;
 }
 
+// A downloadable resource file (course material, slides, etc.) — same shape as the dedicated
+// student-facing GET /api/students/courses/{slug}/resources/ endpoint (types/student.ts's
+// CourseResource), since both read from the same underlying files. iCentra-only per the write
+// side's doc note — presumably meaning this is an iCentra-platform feature, not gated per-program.
+export interface ProgramResource {
+  id: number;
+  title: string;
+  file_url: string;
+  order: number;
+  created_at: string;
+}
+
 // Detail view — adds the rich fields used on the program detail page
 export interface Program extends ProgramListItem {
   outline: string;
@@ -253,6 +270,13 @@ export interface Program extends ProgramListItem {
   certification: ProgramCertification | null;
   facilitators: ProgramFacilitator[];
   reviews: ProgramReview[];
+  // badge_image_url is inherited from ProgramListItem — confirmed present on both the list and
+  // detail endpoints (an earlier check only caught it missing from a stale list response).
+  // UNCONFIRMED — GET /api/programs/{slug}/ for a real program didn't include a `resources` key
+  // at all (not even an empty array), so this may be write-only, only appear once resources
+  // actually exist, or use a different read-side name. Verify against a real response once a
+  // program has resources uploaded.
+  resources: ProgramResource[];
 }
 
 // Write-side module/lesson shapes — no id/lesson_count, those are server-assigned/derived.
@@ -306,6 +330,13 @@ export interface CreateProgramRequest {
   // goes out as plain JSON since removing the image without picking a new one means the payload
   // has no File in it, so toRequestBody picks the JSON path where `null` serializes cleanly).
   cover_image?: File | null;
+  // Same file-upload convention as cover_image above.
+  badge_image?: File | null;
+  // Multi-file upload — sent as repeated `resources` multipart fields (see
+  // lib/api/form-data.ts's appendFormValue), not the bracketed nested-array encoding every other
+  // array field here uses. Additive/replaces-wholesale on save is unconfirmed; treated as "the
+  // files picked this time" like cover_image, not a per-file CRUD list.
+  resources?: File[];
   learning_outcomes?: string[];
   who_should_attend?: string[];
   faqs?: ProgramFaq[];

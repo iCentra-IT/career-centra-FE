@@ -1,6 +1,6 @@
 // lib/api/cohorts/get-cohorts.ts
 import { Cohort, CohortDetail, CreateCohortRequest, UpdateCohortRequest, PatchCohortRequest, CohortSession, CreateCohortSessionRequest, PatchCohortSessionRequest, UpdateCohortSessionRequest } from '@/types/cohort';
-import { ApiResponse, PaginatedResponse } from '@/types/api';
+import { ApiResponse, PaginatedResponse, unwrapObject } from '@/types/api';
 import { apiClient } from '../client';
 
 // NOTE: assumed paginated like /api/programs/ (confirmed) — same {success, count, results} envelope.
@@ -46,29 +46,33 @@ export async function deleteCohort(id: number): Promise<void> {
   await apiClient.delete(`/api/cohorts/${id}/`);
 }
 
+// Confirmed real shape by a live capture — paginated like every other list endpoint in this app
+// ({success, count, total_pages, results}), not the bare array previously assumed here (that
+// assumption crashed the sessions UI with "is not iterable" the first time it ran against real
+// data). Flattened to a plain array since nothing here paginates a cohort's sessions.
 export async function getSessions(cohortId: number): Promise<CohortSession[]> {
-  const { data } = await apiClient.get<CohortSession[]>(
+  const { data } = await apiClient.get<PaginatedResponse<CohortSession>>(
     `/api/cohorts/${cohortId}/sessions/`
   );
-  return data;
+  return data.results;
 }
 
 export async function getSession(cohortId: number, id: number): Promise<CohortSession> {
-  const { data } = await apiClient.get<CohortSession>(
+  const { data } = await apiClient.get(
     `/api/cohorts/${cohortId}/sessions/${id}/`
   );
-  return data;
+  return unwrapObject<CohortSession>(data);
 }
 
 export async function createSession(
   cohortId: number,
   payload: CreateCohortSessionRequest
 ): Promise<CohortSession> {
-  const { data } = await apiClient.post<CohortSession>(
+  const { data } = await apiClient.post(
     `/api/cohorts/${cohortId}/sessions/`,
     payload
   );
-  return data;
+  return unwrapObject<CohortSession>(data);
 }
 
 export async function updateSession(
@@ -76,11 +80,11 @@ export async function updateSession(
   id: number,
   payload: UpdateCohortSessionRequest
 ): Promise<CohortSession> {
-  const { data } = await apiClient.put<CohortSession>(
+  const { data } = await apiClient.put(
     `/api/cohorts/${cohortId}/sessions/${id}/`,
     payload
   );
-  return data;
+  return unwrapObject<CohortSession>(data);
 }
 
 export async function patchSession(
@@ -88,11 +92,11 @@ export async function patchSession(
   id: number,
   payload: PatchCohortSessionRequest
 ): Promise<CohortSession> {
-  const { data } = await apiClient.patch<CohortSession>(
+  const { data } = await apiClient.patch(
     `/api/cohorts/${cohortId}/sessions/${id}/`,
     payload
   );
-  return data;
+  return unwrapObject<CohortSession>(data);
 }
 
 export async function deleteSession(cohortId: number, id: number): Promise<void> {
