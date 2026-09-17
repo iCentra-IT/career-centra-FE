@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 
 // TODO: replace with the real WhatsApp business number, digits only with country code (no "+",
 // spaces or dashes) — e.g. "2348000000000" for a Nigerian +234 800 000 0000 number.
-const WHATSAPP_NUMBER = "REPLACE_WITH_WHATSAPP_NUMBER";
+const WHATSAPP_NUMBER = "2348095188267";
 
 function CalendarIcon() {
   return (
