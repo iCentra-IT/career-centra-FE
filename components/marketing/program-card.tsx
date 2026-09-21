@@ -45,10 +45,17 @@ export function ProgramCard({ program, buttonTone = "cyan", cohort }: ProgramCar
       )}
       <div className="relative">
         <div className="flex items-start justify-between gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
-            <BadgeIcon />
-            {badge}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+              <BadgeIcon />
+              {badge}
+            </span>
+            {program.is_bestseller && (
+              <span className="inline-flex items-center rounded-full bg-amber-400 px-3 py-1 text-xs font-semibold text-deep-blue">
+                Bestseller
+              </span>
+            )}
+          </div>
           {program.badge_image_url && (
             // eslint-disable-next-line @next/next/no-img-element -- an arbitrary hosted URL, not worth configuring next/image's domains for
             <img

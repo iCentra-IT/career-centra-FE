@@ -52,8 +52,9 @@ export type PatchCohortSessionRequest = Partial<CreateCohortSessionRequest>; // 
 export interface Cohort {
   id: number;
   program: CohortProgramSummary;
-  starts_on: string;
-  ends_on: string;
+  starts_on: string; // date of the cohort's first class
+  ends_on: string; // date of the cohort's last class
+  number_of_class_days: number; // count of actual class days, distinct from the starts_on–ends_on span
   seat_capacity: number;
   seats_taken: number;
   seats_remaining: number;
@@ -77,20 +78,6 @@ export function nextOpenCohortForProgram(cohorts: Cohort[], programId: number): 
     .sort((a, b) => a.starts_on.localeCompare(b.starts_on))[0];
 }
 
-// Sorts programs so the ones with the soonest upcoming cohort come first (used to feature/order
-// programs on the home page and the catalog listing) — programs with no open cohort at all sort
-// to the end rather than being dropped, since "no cohort yet" isn't the same as "not offered".
-export function compareByNearestCohort(cohorts: Cohort[]) {
-  return (a: { id: number }, b: { id: number }): number => {
-    const aCohort = nextOpenCohortForProgram(cohorts, a.id);
-    const bCohort = nextOpenCohortForProgram(cohorts, b.id);
-    if (aCohort && bCohort) return aCohort.starts_on.localeCompare(bCohort.starts_on);
-    if (aCohort) return -1;
-    if (bCohort) return 1;
-    return 0;
-  };
-}
-
 // Cohort detail — adds nested sessions/modules and fields not present on the list item.
 // NOTE: the detail response's "program" is actually much richer than CohortProgramSummary
 // (adds outline-style fields like learning_outcomes, faqs, prerequisites, certification, and
@@ -106,11 +93,14 @@ export interface CohortDetail extends Cohort {
   modules: CohortModule[];
 }
 
-// Confirmed real shape — sends duration_weeks, not ends_on (the backend derives the end date
-// itself), plus delivery_mode/location which weren't previously known to be writable.
+// Previously the backend derived ends_on itself from duration_weeks — per a later update from the
+// backend dev, starts_on/ends_on/number_of_class_days are now sent explicitly too (kept alongside
+// duration_weeks rather than replacing it, since nothing said to drop that field).
 export interface CreateCohortRequest {
   program: number; // program ID, not the nested object — confirmed by the request sample
   starts_on: string;
+  ends_on: string;
+  number_of_class_days: number;
   duration_weeks: number;
   delivery_mode: string; // "online" confirmed; likely also "hybrid" | "in_person"
   location: string;

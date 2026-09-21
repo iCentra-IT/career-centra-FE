@@ -122,7 +122,7 @@ const AdminEnrollmentsPage = () => {
               {filtered.map((enrollment) => (
                 <tr key={enrollment.id} className="border-b border-gray-50 last:border-0">
                   <td className="px-5 py-4 text-gray-900">{enrollment.learner_name}</td>
-                  <td className="px-5 py-4 text-gray-600">{enrollment.program_title}</td>
+                  <td className="max-w-55 truncate px-5 py-4 text-gray-600">{enrollment.program_title}</td>
                   <td className="px-5 py-4 text-gray-600">
                     {formatMoney(enrollment.amount_paid, enrollment.currency)}
                   </td>

@@ -559,8 +559,8 @@ const AdminFacilitatorsPage = () => {
                         </button>
                       </td>
                       <td className="px-5 py-4 text-gray-600">{application.email}</td>
-                      <td className="px-5 py-4 text-gray-600">
-                        {application.domain_areas.join(", ") || "—"}
+                      <td className="max-w-xs px-5 py-4 text-gray-600">
+                        <p className="line-clamp-2">{application.domain_areas.join(", ") || "—"}</p>
                       </td>
                       <td className="px-5 py-4">
                         <StatusBadge
@@ -651,9 +651,11 @@ const AdminFacilitatorsPage = () => {
                           <span className="font-medium text-gray-900">{facilitator.full_name}</span>
                         </div>
                       </td>
-                      <td className="max-w-xs px-5 py-4 text-gray-600">{facilitator.short_bio}</td>
-                      <td className="px-5 py-4 text-gray-600">
-                        {facilitator.credential_tags.join(", ") || "—"}
+                      <td className="max-w-xs px-5 py-4 text-gray-600">
+                        <p className="line-clamp-2">{facilitator.short_bio || "—"}</p>
+                      </td>
+                      <td className="max-w-xs px-5 py-4 text-gray-600">
+                        <p className="line-clamp-2">{facilitator.credential_tags.join(", ") || "—"}</p>
                       </td>
                       <td className="px-5 py-4">
                         <StatusBadge

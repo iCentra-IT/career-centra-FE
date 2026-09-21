@@ -108,7 +108,7 @@ const AdminProgramsPage = () => {
 
               return (
                 <tr key={program.id} className="border-b border-gray-50 last:border-0">
-                  <td className="px-5 py-4 text-gray-900">{program.title}</td>
+                  <td className="max-w-55 truncate px-5 py-4 text-gray-900">{program.title}</td>
                   <td className="px-5 py-4 text-gray-600">{program.program_type}</td>
                   <td className="px-5 py-4 text-gray-600">{program.level_display}</td>
                   <td className="px-5 py-4 text-gray-600">{accreditation}</td>

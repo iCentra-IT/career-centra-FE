@@ -145,7 +145,9 @@ const CouponsPage = () => {
               const status = couponStatus(coupon);
               return (
                 <tr key={coupon.id} className="border-b border-gray-50 last:border-0">
-                  <td className="px-5 py-4 text-gray-900">{coupon.description}</td>
+                  <td className="max-w-xs px-5 py-4 text-gray-900">
+                    <p className="line-clamp-2">{coupon.description}</p>
+                  </td>
                   <td className="px-5 py-4 text-gray-600">{coupon.code}</td>
                   <td className="px-5 py-4 text-gray-600">{discountLabel(coupon)}</td>
                   <td className="px-5 py-4 text-gray-600">{coupon.uses_count}</td>

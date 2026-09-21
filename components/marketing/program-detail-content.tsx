@@ -138,12 +138,10 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
   const pathwayLabel =
     PATHWAY_CATEGORIES.find((p) => p.programType === program.program_type)?.label ?? program.program_type;
 
-  const durationDays = currentCohort
-    ? Math.round(
-        (new Date(currentCohort.ends_on).getTime() - new Date(currentCohort.starts_on).getTime()) /
-          86_400_000,
-      )
-    : null;
+  // Real class-day count from the cohort itself now that the backend sends it — replaces the
+  // earlier calendar-span estimate (ends_on minus starts_on), which overcounted for cohorts that
+  // don't meet every day in that range.
+  const durationDays = currentCohort?.number_of_class_days ?? null;
 
   // program.facilitators has come back empty on every program seen so far — the confirmed source
   // of facilitator info is the cohort (facilitator_name), not the program itself.
@@ -279,6 +277,12 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                 <div className="flex justify-between">
                   <span className="text-gray-400">Next Cohort</span>
                   <span className="font-medium text-gray-900">{formatShortDate(nextCohort.starts_on)}</span>
+                </div>
+              )}
+              {currentCohort && (
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Class Days</span>
+                  <span className="font-medium text-gray-900">{currentCohort.number_of_class_days}</span>
                 </div>
               )}
               <div className="flex justify-between">

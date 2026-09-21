@@ -102,6 +102,7 @@ export interface PublicProgramListing {
   // an earlier check of this same endpoint didn't show it, so the backend evidently added it to
   // the list serializer after that. Empty string when unset.
   badge_image_url: string;
+  is_bestseller: boolean;
   next_cohort: string | null; // always null on every captured item so far — shape when set is unconfirmed
   is_active: boolean;
   created_at: string;
@@ -190,6 +191,7 @@ export interface ProgramListItem {
   accreditations: ProgramAccreditation[];
   cover_image_url: string;
   badge_image_url: string; // see the matching note on PublicProgramListing — empty string when unset
+  is_bestseller: boolean;
   next_cohort: string | null; // pre-formatted display date, e.g. "25 Sep 2026", or null if none scheduled
   is_active: boolean;
   created_at: string;
@@ -321,6 +323,7 @@ export interface CreateProgramRequest {
   has_pmi_badge: boolean;
   has_pecb_badge: boolean;
   has_icentra_badge: boolean;
+  is_bestseller: boolean;
   // Who actually issues the certificate — separate from the has_*_badge accreditation flags
   // above, which just control which "authorized by" badges are shown.
   certificate_provider: CertificateProvider;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { usePrograms } from "@/hooks/queries/programs";
 import { useCohorts } from "@/hooks/queries/cohort";
-import { compareByNearestCohort, nextOpenCohortForProgram } from "@/types/cohort";
+import { nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
@@ -95,14 +95,14 @@ function ProgramsPageContent() {
   const pageItems = useMemo(() => {
     const list = [...(programs?.results ?? [])];
 
-    // Default "relevance" ordering surfaces the programs with the soonest upcoming cohort first.
-    if (sort === "relevance") list.sort(compareByNearestCohort(cohortsData?.results ?? []));
+    // "Relevance" is whatever order the backend itself returns — it already accounts for cohorts,
+    // so no client-side re-sorting on top of that.
     if (sort === "price_asc") list.sort((a, b) => parseFloat(a.base_price_usd) - parseFloat(b.base_price_usd));
     if (sort === "price_desc") list.sort((a, b) => parseFloat(b.base_price_usd) - parseFloat(a.base_price_usd));
     if (sort === "newest") list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return list;
-  }, [programs, sort, cohortsData]);
+  }, [programs, sort]);
 
   const totalCount = programs?.count ?? pageItems.length;
   const totalPages = programs?.total_pages ?? 1;

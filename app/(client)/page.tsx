@@ -6,7 +6,7 @@ import { usePrograms } from "@/hooks/queries/programs";
 import { useCareerPaths } from "@/hooks/queries/career-paths";
 import { compareByOrder } from "@/types/career-paths";
 import { useCohorts } from "@/hooks/queries/cohort";
-import { compareByNearestCohort, nextOpenCohortForProgram } from "@/types/cohort";
+import { nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { ReviewVideo } from "@/components/marketing/review-video";
 import { CardGridSkeleton, Skeleton } from "@/components/ui/skeleton";
@@ -316,13 +316,9 @@ const HomePage = () => {
     [pathwaysData],
   );
   const { data: cohortsData } = useCohorts();
-  // Feature the programs with the soonest upcoming cohort first, not just whatever order the
-  // catalog returned them in.
-  const featured = useMemo(() => {
-    const list = [...(programs?.results ?? [])];
-    list.sort(compareByNearestCohort(cohortsData?.results ?? []));
-    return list.slice(0, 4);
-  }, [programs, cohortsData]);
+  // Featured programs are whatever order the catalog itself returns — the backend already
+  // prioritizes by cohort, so no client-side re-sorting on top of that.
+  const featured = programs?.results?.slice(0, 4) ?? [];
 
   const featuredTestimonialVideoId = getYouTubeVideoId(FEATURED_TESTIMONIAL_VIDEO_URL);
 

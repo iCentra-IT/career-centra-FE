@@ -39,6 +39,7 @@ const EditProgramPage = () => {
             pmiBadge: program.has_pmi_badge,
             pecbBadge: program.has_pecb_badge,
             icentraBadge: program.has_icentra_badge,
+            isBestseller: program.is_bestseller,
             certificateProvider: program.certificate_provider,
             level: program.level,
             audience: program.audience,
@@ -63,7 +64,6 @@ const EditProgramPage = () => {
                   passRate: program.certification.pass_rate,
                 }
               : EMPTY_CERTIFICATION,
-            reviewVideoUrls: program.reviews?.map((r) => r.video_url) ?? [],
           }}
           onSubmit={(payload) =>
             patchProgram.mutate(payload, {

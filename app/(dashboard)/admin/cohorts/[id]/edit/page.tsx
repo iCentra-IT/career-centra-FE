@@ -24,6 +24,8 @@ const DELIVERY_MODE_OPTIONS = [
 const schema = z.object({
   program: z.string().min(1, "Program is required"),
   starts_on: z.string().min(1, "Cohort date is required"),
+  ends_on: z.string().min(1, "Last class date is required"),
+  number_of_class_days: z.coerce.number().min(1, "Number of class days is required"),
   duration_weeks: z.coerce.number().min(1, "Duration is required"),
   delivery_mode: z.string().min(1, "Delivery mode is required"),
   location: z.string().optional(),
@@ -58,6 +60,8 @@ const EditCohortPage = () => {
     reset({
       program: String(cohort.program.id),
       starts_on: cohort.starts_on,
+      ends_on: cohort.ends_on,
+      number_of_class_days: cohort.number_of_class_days,
       duration_weeks: cohort.duration_weeks,
       delivery_mode: cohort.delivery_mode,
       location: cohort.location,
@@ -76,6 +80,8 @@ const EditCohortPage = () => {
       {
         program: Number(values.program),
         starts_on: values.starts_on,
+        ends_on: values.ends_on,
+        number_of_class_days: values.number_of_class_days,
         duration_weeks: values.duration_weeks,
         delivery_mode: values.delivery_mode,
         location: values.location?.trim() ?? "",
@@ -126,12 +132,30 @@ const EditCohortPage = () => {
           {errors.program && <p className="text-xs text-red-500">{errors.program.message}</p>}
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="First Class Date"
+            type="date"
+            required
+            error={errors.starts_on?.message}
+            {...register("starts_on")}
+          />
+          <Input
+            label="Last Class Date"
+            type="date"
+            required
+            error={errors.ends_on?.message}
+            {...register("ends_on")}
+          />
+        </div>
+
         <Input
-          label="Cohort Date"
-          type="date"
+          label="Number of Class Days"
+          type="number"
           required
-          error={errors.starts_on?.message}
-          {...register("starts_on")}
+          placeholder="e.g. 10"
+          error={errors.number_of_class_days?.message}
+          {...register("number_of_class_days")}
         />
 
         <div className="flex flex-col gap-2">

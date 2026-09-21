@@ -74,12 +74,75 @@ function Logo() {
   );
 }
 
-const NAV_LINKS = [
+const ABOUT_LINKS = [
+  { label: "About CareerCentra", href: "/about" },
+  { label: "Why CareerCentra", href: "/why-careercentra" },
+  { label: "Partnerships", href: "/partnerships" },
+];
+
+interface NavLink {
+  label: string;
+  href: string;
+  exact?: boolean;
+  children?: { label: string; href: string }[];
+}
+
+const NAV_LINKS: NavLink[] = [
   { label: "Home", href: "/", exact: true },
   { label: "Career Paths", href: "/career-paths" },
   { label: "Programs", href: "/programms" },
+  { label: "About", href: "/about", children: ABOUT_LINKS },
   { label: "Speak to Advisor", href: "/contact" },
 ];
+
+function AboutMenu({ link }: { link: NavLink }) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const items = link.children ?? [];
+  const isActive = items.some((item) => pathname.startsWith(item.href));
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={`flex items-center gap-1 ${
+          isActive ? "font-semibold text-gray-900" : "text-gray-600 hover:text-main"
+        }`}
+      >
+        {link.label}
+        <ChevronIcon />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-40 mt-3 w-52 rounded-xl border border-gray-100 bg-white p-1.5 shadow-lg">
+          {items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className={`block rounded-md px-3 py-2 text-sm hover:bg-gray-50 ${
+                pathname.startsWith(item.href) ? "font-semibold text-gray-900" : "text-gray-700"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function AccountMenu() {
   const user = useAuthStore((s) => s.user);
@@ -189,6 +252,7 @@ export function MarketingHeader() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
           <nav className="flex items-center gap-6 text-sm">
             {NAV_LINKS.map((link) => {
+              if (link.children) return <AboutMenu key={link.label} link={link} />;
               const isActive = link.exact ? pathname === link.href : pathname.startsWith(link.href);
               return (
                 <Link
@@ -225,7 +289,7 @@ export function MarketingHeader() {
           </Link>
 
           <nav className="mt-4 flex flex-col gap-1">
-            {NAV_LINKS.map((link) => {
+            {NAV_LINKS.flatMap((link) => link.children ?? [link]).map((link: { label: string; href: string; exact?: boolean }) => {
               const isActive = link.exact ? pathname === link.href : pathname.startsWith(link.href);
               return (
                 <Link

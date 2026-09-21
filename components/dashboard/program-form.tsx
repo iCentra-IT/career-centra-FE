@@ -71,6 +71,7 @@ export interface ProgramFormValues {
   pmiBadge: boolean;
   pecbBadge: boolean;
   icentraBadge: boolean;
+  isBestseller: boolean;
   // Separate single choice: who actually issues the certificate.
   certificateProvider: CertificateProvider;
   level: string;
@@ -85,9 +86,6 @@ export interface ProgramFormValues {
   modules: ModuleFormValue[];
   hasCertification: boolean;
   certification: CertificationFormValue;
-  // YouTube video links shown as learner reviews on the program page — plain URLs; ids/timestamps
-  // are server-assigned and only exist once read back from GET.
-  reviewVideoUrls: string[];
 }
 
 interface ProgramFormProps {
@@ -120,6 +118,7 @@ const EMPTY_VALUES: ProgramFormValues = {
   pmiBadge: false,
   pecbBadge: false,
   icentraBadge: false,
+  isBestseller: false,
   certificateProvider: "none",
   level: "",
   audience: "individual",
@@ -133,7 +132,6 @@ const EMPTY_VALUES: ProgramFormValues = {
   modules: [],
   hasCertification: false,
   certification: EMPTY_CERTIFICATION,
-  reviewVideoUrls: [],
 };
 
 export function ProgramForm({
@@ -160,6 +158,9 @@ export function ProgramForm({
   const [pecbBadge, setPecbBadge] = useState(initialValues?.pecbBadge ?? EMPTY_VALUES.pecbBadge);
   const [icentraBadge, setIcentraBadge] = useState(
     initialValues?.icentraBadge ?? EMPTY_VALUES.icentraBadge,
+  );
+  const [isBestseller, setIsBestseller] = useState(
+    initialValues?.isBestseller ?? EMPTY_VALUES.isBestseller,
   );
   const [certificateProvider, setCertificateProvider] = useState<CertificateProvider>(
     initialValues?.certificateProvider ?? EMPTY_VALUES.certificateProvider,
@@ -266,9 +267,6 @@ export function ProgramForm({
   const [certification, setCertification] = useState(
     initialValues?.certification ?? EMPTY_VALUES.certification,
   );
-  const [reviewVideoUrls, setReviewVideoUrls] = useState(
-    initialValues?.reviewVideoUrls ?? EMPTY_VALUES.reviewVideoUrls,
-  );
   const [errors2, setErrors2] = useState<Record<string, string>>({});
 
   const validateStep1 = () => {
@@ -319,6 +317,7 @@ export function ProgramForm({
       has_pmi_badge: pmiBadge,
       has_pecb_badge: pecbBadge,
       has_icentra_badge: icentraBadge,
+      is_bestseller: isBestseller,
       certificate_provider: certificateProvider,
       cover_image: coverImageFile ?? (coverImageRemoved ? null : undefined),
       badge_image: badgeImageFile,
@@ -349,10 +348,6 @@ export function ProgramForm({
               pass_rate: certification.passRate.trim(),
             }
           : null,
-      reviews: reviewVideoUrls
-        .map((v) => v.trim())
-        .filter(Boolean)
-        .map((video_url) => ({ video_url })),
       is_active: true,
     });
   };
@@ -513,6 +508,16 @@ export function ProgramForm({
               </label>
             </div>
           </div>
+
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={isBestseller}
+              onChange={(e) => setIsBestseller(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-secondary focus:ring-secondary"
+            />
+            Mark as Bestseller
+          </label>
 
           <div className="flex flex-col gap-2">
             <label className="text-sm text-gray-900">Certificate Provider</label>
@@ -711,24 +716,6 @@ export function ProgramForm({
               </div>
             )}
             {errors2.certification && <p className="text-xs text-red-500">{errors2.certification}</p>}
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">
-            <div>
-              <p className="text-sm font-medium text-gray-900">Learner Reviews</p>
-              <p className="text-xs text-gray-400">
-                Paste YouTube video links (e.g. https://youtu.be/xxxx or https://www.youtube.com/watch?v=xxxx) —
-                they show under the &quot;Testimonials&quot; tab on the program page and play inline, so
-                learners won&apos;t need to leave the site.
-              </p>
-            </div>
-            <TagListField
-              label="Review Videos (YouTube links)"
-              addLabel="Add Video Link"
-              values={reviewVideoUrls}
-              onChange={setReviewVideoUrls}
-              required={false}
-            />
           </div>
 
           <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">

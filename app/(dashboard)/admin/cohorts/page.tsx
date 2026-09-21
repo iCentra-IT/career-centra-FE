@@ -250,7 +250,7 @@ const AdminCohortsPage = () => {
             )}
             {filtered.map((cohort) => (
               <tr key={cohort.id} className="border-b border-gray-50 last:border-0">
-                <td className="px-5 py-4 text-gray-900">{cohort.program.title}</td>
+                <td className="max-w-55 truncate px-5 py-4 text-gray-900">{cohort.program.title}</td>
                 <td className="px-5 py-4 text-gray-600">
                   {formatDateRange(cohort.starts_on, cohort.ends_on)}
                 </td>

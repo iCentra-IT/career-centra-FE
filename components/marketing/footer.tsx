@@ -19,6 +19,13 @@ const SOLUTION_LINKS = [
   { label: "Terms and Conditions", href: "/terms" },
 ];
 
+const COMPANY_LINKS = [
+  { label: "About CareerCentra", href: "/about" },
+  { label: "Why CareerCentra", href: "/why-careercentra" },
+  { label: "Partnerships", href: "/partnerships" },
+  { label: "Become a Facilitator", href: "/facilitator" },
+];
+
 const LEGAL_LINKS = [
   { label: "Terms of Use", href: "/terms" },
   { label: "Privacy Policy", href: "/privacy" },
@@ -101,7 +108,7 @@ export function MarketingFooter() {
   return (
     <footer className="bg-deep-blue px-6 py-14 text-white">
       <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-sm text-white/60">
@@ -128,6 +135,19 @@ export function MarketingFooter() {
             <h3 className="text-sm font-semibold text-white">Programs</h3>
             <ul className="mt-4 flex flex-col gap-2.5">
               {PROGRAM_LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="text-sm text-white/60 hover:text-white">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-white">Company</h3>
+            <ul className="mt-4 flex flex-col gap-2.5">
+              {COMPANY_LINKS.map((link) => (
                 <li key={link.label}>
                   <Link href={link.href} className="text-sm text-white/60 hover:text-white">
                     {link.label}
