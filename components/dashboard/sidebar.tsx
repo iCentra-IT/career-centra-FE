@@ -45,7 +45,14 @@ export function Sidebar({ items }: { items: NavItem[] }) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex h-screen w-72 shrink-0 flex-col overflow-y-auto border-r border-gray-100 bg-white px-4 py-6 transition-transform duration-200 ease-out lg:static lg:z-auto lg:translate-x-0 lg:transition-[width] lg:duration-150 ${
+        // No explicit height here on purpose: `fixed inset-y-0` alone already pins this to the
+        // real visible viewport (top:0, bottom:0) so it shrinks as mobile browser chrome (address
+        // bar, bottom toolbar) shows/hides. `h-screen` (100vh) used to override that with a fixed
+        // height that's often taller than what's actually visible on mobile, pushing the "Back to
+        // Website"/"Log Out" links at the bottom below the fold with no way to reach them. On
+        // desktop `lg:static` takes over and flexbox stretch (from the parent's own h-screen) fills
+        // the height instead, so this is safe there too.
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 shrink-0 flex-col overflow-y-auto border-r border-gray-100 bg-white px-4 py-6 transition-transform duration-200 ease-out lg:static lg:z-auto lg:translate-x-0 lg:transition-[width] lg:duration-150 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } ${collapsed ? "lg:w-20 lg:px-2" : "lg:w-64 lg:px-4"}`}
       >
