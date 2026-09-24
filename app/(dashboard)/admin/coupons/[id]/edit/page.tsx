@@ -34,10 +34,15 @@ const EditCouponPage = () => {
             discount_value: parseFloat(coupon.discount_value),
             currency: coupon.currency || "USD",
             max_uses: coupon.max_uses ?? 0,
+            max_uses_per_user: coupon.max_uses_per_user ?? 1,
             valid_from: coupon.valid_from?.slice(0, 10) ?? "",
             valid_until: coupon.valid_until?.slice(0, 10) ?? "",
             is_active: coupon.is_active,
             applicable_program_ids: coupon.applicable_programs.map((p) => p.id),
+            program_discounts: coupon.program_discounts.map((d) => ({
+              program_id: d.program.id,
+              discount_value: d.discount_value,
+            })),
           }}
           onSubmit={(payload) =>
             patchCoupon.mutate(payload, {

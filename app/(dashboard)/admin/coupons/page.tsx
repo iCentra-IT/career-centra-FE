@@ -53,6 +53,10 @@ function ViewCouponModal({ coupon, onClose }: { coupon: Coupon; onClose: () => v
             </span>
           </div>
           <div className="flex justify-between">
+            <span className="text-gray-400">Max uses per member</span>
+            <span className="font-medium text-gray-900">{coupon.max_uses_per_user}</span>
+          </div>
+          <div className="flex justify-between">
             <span className="text-gray-400">Valid from</span>
             <span className="font-medium text-gray-900">
               {coupon.valid_from ? formatOrdinalDateTime(coupon.valid_from) : "No start restriction"}
@@ -76,6 +80,21 @@ function ViewCouponModal({ coupon, onClose }: { coupon: Coupon; onClose: () => v
             <span className="text-gray-400">Status</span>
             <StatusBadge label={status.label} tone={status.tone} />
           </div>
+          {coupon.program_discounts.length > 0 && (
+            <div className="flex flex-col gap-1.5 border-t border-gray-100 pt-3">
+              <span className="text-gray-400">Program overrides</span>
+              {coupon.program_discounts.map((d) => (
+                <div key={d.id} className="flex justify-between">
+                  <span className="text-gray-600">{d.program.title}</span>
+                  <span className="font-medium text-gray-900">
+                    {coupon.discount_type === "fixed_amount"
+                      ? `${coupon.currency} ${d.discount_value}`
+                      : `${d.discount_value}%`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <button
           type="button"

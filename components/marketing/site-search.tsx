@@ -51,7 +51,7 @@ export function SiteSearch({ className }: { className?: string }) {
         className="w-full rounded-md border border-gray-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
       />
       {open && hasQuery && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-80 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-80 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg motion-safe:animate-pop-in">
           {isFetching && <p className="px-4 py-3 text-sm text-gray-400">Searching…</p>}
           {!isFetching && !hasResults && (
             <p className="px-4 py-3 text-sm text-gray-400">No matches for &quot;{query}&quot;.</p>

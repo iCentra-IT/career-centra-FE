@@ -1,6 +1,6 @@
 // lib/api/testimonials/use-testimonials.ts
 import { useQuery } from "@tanstack/react-query";
-import { getProgramTestimonials, getAdminProgramTestimonials, getAdminProgramTestimonial } from "@/lib/api/testimonials";
+import { getProgramTestimonials, getAdminProgramTestimonials, getAdminProgramTestimonial, getPublicProgramReviews } from "@/lib/api/testimonials";
 import { queryKeys } from "@/lib/api/query-keys";
 
 // Public — no auth required, so no `enabled` gate on an access token.
@@ -24,5 +24,13 @@ export function useAdminProgramTestimonial(id: number) {
     queryKey: queryKeys.testimonials.adminDetail(id),
     queryFn: () => getAdminProgramTestimonial(id),
     enabled: !!id,
+  });
+}
+
+// Public — no auth required, so no `enabled` gate on an access token.
+export function usePublicProgramReviews() {
+  return useQuery({
+    queryKey: queryKeys.testimonials.public,
+    queryFn: getPublicProgramReviews,
   });
 }

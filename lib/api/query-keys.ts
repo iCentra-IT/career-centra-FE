@@ -121,5 +121,11 @@ export const queryKeys = {
     program: (slug: string) => ["testimonials", "program", slug] as const,
     adminAll: (page?: number) => ["testimonials", "admin", page] as const,
     adminDetail: (id: number) => ["testimonials", "admin", "detail", id] as const,
+    public: ["testimonials", "public"] as const,
+  },
+
+  referralPartners: {
+    adminAll: ["referral-partners", "admin"] as const,
+    adminDetail: (id: number) => ["referral-partners", "admin", id] as const,
   },
 } as const;

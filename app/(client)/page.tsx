@@ -8,14 +8,12 @@ import { compareByOrder } from "@/types/career-paths";
 import { useCohorts } from "@/hooks/queries/cohort";
 import { nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
-import { ReviewVideo } from "@/components/marketing/review-video";
 import { CardGridSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { matchPathwayCategory } from "@/lib/pathways";
-import { getYouTubeVideoId } from "@/lib/youtube";
 import Image from "next/image";
-
-// A single featured video testimonial shown above the text quotes below.
-const FEATURED_TESTIMONIAL_VIDEO_URL = "https://youtu.be/9cDMsxORR2s";
+import { Reveal, staggerDelay } from "@/components/motion/reveal";
+import { TestimonialCard } from "@/components/marketing/testimonial-card";
+import { usePublicProgramReviews } from "@/hooks/queries/testimonials";
 
 function BriefcaseIcon() {
   return (
@@ -121,20 +119,6 @@ function SparkleIcon() {
   );
 }
 
-function StarIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 14 14"
-      fill="#f5a623"
-      aria-hidden="true"
-    >
-      <path d="M7 1l1.8 3.7 4 .6-3 2.9.7 4-3.5-1.9-3.5 1.9.7-4-3-2.9 4-.6L7 1z" />
-    </svg>
-  );
-}
-
 function PathIcon() {
   return (
     <svg
@@ -152,6 +136,25 @@ function PathIcon() {
         strokeWidth="1.4"
         strokeLinecap="round"
       />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="7" stroke="white" strokeWidth="1.4" />
+      <path d="M10 6v4.5l3 2" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function UsersIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="7.5" cy="7" r="2.8" stroke="white" strokeWidth="1.4" />
+      <path d="M2.5 16c.7-3 2.6-4.5 5-4.5s4.3 1.5 5 4.5" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M13 7.2a2.6 2.6 0 010 5M15.2 16c-.5-2.2-1.5-3.6-2.9-4.3" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -274,10 +277,9 @@ const REASONS = [
 ];
 
 const IMPACT_STATS = [
-  { value: "16+ Years", label: "Transformation & Capability Experience" },
-  { value: "3 Continents", label: "Global Presence Across Africa, Europe & North America" },
-  { value: "10,000+", label: "Professionals Trained" },
-  { value: "150+", label: "Enterprise Engagements" },
+  { value: "16+ Years", label: "Transformation & Capability Experience", icon: ClockIcon },
+  { value: "3 Continents", label: "Global Presence Across Africa, Europe & North America", icon: GlobeIcon },
+  { value: "10,000+", label: "Professionals Trained", icon: UsersIcon },
 ];
 
 // PMI's is its official Authorized Training Partner seal, matching PECB's own partner badge —
@@ -291,22 +293,6 @@ const PARTNER_BADGES = [
   { src: "/badges/microsoft.png", alt: "Microsoft", width: 146, height: 80 },
 ];
 
-const TESTIMONIALS = [
-  {
-    role: "PMP Learner",
-    quote:
-      "The structured pathway made it easy to know exactly what to focus on next.",
-  },
-  {
-    role: "Front End Developer",
-    quote: "Clear, practical, and paced well alongside a full-time job.",
-  },
-  {
-    role: "UI/UX Designer",
-    quote:
-      "The advisor session helped me pick the right track instead of guessing.",
-  },
-];
 
 const HomePage = () => {
   const { data: programs, isLoading: programsLoading } = usePrograms();
@@ -320,14 +306,15 @@ const HomePage = () => {
   // prioritizes by cohort, so no client-side re-sorting on top of that.
   const featured = programs?.results?.slice(0, 4) ?? [];
 
-  const featuredTestimonialVideoId = getYouTubeVideoId(FEATURED_TESTIMONIAL_VIDEO_URL);
+  const { data: reviewsData, isLoading: reviewsLoading } = usePublicProgramReviews();
+  const reviews = reviewsData?.results ?? [];
 
   return (
     <div>
       {/* Hero */}
       <section className="relative flex min-h-scree items-center overflow-hidden bg-linear-to-br from-main to-deep-blue px-6 py-24 text-white">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 lg:grid-cols-2">
-          <div>
+          <Reveal>
             <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
               Professional Learning Platform
             </span>
@@ -353,7 +340,8 @@ const HomePage = () => {
                 Speak to an Advisor
               </Link>
             </div>
-          </div>
+          </Reveal>
+          <Reveal delay={0.2} className="hidden lg:block">
           <div
             className="hidden h-95 rounded-2xl xl:h-110 lg:block"
             style={{
@@ -370,45 +358,88 @@ const HomePage = () => {
               className="h-full w-full object-cover rounded-2xl"
             />
           </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Impact stats + partner trust badges */}
-      <section className="px-6 py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 gap-y-8 text-center sm:grid-cols-4">
-            {IMPACT_STATS.map((stat) => (
-              <div key={stat.label}>
-                <p className="text-3xl font-bold text-main sm:text-4xl">{stat.value}</p>
-                <p className="mx-auto mt-2 max-w-[16rem] text-sm text-gray-500">{stat.label}</p>
-              </div>
-            ))}
+      {/* About CareerCentra + proof points */}
+      <Reveal as="section" className="px-6 py-16">
+        <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl border border-gray-100 bg-linear-to-br from-[#E9F9FF] to-white p-8 sm:p-12">
+          <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1.1fr_1fr]">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
+                CareerCentra · An iCentra Brand
+              </p>
+              <h2 className="mt-2 text-3xl font-semibold text-gray-900">
+                Built for Career Advancement. Backed by 16 Years of Expertise.
+              </h2>
+              <p className="mt-3 max-w-xl text-sm text-gray-600">
+                The career advancement platform for professionals who want structured programs and
+                a clear path to globally recognized credentials — issued by PMI, PECB, and
+                Microsoft, backed by iCentra&apos;s enterprise transformation experience across
+                Africa, Europe, and North America.
+              </p>
+              <Link
+                href="/about"
+                className="mt-6 inline-flex items-center gap-1 rounded-full bg-main px-5 py-2.5 text-sm font-medium text-white hover:bg-deep-blue"
+              >
+                About CareerCentra →
+              </Link>
+            </div>
+
+            <div className="flex flex-col gap-5 rounded-2xl bg-main p-6 sm:p-7">
+              {IMPACT_STATS.map((stat, i) => {
+                const Icon = stat.icon;
+                return (
+                  <div
+                    key={stat.label}
+                    className={`flex items-center gap-4 ${
+                      i > 0 ? "border-t border-white/10 pt-5" : ""
+                    }`}
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                      <Icon />
+                    </span>
+                    <div>
+                      <p className="text-2xl font-bold text-white">{stat.value}</p>
+                      <p className="text-xs text-white/60">{stat.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="mt-10 border-t border-gray-200" />
-
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-400">
-              Trusted by professionals and organizations across the world
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-14 gap-y-6">
-              {PARTNER_BADGES.map((badge) => (
-                <Image
-                  key={badge.alt}
-                  src={badge.src}
-                  alt={badge.alt}
-                  width={badge.width}
-                  height={badge.height}
-                  className="h-20 w-auto object-contain sm:h-24"
-                />
-              ))}
+          <div className="mt-10 border-t border-gray-200/80 pt-8">
+            <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:justify-between sm:text-left">
+              <p className="text-sm text-gray-500">
+                Trusted by professionals and organizations across the world
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+                {PARTNER_BADGES.map((badge) => (
+                  <Image
+                    key={badge.alt}
+                    src={badge.src}
+                    alt={badge.alt}
+                    width={badge.width}
+                    height={badge.height}
+                    className="h-14 w-auto object-contain sm:h-16"
+                  />
+                ))}
+              </div>
+              <Link
+                href="/partnerships"
+                className="shrink-0 text-sm font-medium text-secondary hover:underline"
+              >
+                See our partnerships →
+              </Link>
             </div>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* Career pathways */}
-      <section id="pathways" className="mx-auto max-w-6xl px-6 md:py-10">
+      <Reveal as="section" id="pathways" className="mx-auto max-w-6xl px-6 md:py-10">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
             Career Pathways
@@ -443,7 +474,11 @@ const HomePage = () => {
             const Icon = PATHWAY_ICONS[categoryIndex >= 0 ? categoryIndex : i % PATHWAY_ICONS.length];
 
             return (
-              <div key={pathway.id} className="rounded-2xl bg-[#E9F9FF] p-6">
+              <Reveal
+                key={pathway.id}
+                delay={staggerDelay(i)}
+                className="rounded-2xl bg-[#E9F9FF] p-6 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-main/10"
+              >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-main">
                   <Icon />
                 </div>
@@ -474,14 +509,14 @@ const HomePage = () => {
                 >
                   View Path →
                 </Link>
-              </div>
+              </Reveal>
             );
           })}
         </div>
-      </section>
+      </Reveal>
 
       {/* How it works */}
-      <section className="mx-auto max-w-5xl px-6 py-16 text-center">
+      <Reveal as="section" className="mx-auto max-w-5xl px-6 py-16 text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
           The Process
         </p>
@@ -496,19 +531,19 @@ const HomePage = () => {
           />
           <div className="relative grid grid-cols-2 gap-y-8 sm:grid-cols-4 sm:gap-y-0">
             {PROCESS_STEPS.map((step, i) => (
-              <div key={step} className="flex flex-col items-center gap-3 px-2">
+              <Reveal key={step} delay={i * 0.1} className="flex flex-col items-center gap-3 px-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-main bg-white text-sm font-semibold text-main">
                   {i + 1}
                 </div>
                 <p className="text-sm text-gray-600">{step}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* Featured programs */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
+      <Reveal as="section" className="mx-auto max-w-6xl px-6 py-16">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
@@ -531,19 +566,20 @@ const HomePage = () => {
           {!programsLoading && featured.length === 0 && (
             <p className="text-sm text-gray-400">No programs published yet.</p>
           )}
-          {featured.slice(0, 4).map((program) => (
-            <ProgramCard
-              key={program.id}
-              program={program}
-              buttonTone="cyan"
-              cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
-            />
+          {featured.slice(0, 4).map((program, i) => (
+            <Reveal key={program.id} delay={staggerDelay(i)} className="[&>*]:h-full">
+              <ProgramCard
+                program={program}
+                buttonTone="cyan"
+                cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
+              />
+            </Reveal>
           ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* Learning journey */}
-      <section className="mx-auto max-w-5xl px-6 py-16 text-center">
+      <Reveal as="section" className="mx-auto max-w-5xl px-6 py-16 text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
           Learning Structure
         </p>
@@ -590,12 +626,20 @@ const HomePage = () => {
             );
           })}
         </div>
-      </section>
+      </Reveal>
 
       {/* Why CareerCentra */}
-      <section className="bg-main px-6 py-16 text-white">
-        <div className="mx-auto max-w-6xl text-center">
-          <h2 className="text-2xl font-semibold">Why CareerCentra</h2>
+      <Reveal as="section" className="bg-main px-6 py-16 text-white">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-2xl font-semibold">Why CareerCentra</h2>
+            <Link
+              href="/why-careercentra"
+              className="inline-flex items-center gap-1 text-sm font-medium text-glass hover:underline"
+            >
+              See all reasons →
+            </Link>
+          </div>
           <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {REASONS.map((reason) => {
               const Icon = reason.icon;
@@ -614,10 +658,10 @@ const HomePage = () => {
             })}
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* Testimonials */}
-      <section className="mx-auto max-w-6xl px-6 py-16 text-center">
+      <Reveal as="section" className="mx-auto max-w-6xl px-6 py-16 text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
           Learner Stories
         </p>
@@ -625,39 +669,27 @@ const HomePage = () => {
           What Our Learners Say
         </h2>
 
-        {featuredTestimonialVideoId && (
-          <div className="mx-auto mt-10 max-w-5xl">
-            <ReviewVideo videoId={featuredTestimonialVideoId} title="Learner testimonial video" />
+        {reviewsLoading && (
+          <p className="mt-10 text-sm text-gray-400">Loading learner stories…</p>
+        )}
+        {!reviewsLoading && reviews.length === 0 && (
+          <p className="mt-10 text-sm text-gray-400">No learner reviews published yet.</p>
+        )}
+        {reviews.length > 0 && (
+          <div className="mt-10 flex snap-x snap-mandatory justify-center gap-5 overflow-x-auto pb-2">
+            {reviews.map((review) => (
+              <TestimonialCard
+                key={review.id}
+                testimonial={review}
+                subtitle={review.program_title}
+              />
+            ))}
           </div>
         )}
-
-        {/* <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {TESTIMONIALS.map((t) => (
-            <div
-              key={t.role}
-              className="rounded-2xl border border-gray-100 bg-white p-6 text-left"
-            >
-              <div className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <StarIcon key={i} />
-                ))}
-              </div>
-              <p className="mt-4 text-sm text-gray-600">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary/20">
-                  <InstructorIcon />
-                </div>
-                <p className="text-xs font-medium text-gray-400">{t.role}</p>
-              </div>
-            </div>
-          ))}
-        </div> */}
-      </section>
+      </Reveal>
 
       {/* CTA: advisor */}
-      <section className="mx-auto max-w-6xl px-6 pb-6">
+      <Reveal as="section" className="mx-auto max-w-6xl px-6 pb-6">
         <div className="rounded-3xl bg-main px-8 py-14 text-center text-white">
           <h2 className="text-2xl font-semibold">
             Not Sure Which Path Is Right For You?
@@ -681,10 +713,10 @@ const HomePage = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* CTA: start learning */}
-      <section className="mx-auto max-w-full mt-5">
+      <Reveal as="section" className="mx-auto max-w-full mt-5">
         <div className=" bg-main px-8 py-14 text-center text-white">
           <p className="text-xs font-semibold uppercase tracking-wide text-glass">
             Get Started
@@ -705,7 +737,7 @@ const HomePage = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </Reveal>
     </div>
   );
 };

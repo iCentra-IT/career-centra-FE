@@ -13,6 +13,7 @@ import {
   CertificatesIcon,
   SettingsIcon,
   StarIcon,
+  HandshakeIcon,
 } from "@/components/dashboard/nav-icons";
 
 const NAV_ITEMS = [
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { label: "Reviews", href: "/admin/reviews", icon: <StarIcon /> },
   { label: "Users", href: "/admin/users", icon: <ProfileIcon /> },
   { label: "Coupons", href: "/admin/coupons", icon: <CouponsIcon /> },
+  { label: "Referral Partners", href: "/admin/partners", icon: <HandshakeIcon /> },
   { label: "Certificates", href: "/admin/certificates", icon: <CertificatesIcon /> },
   {
     label: "Settings",

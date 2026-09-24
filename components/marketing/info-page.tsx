@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Reveal } from "@/components/motion/reveal";
 
 // Shared building blocks for the long-form brand pages (About, Why CareerCentra, Partnerships) —
 // same hero gradient, eyebrow/heading rhythm and CTA band the home page already uses, kept in one
@@ -46,7 +47,7 @@ export function InfoHero({
           children ? "lg:grid-cols-[1.2fr_1fr]" : ""
         }`}
       >
-        <div>
+        <Reveal>
           <p className="text-sm text-white/60">
             <Link href="/" className="hover:text-white">
               Home
@@ -58,7 +59,7 @@ export function InfoHero({
           </span>
           <h1 className="mt-4 text-4xl font-bold leading-tight sm:text-5xl">{title}</h1>
           <p className="mt-4 max-w-xl text-white/70">{subtitle}</p>
-        </div>
+        </Reveal>
         {children}
       </div>
     </section>
@@ -77,7 +78,7 @@ export function SectionIntro({
   centered?: boolean;
 }) {
   return (
-    <div className={centered ? "text-center" : ""}>
+    <Reveal className={centered ? "text-center" : ""}>
       <p className="text-xs font-semibold uppercase tracking-wide text-secondary">{eyebrow}</p>
       <h2 className="mt-2 text-3xl font-semibold text-gray-900">{title}</h2>
       {description && (
@@ -85,7 +86,7 @@ export function SectionIntro({
           {description}
         </p>
       )}
-    </div>
+    </Reveal>
   );
 }
 
@@ -102,7 +103,7 @@ export function CtaBand({
 }) {
   return (
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      <div className="rounded-3xl bg-main px-8 py-14 text-center text-white">
+      <Reveal className="rounded-3xl bg-main px-8 py-14 text-center text-white">
         <h2 className="text-2xl font-semibold">{title}</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-white/70">{description}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -119,7 +120,7 @@ export function CtaBand({
             {secondary.label}
           </Link>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }

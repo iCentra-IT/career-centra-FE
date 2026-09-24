@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { useCareerPaths } from "@/hooks/queries/career-paths";
 import { RowCardSkeleton } from "@/components/ui/skeleton";
+import { Reveal, staggerDelay } from "@/components/motion/reveal";
 import { matchPathwayCategory } from "@/lib/pathways";
 import { compareByOrder, type CareerPath } from "@/types/career-paths";
 
@@ -162,7 +163,7 @@ const CareerPathsPage = () => {
   return (
     <div>
       <section className="bg-gradient-to-br from-main to-deep-blue px-6 py-16 text-white">
-        <div className="mx-auto max-w-6xl">
+        <Reveal className="mx-auto max-w-6xl">
           <p className="text-sm text-white/60">
             <Link href="/" className="hover:text-white">
               Home
@@ -174,7 +175,7 @@ const CareerPathsPage = () => {
             Choose a structured pathway based on your goals, experience, and desired career
             outcome.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-14">
@@ -187,7 +188,11 @@ const CareerPathsPage = () => {
           {pathways?.map((pathway, i) => {
             const categoryIndex = matchPathwayCategory(pathway.title);
             const icon = ICONS[categoryIndex >= 0 ? categoryIndex : i % ICONS.length];
-            return <PathwayCard key={pathway.id} pathway={pathway} icon={icon} />;
+            return (
+              <Reveal key={pathway.id} delay={staggerDelay(i)}>
+                <PathwayCard pathway={pathway} icon={icon} />
+              </Reveal>
+            );
           })}
         </div>
       </section>

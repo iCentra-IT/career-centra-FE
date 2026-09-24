@@ -9,6 +9,7 @@ import { nextOpenCohortForProgram } from "@/types/cohort";
 import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
+import { Reveal, staggerDelay } from "@/components/motion/reveal";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 
 type SortOption = "relevance" | "price_asc" | "price_desc" | "newest";
@@ -121,7 +122,7 @@ function ProgramsPageContent() {
   return (
     <div>
       <section className="bg-linear-to-br from-main to-deep-blue px-6 py-16 text-white">
-        <div className="mx-auto max-w-6xl">
+        <Reveal className="mx-auto max-w-6xl">
           <p className="text-sm text-white/60">
             <Link href="/" className="hover:text-white">
               Home
@@ -132,7 +133,7 @@ function ProgramsPageContent() {
           <p className="mt-3 max-w-xl text-white/70">
             Browse all certification programs and enrol in your next course.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-10">
@@ -274,13 +275,14 @@ function ProgramsPageContent() {
           {!isLoading && pageItems.length === 0 && (
             <p className="text-sm text-gray-400">No programs match these filters.</p>
           )}
-          {pageItems.map((program) => (
-            <ProgramCard
-              key={program.id}
-              program={program}
-              buttonTone="blue"
-              cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
-            />
+          {pageItems.map((program, i) => (
+            <Reveal key={program.id} delay={staggerDelay(i)} className="[&>*]:h-full">
+              <ProgramCard
+                program={program}
+                buttonTone="blue"
+                cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
+              />
+            </Reveal>
           ))}
         </div>
 

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useCreateLead } from "@/hooks/mutations/leads";
 import type { CreateLeadRequest } from "@/types/lead";
 import { Input } from "@/components/ui/input";
+import { Reveal, staggerDelay } from "@/components/motion/reveal";
 
 // TODO: replace with the real WhatsApp business number, digits only with country code (no "+",
 // spaces or dashes) — e.g. "2348000000000" for a Nigerian +234 800 000 0000 number.
@@ -111,7 +112,7 @@ const ContactPage = () => {
   return (
     <div className="space-y-10">
       <section className="bg-linear-to-br from-main to-deep-blue px-6 py-16 text-white">
-        <div className="mx-auto max-w-6xl">
+        <Reveal className="mx-auto max-w-6xl">
           <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
             Learning Support &amp; Advisory
           </span>
@@ -121,7 +122,7 @@ const ContactPage = () => {
             capability across your organisation, choose the type of support you need and connect
             with the iCentra Learning team.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* <section className="mx-auto max-w-6xl px-6 py-14">
@@ -213,7 +214,7 @@ const ContactPage = () => {
       </section>
       */}
 
-      <section ref={formRef} className="mx-auto max-w-4xl px-6 pb-20 text-center">
+      <Reveal as="section" className="mx-auto max-w-4xl px-6 pb-20 text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Get In Touch</p>
         <h2 className="mt-2 text-3xl font-semibold text-main">Let&apos;s Help You Move Forward</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-gray-500">
@@ -254,7 +255,7 @@ const ContactPage = () => {
             <span className="mt-4 text-sm font-medium text-secondary">Start Chat →</span>
           </a>
         </div>
-      </section>
+      </Reveal>
     </div>
   );
 };

@@ -45,3 +45,9 @@ export interface CreateProgramTestimonialRequest {
 export interface PatchAdminProgramTestimonialRequest {
   is_approved?: boolean;
 }
+
+// GET /api/programs/public/reviews (no trailing slash — that 404s) — every approved review across
+// all programs, for a site-wide "What Our Learners Say" feed. Confirmed real shape by a live
+// capture: same paginated envelope, and identical fields to AdminProgramTestimonial (including
+// is_approved, always true here since this endpoint only returns approved reviews).
+export type PublicProgramReview = AdminProgramTestimonial;

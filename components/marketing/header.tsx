@@ -125,7 +125,7 @@ function AboutMenu({ link }: { link: NavLink }) {
         <ChevronIcon />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-40 mt-3 w-52 rounded-xl border border-gray-100 bg-white p-1.5 shadow-lg">
+        <div className="absolute left-0 top-full z-40 mt-3 w-52 rounded-xl motion-safe:animate-pop-in border border-gray-100 bg-white p-1.5 shadow-lg">
           {items.map((item) => (
             <Link
               key={item.href}
@@ -187,7 +187,7 @@ function AccountMenu() {
         <ChevronIcon />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-40 mt-2 w-48 rounded-xl border border-gray-100 bg-white p-1.5 shadow-lg">
+        <div className="absolute right-0 top-full z-40 mt-2 w-48 rounded-xl motion-safe:animate-pop-in border border-gray-100 bg-white p-1.5 shadow-lg">
           <Link
             href={dashboardHref}
             onClick={() => setOpen(false)}
@@ -278,7 +278,7 @@ export function MarketingHeader() {
       </div>
 
       {mobileOpen && (
-        <div className="absolute left-0 right-0 top-full z-40 max-h-[calc(100vh-56px)] overflow-y-auto border-b border-gray-100 bg-white px-6 py-4 shadow-lg md:hidden">
+        <div className="absolute left-0 right-0 top-full z-40 max-h-[calc(100vh-56px)] overflow-y-auto border-b border-gray-100 bg-white px-6 py-4 shadow-lg motion-safe:animate-pop-in md:hidden">
           <SiteSearch />
           <Link
             href="/facilitator"

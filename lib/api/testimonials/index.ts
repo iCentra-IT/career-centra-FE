@@ -4,6 +4,7 @@ import {
   AdminProgramTestimonial,
   CreateProgramTestimonialRequest,
   PatchAdminProgramTestimonialRequest,
+  PublicProgramReview,
 } from "@/types/testimonial";
 import { PaginatedResponse, unwrapObject } from "@/types/api";
 import { apiClient } from "../client";
@@ -60,4 +61,13 @@ export async function patchAdminProgramTestimonial(
 
 export async function deleteAdminProgramTestimonial(id: number): Promise<void> {
   await apiClient.delete(`/api/programs/admin/reviews/${id}/`);
+}
+
+// Public, no auth — every approved review across all programs (see the note on
+// PublicProgramReview in types/testimonial.ts for the no-trailing-slash quirk).
+export async function getPublicProgramReviews(): Promise<PaginatedResponse<PublicProgramReview>> {
+  const { data } = await apiClient.get<PaginatedResponse<PublicProgramReview>>(
+    "/api/programs/public/reviews",
+  );
+  return data;
 }

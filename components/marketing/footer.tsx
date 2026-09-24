@@ -7,16 +7,16 @@ const PROGRAM_LINKS = [
   { label: "Agile & Product", href: `/programms?track=${encodeURIComponent(PATHWAY_CATEGORIES[1].programType)}` },
   { label: "Cybersecurity & Risk", href: `/programms?track=${encodeURIComponent(PATHWAY_CATEGORIES[2].programType)}` },
   { label: "AI & Digital Transformation", href: `/programms?track=${encodeURIComponent(PATHWAY_CATEGORIES[3].programType)}` },
-  { label: "Executive Programs", href: "/programms" },
+  // { label: "Executive Programs", href: "/programms" },
 ];
 
 // No dedicated solutions pages exist yet — these route to Contact rather than a dead link.
 const SOLUTION_LINKS = [
-  { label: "Workforce Capability Partnerships™", href: "/contact" },
-  { label: "Corporate Training", href: "/contact" },
-  { label: "Enterprise Certification", href: "/contact" },
-  { label: "Leadership Development", href: "/contact" },
-  { label: "Terms and Conditions", href: "/terms" },
+  { label: "Workforce Capability Partnerships™", href: "/https://learning.icentra.com/" },
+  { label: "Corporate Training", href: "/https://learning.icentra.com/" },
+  { label: "Enterprise Certification", href: "/https://learning.icentra.com/" },
+  { label: "Leadership Development", href: "/https://learning.icentra.com/" },
+  // { label: "Terms and Conditions", href: "/terms" },
 ];
 
 const COMPANY_LINKS = [
@@ -27,7 +27,7 @@ const COMPANY_LINKS = [
 ];
 
 const LEGAL_LINKS = [
-  { label: "Terms of Use", href: "/terms" },
+  { label: "Terms and Conditions", href: "/terms" },
   { label: "Privacy Policy", href: "/privacy" },
 ];
 
@@ -145,7 +145,7 @@ export function MarketingFooter() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white">Company</h3>
+            <h3 className="text-sm font-semibold text-white">Quick Links</h3>
             <ul className="mt-4 flex flex-col gap-2.5">
               {COMPANY_LINKS.map((link) => (
                 <li key={link.label}>

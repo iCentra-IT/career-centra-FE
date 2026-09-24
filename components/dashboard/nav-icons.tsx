@@ -209,6 +209,21 @@ export function StarIcon() {
   );
 }
 
+export function HandshakeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M2 7.5l3-2 3.5 2.5-2 2a1.4 1.4 0 002 2l3-3 3 2-2.5 2.5a2 2 0 01-2.8 0"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M5 5.5L2 7.5v4l3 2M15 5.5l3 2v4l-3 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function ChevronDownIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">

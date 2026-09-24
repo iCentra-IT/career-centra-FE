@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { CtaBand, InfoHero, SectionIntro } from "@/components/marketing/info-page";
 import { PARTNERS, type Partner } from "@/lib/partners";
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 
 const PARTNER_COPY: Record<Partner["id"], { meaning: string; issuedBy: string }> = {
   pmi: {
@@ -18,7 +19,7 @@ const PARTNER_COPY: Record<Partner["id"], { meaning: string; issuedBy: string }>
   microsoft: {
     // Tier/designation still to be confirmed with iCentra before this copy is treated as final.
     meaning:
-      "Microsoft certifications are among the most sought-after technology credentials in the world — recognized by enterprises, governments, and technology firms across every market CareerCentra serves. Through the Microsoft Learning Partner program, CareerCentra delivers structured preparation for Microsoft's foundational and specialist certification tracks in cloud computing, AI, data, and productivity. Our programs are aligned to Microsoft's official certification learning paths — giving learners the structured preparation that self-study alone rarely provides.",
+      "Microsoft certifications are among the most sought-after technology credentials in the world — recognized by enterprises, governments, and technology firms across every market CareerCentra serves. Through the Microsoft Partnernership, CareerCentra delivers structured preparation for Microsoft's foundational and specialist certification tracks in cloud computing, AI, data, and productivity. Our programs are aligned to Microsoft's official certification learning paths — giving learners the structured preparation that self-study alone rarely provides.",
     issuedBy:
       "Microsoft certifications are issued by Microsoft, upon passing the examination. CareerCentra issues a Certificate of Completion confirming preparation.",
   },
@@ -42,7 +43,7 @@ const WHY_AUTHORIZED = [
 function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
   const copy = PARTNER_COPY[partner.id];
   return (
-    <article className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
+    <Reveal as="article" className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
       <header className="flex flex-wrap items-center justify-between gap-3 bg-deep-blue px-6 py-4 text-white">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-glass">
@@ -86,7 +87,7 @@ function PartnerCard({ partner, index }: { partner: Partner; index: number }) {
         <span className="font-semibold">Credential issued by {partner.name}. </span>
         {copy.issuedBy}
       </footer>
-    </article>
+    </Reveal>
   );
 }
 
@@ -99,14 +100,14 @@ const PartnershipsPage = () => (
       subtitle="The bodies that set the global standard. CareerCentra is authorized to prepare you for their credentials."
     />
 
-    <section className="mx-auto max-w-4xl px-6 py-16">
+    <Reveal as="section" className="mx-auto max-w-4xl px-6 py-16">
       <div className="rounded-2xl border-l-4 border-main bg-gray-50 p-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
           Important distinction
         </p>
         <p className="mt-2 text-base leading-relaxed text-gray-800">
           CareerCentra prepares you for globally recognized credentials. The credential itself is
-          issued directly by the certifying body — PMI, PECB, or Microsoft — upon passing your
+          issued directly by the certifying body — PMI, or PECB, — upon passing your
           examination. CareerCentra is the authorized training partner. The certifying body is the
           authority.
         </p>
@@ -117,7 +118,7 @@ const PartnershipsPage = () => (
         that govern how our programs are built, what content is covered, and why the preparation you
         receive on CareerCentra is recognized as credible exam preparation by employers globally.
       </p>
-    </section>
+    </Reveal>
 
     <section className="mx-auto flex max-w-5xl flex-col gap-8 px-6 pb-16">
       {PARTNERS.map((partner, i) => (
@@ -133,11 +134,11 @@ const PartnershipsPage = () => (
           description="Any training provider can create a course about the PMP, ISO 27001, or Microsoft Azure. Not every provider is authorized by the bodies that issue those credentials. The distinction matters for three reasons."
           centered
         />
-        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <RevealGroup className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
           {WHY_AUTHORIZED.map((item, i) => {
             const active = i === 1;
             return (
-              <div
+              <RevealItem
                 key={item.title}
                 className={`rounded-2xl border p-6 ${
                   active ? "border-main bg-main text-white" : "border-gray-100 bg-white text-gray-700"
@@ -147,10 +148,10 @@ const PartnershipsPage = () => (
                 <p className={`mt-2 text-sm leading-relaxed ${active ? "text-white/75" : "text-gray-500"}`}>
                   {item.body}
                 </p>
-              </div>
+              </RevealItem>
             );
           })}
-        </div>
+        </RevealGroup>
       </div>
     </section>
 

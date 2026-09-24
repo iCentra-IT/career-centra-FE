@@ -43,6 +43,10 @@ export interface ProgramListFilters {
   certification_body?: CertificateProvider;
   price_min?: string;
   price_max?: string;
+  // Scopes the catalog to one referral partner's programs and discount — see
+  // types/referral-partner.ts. A nonexistent slug 404s with a plain {detail} error rather than
+  // this app's usual {success, message, errors} envelope, confirmed live.
+  referral_partner?: string;
   // Confirmed real: a captured response showed count 26 / total_pages 2 (page size 20) with a
   // `next` URL of "...?page=2" — standard DRF PageNumberPagination.
   page?: number;

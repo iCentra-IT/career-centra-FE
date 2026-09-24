@@ -68,6 +68,16 @@ function formatCohortDateRange(startIso: string, endIso: string) {
   return `${formatShortDate(startIso)} – ${formatShortDate(endIso)}`;
 }
 
+// A cohort starting today or tomorrow doesn't leave a learner enough time to enrol and pay before
+// the first class, and one that's already started is simply over — both should disappear from the
+// page entirely (not just show as disabled) so the earliest cohort still listed is always
+// genuinely bookable. Kept as a plain module-level function (not inlined in the component) since
+// React Compiler flags direct `new Date()`/`Date.now()` calls in a component body as impure.
+function isBookableCohort(startsOn: string): boolean {
+  const tomorrowIso = new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString("en-CA");
+  return startsOn > tomorrowIso;
+}
+
 export function ProgramDetailContent({ slug }: { slug: string }) {
   const { data: program, isLoading } = useProgram(slug);
   // /api/programs/ doesn't embed cohorts (confirmed by a runtime crash — see types/programs.ts),
@@ -121,9 +131,11 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
   }, [program]);
 
   // Cross-check by program id as a safety net in case the backend doesn't honor the `program`
-  // filter param useCohortsByProgram sends.
+  // filter param useCohortsByProgram sends. isBookableCohort drops cohorts starting today/tomorrow
+  // or already started — see its definition above for why.
   const programCohorts = (cohortsData?.results ?? [])
     .filter((c) => c.program.id === program?.id)
+    .filter((c) => isBookableCohort(c.starts_on))
     .sort((a, b) => a.starts_on.localeCompare(b.starts_on));
   const [currentCohort, nextCohort] = programCohorts;
 
@@ -304,6 +316,9 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                 cohortId={currentCohort?.id}
                 enrollmentOpen={currentCohort?.is_enrollment_open}
                 withCoupon
+                programId={program.id}
+                amount={price.amount}
+                currency={price.currency}
                 className="w-full rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Enrol Now

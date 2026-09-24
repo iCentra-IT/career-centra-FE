@@ -14,7 +14,7 @@ export function Button({
   return (
     <button
       disabled={disabled || loading}
-      className={`flex w-full items-center justify-center gap-2 rounded-md bg-main px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer ${
+      className={`flex w-full items-center justify-center gap-2 rounded-md bg-main px-4 py-3 text-sm font-medium text-white transition hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer active:scale-[0.98] ${
         className ?? ""
       }`}
       {...props}

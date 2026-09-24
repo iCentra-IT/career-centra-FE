@@ -19,6 +19,7 @@ const schema = z
     discount_value: z.coerce.number().min(0, "Enter a valid amount"),
     currency: z.string().optional(),
     max_uses: z.coerce.number().min(1, "Max uses is required"),
+    max_uses_per_user: z.coerce.number().min(1, "Max uses per user is required"),
     valid_from: z.string().min(1, "Start date is required"),
     valid_until: z.string().min(1, "End date is required"),
     is_active: z.boolean(),
@@ -36,10 +37,12 @@ export interface CouponFormInitialValues {
   discount_value: number;
   currency: string;
   max_uses: number;
+  max_uses_per_user: number;
   valid_from: string; // yyyy-mm-dd
   valid_until: string; // yyyy-mm-dd
   is_active: boolean;
   applicable_program_ids: number[];
+  program_discounts: { program_id: number; discount_value: string }[];
 }
 
 interface CouponFormProps {
@@ -62,6 +65,13 @@ export function CouponForm({
   const [programIds, setProgramIds] = useState<number[]>(
     initialValues?.applicable_program_ids ?? [],
   );
+  // Per-program override amount — only sent for programs the admin actually typed one for, so the
+  // rest just use the coupon's blanket discount_value.
+  const [programOverrides, setProgramOverrides] = useState<Record<number, string>>(
+    Object.fromEntries(
+      (initialValues?.program_discounts ?? []).map((d) => [d.program_id, d.discount_value]),
+    ),
+  );
 
   const {
     register,
@@ -71,13 +81,16 @@ export function CouponForm({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: initialValues ?? { discount_type: "percentage", is_active: true },
+    defaultValues: initialValues ?? { discount_type: "percentage", is_active: true, max_uses_per_user: 1 },
   });
 
   useEffect(() => {
     if (!initialValues) return;
     reset(initialValues);
     setProgramIds(initialValues.applicable_program_ids);
+    setProgramOverrides(
+      Object.fromEntries(initialValues.program_discounts.map((d) => [d.program_id, d.discount_value])),
+    );
   }, [initialValues, reset]);
 
   const discountType = watch("discount_type");
@@ -86,7 +99,14 @@ export function CouponForm({
   const addProgram = (id: number) => {
     if (!programIds.includes(id)) setProgramIds([...programIds, id]);
   };
-  const removeProgram = (id: number) => setProgramIds(programIds.filter((pid) => pid !== id));
+  const removeProgram = (id: number) => {
+    setProgramIds(programIds.filter((pid) => pid !== id));
+    setProgramOverrides((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
 
   const submit = (values: FormValues) => {
     onSubmit({
@@ -94,12 +114,19 @@ export function CouponForm({
       description: values.description?.trim() ?? "",
       discount_type: values.discount_type,
       discount_value: values.discount_value.toFixed(2),
-      currency: values.discount_type === "fixed_amount" ? values.currency || "USD" : "",
+      currency: values.currency || "USD",
       max_uses: values.max_uses,
+      max_uses_per_user: values.max_uses_per_user,
       valid_from: values.valid_from,
       valid_until: values.valid_until,
       is_active: values.is_active,
       applicable_program_ids: programIds,
+      program_discounts: Object.entries(programOverrides)
+        .filter(([, v]) => v.trim() !== "")
+        .map(([program_id, discount_value]) => ({
+          program_id: Number(program_id),
+          discount_value: Number(discount_value).toFixed(2),
+        })),
     });
   };
 
@@ -138,7 +165,7 @@ export function CouponForm({
         </select>
       </div>
 
-      <div className={discountType === "fixed_amount" ? "grid grid-cols-2 gap-3" : ""}>
+      <div className="grid grid-cols-2 gap-3">
         <Input
           label={discountType === "fixed_amount" ? "Discount Amount" : "Discount Percentage"}
           type="number"
@@ -148,31 +175,39 @@ export function CouponForm({
           error={errors.discount_value?.message}
           {...register("discount_value")}
         />
-        {discountType === "fixed_amount" && (
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-900">Currency</label>
-            <select
-              className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-              {...register("currency")}
-            >
-              {CURRENCY_OPTIONS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm text-gray-900">Currency</label>
+          <select
+            className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+            {...register("currency")}
+          >
+            {CURRENCY_OPTIONS.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <Input
-        label="Max Uses"
-        type="number"
-        required
-        placeholder="e.g. 100"
-        error={errors.max_uses?.message}
-        {...register("max_uses")}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label="Max Total Uses"
+          type="number"
+          required
+          placeholder="e.g. 100"
+          error={errors.max_uses?.message}
+          {...register("max_uses")}
+        />
+        <Input
+          label="Max Uses Per Member"
+          type="number"
+          required
+          placeholder="e.g. 1"
+          error={errors.max_uses_per_user?.message}
+          {...register("max_uses_per_user")}
+        />
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <Input
@@ -211,18 +246,31 @@ export function CouponForm({
         </select>
 
         {selectedPrograms.map((p) => (
-          <div key={p.id} className="flex items-center justify-between px-1 py-1.5">
-            <span className="text-sm text-gray-700">{p.title}</span>
+          <div key={p.id} className="flex items-center gap-2 px-1 py-1.5">
+            <span className="flex-1 truncate text-sm text-gray-700">{p.title}</span>
+            <input
+              value={programOverrides[p.id] ?? ""}
+              onChange={(e) =>
+                setProgramOverrides((prev) => ({ ...prev, [p.id]: e.target.value }))
+              }
+              type="number"
+              step="0.01"
+              placeholder="Override %/amount"
+              className="w-36 rounded-md border border-gray-200 px-2 py-1.5 text-xs outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+            />
             <button
               type="button"
               onClick={() => removeProgram(p.id)}
-              className="text-xs font-medium text-red-500 hover:text-red-600"
+              className="shrink-0 text-xs font-medium text-red-500 hover:text-red-600"
             >
               Remove
             </button>
           </div>
         ))}
-        <p className="text-xs text-gray-400">Leave empty to apply to all programs.</p>
+        <p className="text-xs text-gray-400">
+          Leave the program list empty to apply to all programs. An override replaces the blanket
+          discount for that one program only.
+        </p>
       </div>
 
       <label className="flex items-center gap-2 text-sm text-gray-700">

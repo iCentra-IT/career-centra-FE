@@ -26,7 +26,7 @@ export function CareerPathProgramCard({ program, buttonTone = "cyan", cohort }: 
 
   return (
     <div
-      className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-linear-to-br from-main to-deep-blue bg-cover bg-center p-5 text-white"
+      className="relative flex flex-col justify-between overflow-hidden rounded-2xl transition duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-main/20 bg-linear-to-br from-main to-deep-blue bg-cover bg-center p-5 text-white"
       // style={
       //   program.cover_image_url
       //     ? { backgroundImage: `url("${program.cover_image_url}")` }

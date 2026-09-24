@@ -30,12 +30,12 @@ export function Modal({ open, onClose, children, size = "sm" }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/40 motion-safe:animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className={`relative max-h-[90vh] w-full ${SIZE_CLASSES[size]} overflow-y-auto rounded-2xl bg-white p-6 shadow-lg sm:p-8`}
+        className={`relative max-h-[90vh] w-full ${SIZE_CLASSES[size]} overflow-y-auto rounded-2xl bg-white p-6 shadow-lg motion-safe:animate-modal-in sm:p-8`}
       >
         <button
           type="button"

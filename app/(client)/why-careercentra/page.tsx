@@ -1,4 +1,5 @@
 import { CheckIcon, CtaBand, InfoHero, SectionIntro } from "@/components/marketing/info-page";
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 
 const REASONS = [
   {
@@ -80,7 +81,7 @@ const WhyCareerCentraPage = () => (
     />
 
     {/* Introduction */}
-    <section className="mx-auto max-w-4xl px-6 py-16 text-center">
+    <Reveal as="section" className="mx-auto max-w-4xl px-6 py-16 text-center">
       <p className="text-lg leading-relaxed text-gray-700">
         There is no shortage of places to take a training course. There is a shortage of providers
         who get the professional context right — who understand what it actually takes to pass a
@@ -91,13 +92,14 @@ const WhyCareerCentraPage = () => (
       <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-secondary">
         Here is why CareerCentra is different.
       </p>
-    </section>
+    </Reveal>
 
     {/* Six reasons */}
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <RevealGroup className="grid grid-cols-1 gap-5 md:grid-cols-2">
         {REASONS.map((reason, i) => (
-          <article
+          <RevealItem
+            as="article"
             key={reason.title}
             className="flex gap-5 rounded-2xl border border-gray-100 bg-white p-6"
           >
@@ -108,9 +110,9 @@ const WhyCareerCentraPage = () => (
               <h2 className="text-base font-semibold text-gray-900">{reason.title}</h2>
               <p className="mt-2 text-sm leading-relaxed text-gray-500">{reason.body}</p>
             </div>
-          </article>
+          </RevealItem>
         ))}
-      </div>
+      </RevealGroup>
     </section>
 
     {/* Comparison */}
@@ -123,7 +125,7 @@ const WhyCareerCentraPage = () => (
         />
 
         {/* Table on tablet+; stacked cards on phones so nothing scrolls sideways */}
-        <div className="mt-10 hidden overflow-hidden rounded-2xl border border-gray-100 bg-white md:block">
+        <Reveal className="mt-10 hidden overflow-hidden rounded-2xl border border-gray-100 bg-white md:block">
           <table className="w-full text-left text-sm">
             <thead>
               <tr>
@@ -147,11 +149,11 @@ const WhyCareerCentraPage = () => (
               ))}
             </tbody>
           </table>
-        </div>
+        </Reveal>
 
-        <div className="mt-10 flex flex-col gap-4 md:hidden">
+        <RevealGroup className="mt-10 flex flex-col gap-4 md:hidden">
           {COMPARISON.map((row) => (
-            <div key={row.topic} className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
+            <RevealItem key={row.topic} className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
               <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-gray-400">
                 {row.topic}
               </p>
@@ -160,9 +162,9 @@ const WhyCareerCentraPage = () => (
                 {row.us}
               </p>
               <p className="px-5 py-3 text-sm text-gray-400">{row.them}</p>
-            </div>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </section>
 

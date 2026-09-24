@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CheckIcon, CtaBand, InfoHero, SectionIntro } from "@/components/marketing/info-page";
 import { PARTNERS } from "@/lib/partners";
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 
 const STATS = [
   { value: "16+", label: "Years of Learning & Transformation Experience" },
@@ -103,7 +104,7 @@ const AboutPage = () => (
       title="About CareerCentra"
       subtitle="The career advancement platform for professionals who want structured programs and a clear path to globally recognized credentials."
     >
-      <figure className="rounded-2xl border border-white/15 bg-white/10 p-7">
+      <Reveal as="figure" delay={0.15} className="rounded-2xl border border-white/15 bg-white/10 p-7">
         <span className="text-4xl leading-none text-glass" aria-hidden="true">
           &ldquo;
         </span>
@@ -112,7 +113,7 @@ const AboutPage = () => (
           reach of every professional who is ready to earn them, regardless of where they are
           starting from.
         </blockquote>
-      </figure>
+      </Reveal>
     </InfoHero>
 
     {/* What is CareerCentra */}
@@ -122,7 +123,7 @@ const AboutPage = () => (
           eyebrow="What is CareerCentra"
           title="Built for Career Advancement. Backed by 16 Years of Expertise."
         />
-        <div className="mt-5 flex flex-col gap-4 text-sm leading-relaxed text-gray-600">
+        <Reveal delay={0.1} className="mt-5 flex flex-col gap-4 text-sm leading-relaxed text-gray-600">
           <p>
             CareerCentra is the career advancement platform for professionals who want structured
             programs and a clear path to globally recognized credentials. We support professionals
@@ -137,10 +138,10 @@ const AboutPage = () => (
             methodology and backed by iCentra&apos;s status as a PMI and PECB Authorized Training
             Partner.
           </p>
-        </div>
+        </Reveal>
       </div>
 
-      <aside className="h-fit rounded-2xl border border-gray-100 bg-gray-50 p-6">
+      <Reveal as="aside" delay={0.15} className="h-fit rounded-2xl border border-gray-100 bg-gray-50 p-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
           Important distinction
         </p>
@@ -165,14 +166,14 @@ const AboutPage = () => (
             />
           ))}
         </div>
-      </aside>
+      </Reveal>
     </section>
 
     {/* Proof points */}
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      <div className="grid grid-cols-1 overflow-hidden rounded-2xl sm:grid-cols-2 lg:grid-cols-4">
+      <RevealGroup className="grid grid-cols-1 overflow-hidden rounded-2xl sm:grid-cols-2 lg:grid-cols-4">
         {STATS.map((stat, i) => (
-          <div
+          <RevealItem
             key={stat.value}
             className={`flex flex-col items-center justify-center px-6 py-8 text-center ${
               i % 2 === 0 ? "bg-main text-white" : "bg-[#E9F9FF] text-gray-700"
@@ -182,9 +183,9 @@ const AboutPage = () => (
               {stat.value}
             </p>
             <p className="mt-2 max-w-[14rem] text-sm">{stat.label}</p>
-          </div>
+          </RevealItem>
         ))}
-        <div className="flex flex-col items-center justify-center bg-[#E9F9FF] px-6 py-8 text-center text-gray-700">
+        <RevealItem className="flex flex-col items-center justify-center bg-[#E9F9FF] px-6 py-8 text-center text-gray-700">
           <div className="flex items-center gap-3">
             {PARTNERS.map((partner) => (
               <Image
@@ -198,8 +199,8 @@ const AboutPage = () => (
             ))}
           </div>
           <p className="mt-3 text-sm">PMI · PECB · Microsoft Authorized Training Partner</p>
-        </div>
-      </div>
+        </RevealItem>
+      </RevealGroup>
     </section>
 
     {/* How it works */}
@@ -211,9 +212,9 @@ const AboutPage = () => (
           description="The path from enrollment to globally recognized credential is straightforward. CareerCentra handles the preparation. The credentialing body handles the certification."
           centered
         />
-        <ol className="mt-10 flex flex-col">
+        <RevealGroup as="ol" stagger={0.12} className="mt-10 flex flex-col">
           {STEPS.map((step, i) => (
-            <li key={step.title} className="relative flex gap-5 pb-8 last:pb-0">
+            <RevealItem as="li" key={step.title} className="relative flex gap-5 pb-8 last:pb-0">
               {i < STEPS.length - 1 && (
                 <span
                   className="absolute left-5 top-10 h-[calc(100%-2.5rem)] w-px bg-gray-200"
@@ -227,9 +228,9 @@ const AboutPage = () => (
                 <h3 className="text-base font-semibold text-gray-900">{step.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-gray-500">{step.body}</p>
               </div>
-            </li>
+            </RevealItem>
           ))}
-        </ol>
+        </RevealGroup>
       </div>
     </section>
 
@@ -240,12 +241,12 @@ const AboutPage = () => (
         title="Built for Professionals Who Are Ready to Move"
         description="CareerCentra is designed for working professionals who want to grow. Not for beginners still deciding whether to start — for people who have decided, and need a structured, credible path to get there."
       />
-      <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+      <RevealGroup className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
         {AUDIENCES.map((audience, i) => {
           const active = i === 1;
           const Icon = audience.icon;
           return (
-            <div
+            <RevealItem
               key={audience.title}
               className={`rounded-2xl border p-6 ${
                 active ? "border-main bg-main text-white" : "border-gray-100 bg-white text-gray-700"
@@ -262,15 +263,16 @@ const AboutPage = () => (
               <p className={`mt-2 text-sm leading-relaxed ${active ? "text-white/75" : "text-gray-500"}`}>
                 {audience.body}
               </p>
-            </div>
+            </RevealItem>
           );
         })}
-      </div>
+      </RevealGroup>
     </section>
 
     {/* Backed by iCentra */}
     <section className="bg-deep-blue px-6 py-16 text-white">
       <div className="mx-auto max-w-6xl">
+        <Reveal>
         <p className="text-xs font-semibold uppercase tracking-wide text-glass">Backed by iCentra</p>
         <h2 className="mt-2 text-3xl font-semibold">The iCentra Difference</h2>
         <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/70">
@@ -279,17 +281,18 @@ const AboutPage = () => (
           track record of training and transforming organizations across Africa and
           internationally.
         </p>
-        <ul className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        </Reveal>
+        <RevealGroup as="ul" className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
           {ICENTRA_POINTS.map((point) => (
-            <li key={point.title} className="flex gap-4 rounded-2xl bg-white/10 p-5">
+            <RevealItem as="li" key={point.title} className="flex gap-4 rounded-2xl bg-white/10 p-5">
               <CheckIcon className="mt-0.5 text-glass" />
               <div>
                 <h3 className="text-sm font-semibold">{point.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-white/65">{point.body}</p>
               </div>
-            </li>
+            </RevealItem>
           ))}
-        </ul>
+        </RevealGroup>
         <Link
           href="/partnerships"
           className="mt-8 inline-flex text-sm font-medium text-glass hover:underline"
