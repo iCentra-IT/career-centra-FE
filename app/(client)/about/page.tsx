@@ -171,7 +171,7 @@ const AboutPage = () => (
 
     {/* Proof points */}
     <section className="mx-auto max-w-6xl px-6 pb-16">
-      <RevealGroup className="grid grid-cols-1 overflow-hidden rounded-2xl sm:grid-cols-2 lg:grid-cols-4">
+      <RevealGroup className="grid grid-cols-1 overflow-hidden rounded-2xl sm:grid-cols-3">
         {STATS.map((stat, i) => (
           <RevealItem
             key={stat.value}
@@ -182,24 +182,9 @@ const AboutPage = () => (
             <p className={`text-4xl font-bold ${i % 2 === 0 ? "text-glass" : "text-main"}`}>
               {stat.value}
             </p>
-            <p className="mt-2 max-w-[14rem] text-sm">{stat.label}</p>
+            <p className="mt-2 max-w-56 text-sm">{stat.label}</p>
           </RevealItem>
         ))}
-        <RevealItem className="flex flex-col items-center justify-center bg-[#E9F9FF] px-6 py-8 text-center text-gray-700">
-          <div className="flex items-center gap-3">
-            {PARTNERS.map((partner) => (
-              <Image
-                key={partner.id}
-                src={partner.badge.src}
-                alt={partner.badge.alt}
-                width={partner.badge.width}
-                height={partner.badge.height}
-                className="h-10 w-auto object-contain"
-              />
-            ))}
-          </div>
-          <p className="mt-3 text-sm">PMI · PECB · Microsoft Authorized Training Partner</p>
-        </RevealItem>
       </RevealGroup>
     </section>
 

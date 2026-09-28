@@ -37,3 +37,10 @@ export async function patchAdminUser(id: number, payload: PatchAdminUserRequest)
 export async function resendAdminUserInvite(id: number): Promise<void> {
   await apiClient.post(`/api/auth/admin/users/${id}/resend-invite/`);
 }
+
+// A separate, unified endpoint (distinct from /api/auth/admin/users/) that deletes any account by
+// id regardless of whether it's a staff/admin user or a learner — matches the "all-users" path,
+// unlike the two type-scoped list endpoints above.
+export async function deleteAdminUser(id: number): Promise<void> {
+  await apiClient.delete(`/api/auth/admin/all-users/${id}/`);
+}

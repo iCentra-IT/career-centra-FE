@@ -1,13 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useAdminLearners } from "@/hooks/queries/admin-learners";
+import { useDeleteAdminUser } from "@/hooks/mutations/admin-users";
 import { EmptyTableState } from "@/components/ui/empty-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TableSkeleton } from "@/components/ui/skeleton";
+import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
+import { TrashIcon } from "@/components/ui/trash-icon";
 import { formatShortDate } from "@/lib/format";
+import type { AdminLearner } from "@/types/learner";
 
-const COLUMNS = ["Name", "Email", "Location", "Certificates", "Enrollments", "Joined", "Status"];
+const COLUMNS = ["Name", "Email", "Location", "Certificates", "Enrollments", "Joined", "Status", "Action"];
 
 function SearchIcon() {
   return (
@@ -34,7 +39,20 @@ function statusLabel(status: string) {
 
 const AdminUsersPage = () => {
   const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<AdminLearner | null>(null);
   const { data: learners, isLoading } = useAdminLearners();
+  const deleteUser = useDeleteAdminUser();
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    deleteUser.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        toast.success("Account deleted.");
+        setDeleteTarget(null);
+      },
+      onError: (err) => toast.error(err.message),
+    });
+  };
 
   const filtered = useMemo(() => {
     const list = learners ?? [];
@@ -92,12 +110,31 @@ const AdminUsersPage = () => {
                   <td className="px-5 py-4">
                     <StatusBadge label={statusLabel(learner.status)} tone={statusTone(learner.status)} />
                   </td>
+                  <td className="px-5 py-4">
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(learner)}
+                      className="text-gray-400 hover:text-red-600"
+                      aria-label="Delete account"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
+
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        title="Delete account"
+        description={`Are you sure you want to delete "${deleteTarget?.full_name}"? This can't be undone.`}
+        loading={deleteUser.isPending}
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 };

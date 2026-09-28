@@ -1,11 +1,50 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useNotifications } from "@/hooks/queries/notifications";
 import { useMarkAllNotificationsRead } from "@/hooks/mutations/notifications";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatShortDate } from "@/lib/format";
+
+// This panel is shared by the admin, facilitator, and student dashboards (see the three
+// (dashboard)/*/layout.tsx files), so "which section am I in" has to come from the current path —
+// there's no single right prefix to hardcode.
+function dashboardSectionRoot(pathname: string): "/admin" | "/facilitators" | "/students" {
+  if (pathname.startsWith("/admin")) return "/admin";
+  if (pathname.startsWith("/facilitators")) return "/facilitators";
+  return "/students";
+}
+
+// Confirmed live (student account): notification.action_url comes back as an absolute URL like
+// "https://<frontend>/dashboard/certificates" or ".../dashboard/enrollments/{id}" — a /dashboard
+// prefix and US "enrollments" spelling that don't match this app's real routes (/students/... and
+// "enrolments"), so following it as-is 404s every time. Normalize the known cases per section and
+// fall back to that section's own root (never 404s) for anything else, rather than trusting the
+// raw value. Admin has both /admin/certificates and /admin/enrollments so maps cleanly; facilitators
+// has neither, so falls back to its dashboard root.
+function resolveNotificationUrl(actionUrl: string, sectionRoot: string): string {
+  let pathname = actionUrl;
+  try {
+    pathname = new URL(actionUrl, window.location.origin).pathname;
+  } catch {
+    // Already a relative path — use as-is.
+  }
+
+  if (pathname === "/dashboard/certificates") {
+    return sectionRoot === "/facilitators" ? sectionRoot : `${sectionRoot}/certificates`;
+  }
+  if (/^\/dashboard\/enrollments\/\d+$/.test(pathname)) {
+    // No per-enrollment detail page exists anywhere yet — land on the closest list instead.
+    if (sectionRoot === "/admin") return "/admin/enrollments";
+    if (sectionRoot === "/students") return "/students/enrolments";
+    return sectionRoot;
+  }
+  if (pathname.startsWith("/dashboard/")) return `${sectionRoot}${pathname.slice("/dashboard".length)}`;
+  if (pathname === sectionRoot || pathname.startsWith(`${sectionRoot}/`)) return pathname;
+  return sectionRoot;
+}
 
 function CloseIcon() {
   return (
@@ -18,6 +57,7 @@ function CloseIcon() {
 export function NotificationsPanel({ onClose }: { onClose: () => void }) {
   const { data: notifications, isLoading } = useNotifications();
   const markAllRead = useMarkAllNotificationsRead();
+  const sectionRoot = dashboardSectionRoot(usePathname());
 
   const hasUnread = (notifications ?? []).some((n) => !n.is_read);
 
@@ -66,7 +106,7 @@ export function NotificationsPanel({ onClose }: { onClose: () => void }) {
           return notification.action_url ? (
             <Link
               key={notification.id}
-              href={notification.action_url}
+              href={resolveNotificationUrl(notification.action_url, sectionRoot)}
               onClick={onClose}
               className="block border-b border-gray-50 last:border-0 hover:bg-gray-50"
             >
