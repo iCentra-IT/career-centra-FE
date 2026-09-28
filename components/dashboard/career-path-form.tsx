@@ -68,7 +68,9 @@ export function CareerPathForm({
   onSubmit,
   onClose,
 }: CareerPathFormProps) {
-  const { data: programsData } = usePrograms();
+  // page_size overrides the backend's default of 20 — this picker needs every program, not just
+  // the first page, or programs past #20 would be impossible to add to the career path.
+  const { data: programsData } = usePrograms({ page_size: 100 });
   const programs = programsData?.results ?? [];
 
   const [title, setTitle] = useState(initialValues?.title ?? EMPTY_VALUES.title);

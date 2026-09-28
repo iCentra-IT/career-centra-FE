@@ -53,7 +53,9 @@ export function ReferralPartnerOnboardForm({
   onSubmit: (payload: OnboardReferralPartnerRequest) => void;
   onClose: () => void;
 }) {
-  const { data: programsData } = usePrograms();
+  // page_size overrides the backend's default of 20 — this select needs every program, not just
+  // the first page, or programs past #20 would be impossible to restrict the coupon to.
+  const { data: programsData } = usePrograms({ page_size: 100 });
   const programs = programsData?.results ?? [];
   const [programIds, setProgramIds] = useState<number[]>([]);
   // Per-program override amount — only sent for programs the admin actually typed one for, so

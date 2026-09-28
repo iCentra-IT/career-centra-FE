@@ -41,7 +41,9 @@ const EditCohortPage = () => {
   const cohortId = Number(params.id);
   const router = useRouter();
   const { data: cohort, isLoading } = useCohort(cohortId);
-  const { data: programs } = usePrograms();
+  // page_size overrides the backend's default of 20 — this select needs every program, not just
+  // the first page, or programs past #20 would be impossible to pick.
+  const { data: programs } = usePrograms({ page_size: 100 });
   const { data: facilitators } = useApprovedFacilitators();
   const patchCohort = usePatchCohort(cohortId);
 

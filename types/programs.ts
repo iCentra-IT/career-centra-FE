@@ -50,6 +50,11 @@ export interface ProgramListFilters {
   // Confirmed real: a captured response showed count 26 / total_pages 2 (page size 20) with a
   // `next` URL of "...?page=2" — standard DRF PageNumberPagination.
   page?: number;
+  // Overrides the backend's default page size of 20. Pass this whenever every program is needed
+  // in one shot to populate a picker/select (career path, coupon, referral-partner forms) — with
+  // the default size, any program past #20 would silently be missing from the list. Leave unset
+  // for an actual paginated browsing view (the public catalog, the admin program list).
+  page_size?: number;
 }
 
 // GET /api/programs/ list item — confirmed real shape (paginated: {success, count, total_pages,
