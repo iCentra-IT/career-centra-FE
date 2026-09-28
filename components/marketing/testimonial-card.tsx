@@ -1,7 +1,3 @@
-"use client";
-
-import { useState } from "react";
-
 export function StarIcon({ filled }: { filled: boolean }) {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill={filled ? "#f5a623" : "none"} aria-hidden="true">
@@ -23,10 +19,6 @@ export function initials(name: string) {
     .join("");
 }
 
-// No layout measurement here — a rough character count stands in for "would this actually get
-// clamped at 3-4 lines", which is good enough to decide whether "Read more" needs to show at all.
-const COMMENT_TRUNCATE_LENGTH = 220;
-
 export interface TestimonialCardData {
   id: number;
   reviewer_name: string;
@@ -39,6 +31,12 @@ export interface TestimonialCardData {
 // Shared star-rated review card — used both on a single program's "Learner Testimonials" (see
 // program-testimonials.tsx) and the home page's cross-program review feed, which additionally
 // shows which program the review is for via `subtitle`.
+//
+// The comment sits in a fixed-height block (line-clamp-4 AND a matching min-height) rather than
+// just clamping — clamping alone still lets a one-line comment leave a shorter card than a
+// four-line one, so the avatar/name/course row below it would land at a different height from
+// card to card. No "read more" toggle on purpose: expanding in place would reintroduce exactly
+// that misalignment for whichever card was expanded.
 export function TestimonialCard({
   testimonial,
   subtitle,
@@ -48,30 +46,16 @@ export function TestimonialCard({
   subtitle?: string;
   className?: string;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const isLong = testimonial.comment.length > COMMENT_TRUNCATE_LENGTH;
-
   return (
-    <div className={`rounded-2xl border border-gray-100 bg-white p-6 text-left ${className}`}>
+    <div className={`flex flex-col rounded-2xl border border-gray-100 bg-white p-6 text-left ${className}`}>
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((n) => (
           <StarIcon key={n} filled={n <= testimonial.rating} />
         ))}
       </div>
-      <p className={`mt-4 text-sm text-gray-600 ${expanded ? "" : "line-clamp-4"}`}>
+      <p className="mt-4 line-clamp-4 min-h-20 text-sm text-gray-600">
         &ldquo;{testimonial.comment}&rdquo;
       </p>
-      {isLong && (
-        // Expands in place rather than opening a modal — a testimonial is short enough that a
-        // separate view would be more friction than it's worth.
-        <button
-          type="button"
-          onClick={() => setExpanded((e) => !e)}
-          className="mt-1 text-xs font-medium text-secondary hover:underline"
-        >
-          {expanded ? "Read less" : "Read more"}
-        </button>
-      )}
       <div className="mt-4 flex items-center gap-3">
         {testimonial.reviewer_image_url ? (
           // eslint-disable-next-line @next/next/no-img-element -- an arbitrary hosted URL, not worth configuring next/image's domains for

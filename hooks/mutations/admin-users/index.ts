@@ -1,4 +1,12 @@
-import { createAdminUser, deleteAdminUser, patchAdminUser, resendAdminUserInvite } from "@/lib/api/admin-users";
+import {
+  createAdminUser,
+  deactivateUser,
+  deleteUserPermanently,
+  patchAdminUser,
+  reactivateUser,
+  resendAdminUserInvite,
+  resendUserVerification,
+} from "@/lib/api/admin-users";
 import { queryKeys } from "@/lib/api/query-keys";
 import { NormalizedError } from "@/types/api";
 import { AdminUser, CreateAdminUserRequest, PatchAdminUserRequest } from "@/types/user";
@@ -33,17 +41,43 @@ export function useResendAdminUserInvite() {
   });
 }
 
-// The /all-users/ delete endpoint isn't scoped to one account type, so invalidate both the
-// staff/admin list and the learner list rather than trying to guess which one the deleted id
-// belonged to.
-export function useDeleteAdminUser() {
+// None of the four mutations below are scoped to one account type (they work on any user), so
+// each invalidates both the staff/admin list and the learner list rather than trying to guess
+// which one the target id belonged to.
+function invalidateAllUserLists(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: queryKeys.adminUsers.all });
+  queryClient.invalidateQueries({ queryKey: queryKeys.adminLearners.all });
+}
+
+export function useDeactivateUser() {
   const queryClient = useQueryClient();
 
   return useMutation<void, NormalizedError, number>({
-    mutationFn: (id) => deleteAdminUser(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminUsers.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminLearners.all });
-    },
+    mutationFn: (id) => deactivateUser(id),
+    onSuccess: () => invalidateAllUserLists(queryClient),
+  });
+}
+
+export function useReactivateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, NormalizedError, number>({
+    mutationFn: (id) => reactivateUser(id),
+    onSuccess: () => invalidateAllUserLists(queryClient),
+  });
+}
+
+export function useResendUserVerification() {
+  return useMutation<void, NormalizedError, number>({
+    mutationFn: (id) => resendUserVerification(id),
+  });
+}
+
+export function useDeleteUserPermanently() {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, NormalizedError, number>({
+    mutationFn: (id) => deleteUserPermanently(id),
+    onSuccess: () => invalidateAllUserLists(queryClient),
   });
 }

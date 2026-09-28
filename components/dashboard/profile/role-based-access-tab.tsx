@@ -6,7 +6,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAdminUsers } from "@/hooks/queries/admin-users";
-import { useCreateAdminUser, usePatchAdminUser, useResendAdminUserInvite } from "@/hooks/mutations/admin-users";
+import {
+  useCreateAdminUser,
+  usePatchAdminUser,
+  useResendAdminUserInvite,
+  useDeleteUserPermanently,
+} from "@/hooks/mutations/admin-users";
 import { useAuthStore } from "@/lib/store/authStore";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -16,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
+import { ActionsMenu, type ActionMenuItem } from "@/components/ui/actions-menu";
 import { formatShortDate } from "@/lib/format";
 import { roleLabel } from "@/types/user";
 import type { AdminUser, UserRole, UserStatus } from "@/types/user";
@@ -222,9 +228,16 @@ function EditUserModal({
   );
 }
 
-function ActivateToggleButton({ user, isSelf }: { user: AdminUser; isSelf: boolean }) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
+// Activate/Deactivate uses the same PATCH is_active this tab already had (untouched, still
+// working). Delete is the real, permanent /api/auth/delete/ endpoint — only rendered for a row the
+// current user canManageUser (see RoleBasedAccessTab), which already keeps a staff-admin off of
+// fellow staff-admin/admin rows entirely, so that scoping alone enforces "a staff-admin can't
+// delete a fellow staff-admin" without extra logic here.
+function UserRowActions({ user, isSelf }: { user: AdminUser; isSelf: boolean }) {
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const patchUser = usePatchAdminUser(user.id);
+  const deleteUser = useDeleteUserPermanently();
 
   const activate = () => {
     patchUser.mutate(
@@ -242,48 +255,75 @@ function ActivateToggleButton({ user, isSelf }: { user: AdminUser; isSelf: boole
       {
         onSuccess: () => {
           toast.success(`${user.full_name} deactivated.`);
-          setConfirmOpen(false);
+          setConfirmDeactivate(false);
         },
         onError: (err) => {
           toast.error(err.message);
-          setConfirmOpen(false);
+          setConfirmDeactivate(false);
         },
       },
     );
   };
 
-  if (!user.is_active) {
-    return (
-      <button
-        type="button"
-        onClick={activate}
-        disabled={patchUser.isPending}
-        className="rounded-md border border-green-200 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {patchUser.isPending ? "Activating…" : "Activate"}
-      </button>
-    );
-  }
+  const handleDelete = () => {
+    deleteUser.mutate(user.id, {
+      onSuccess: () => {
+        toast.success(`${user.full_name} permanently deleted.`);
+        setConfirmDelete(false);
+      },
+      onError: (err) => {
+        toast.error(err.message);
+        setConfirmDelete(false);
+      },
+    });
+  };
+
+  const items: ActionMenuItem[] = user.is_active
+    ? [
+        {
+          label: "Deactivate",
+          onClick: () => setConfirmDeactivate(true),
+          disabled: isSelf,
+          title: isSelf ? "You can't deactivate your own account here" : undefined,
+          tone: "danger",
+        },
+      ]
+    : [
+        {
+          label: patchUser.isPending ? "Activating…" : "Activate",
+          onClick: activate,
+          disabled: patchUser.isPending,
+          tone: "success",
+        },
+      ];
+  items.push({
+    label: "Delete Permanently",
+    onClick: () => setConfirmDelete(true),
+    disabled: isSelf,
+    title: isSelf ? "You can't delete your own account here" : undefined,
+    tone: "danger",
+  });
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setConfirmOpen(true)}
-        disabled={isSelf}
-        title={isSelf ? "You can't deactivate your own account here" : undefined}
-        className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        Deactivate
-      </button>
+      <ActionsMenu items={items} />
       <ConfirmDeleteModal
-        open={confirmOpen}
+        open={confirmDeactivate}
         title="Deactivate this account?"
         description={`${user.full_name} won't be able to log in until it's reactivated.`}
         confirmLabel="Deactivate"
         loading={patchUser.isPending}
         onConfirm={deactivate}
-        onClose={() => setConfirmOpen(false)}
+        onClose={() => setConfirmDeactivate(false)}
+      />
+      <ConfirmDeleteModal
+        open={confirmDelete}
+        title="Permanently delete account"
+        description={`This will permanently delete "${user.full_name}". This can't be undone — use Deactivate instead if you just want to block their access.`}
+        confirmLabel="Delete Permanently"
+        loading={deleteUser.isPending}
+        onConfirm={handleDelete}
+        onClose={() => setConfirmDelete(false)}
       />
     </>
   );
@@ -463,7 +503,7 @@ export function RoleBasedAccessTab() {
                     </td>
                     <td className="px-5 py-4">
                       {manageable ? (
-                        <ActivateToggleButton user={user} isSelf={user.id === currentUser?.id} />
+                        <UserRowActions user={user} isSelf={user.id === currentUser?.id} />
                       ) : (
                         <span className="text-xs text-gray-300" title="You can only manage facilitator and student accounts">
                           —

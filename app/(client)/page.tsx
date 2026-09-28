@@ -13,6 +13,7 @@ import { matchPathwayCategory } from "@/lib/pathways";
 import Image from "next/image";
 import { Reveal, staggerDelay } from "@/components/motion/reveal";
 import { TestimonialCard } from "@/components/marketing/testimonial-card";
+import { AutoScrollRow } from "@/components/marketing/auto-scroll-row";
 import { usePublicProgramReviews } from "@/hooks/queries/testimonials";
 
 function BriefcaseIcon() {
@@ -676,7 +677,7 @@ const HomePage = () => {
           <p className="mt-10 text-sm text-gray-400">No learner reviews published yet.</p>
         )}
         {reviews.length > 0 && (
-          <div className="mt-10 flex snap-x snap-mandatory justify-center gap-5 overflow-x-auto pb-2">
+          <AutoScrollRow className="relative left-1/2 mt-10 w-screen -translate-x-1/2 py-2">
             {reviews.map((review) => (
               <TestimonialCard
                 key={review.id}
@@ -684,7 +685,7 @@ const HomePage = () => {
                 subtitle={review.program_title}
               />
             ))}
-          </div>
+          </AutoScrollRow>
         )}
       </Reveal>
 

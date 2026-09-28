@@ -64,9 +64,14 @@ export function useLogin(next?: string | null) {
           });
       }
 
-      const dashboardHref = dashboardHomeFor(data.user.role);
-      // Only students get sent back to where they left off — everyone else always lands on their dashboard.
-      router.push(data.user.role === "student" && next ? next : dashboardHref);
+      // Students land back wherever they left off (next), or the home page if they came straight
+      // to /login — the student dashboard isn't the default landing spot the way it is for staff.
+      // Every other role always lands on their dashboard, `next` or not.
+      if (data.user.role === "student") {
+        router.push(next || "/");
+      } else {
+        router.push(dashboardHomeFor(data.user.role));
+      }
     },
   });
 }

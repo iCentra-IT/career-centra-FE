@@ -6,6 +6,7 @@ import { useProgramTestimonials } from "@/hooks/queries/testimonials";
 import { useCreateProgramTestimonial } from "@/hooks/mutations/testimonials";
 import { SectionEyebrow } from "./program-detail-content";
 import { StarIcon, TestimonialCard } from "@/components/marketing/testimonial-card";
+import { AutoScrollRow } from "@/components/marketing/auto-scroll-row";
 
 function StarRatingInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
@@ -172,11 +173,11 @@ export function ProgramTestimonials({ slug }: { slug: string }) {
         </p>
       )}
       {testimonials.length > 0 && (
-        <div className="mt-5 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2">
+        <AutoScrollRow className="mt-5 py-2">
           {testimonials.map((testimonial) => (
             <TestimonialCard key={testimonial.id} testimonial={testimonial} />
           ))}
-        </div>
+        </AutoScrollRow>
       )}
     </div>
   );

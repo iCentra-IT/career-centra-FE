@@ -3,12 +3,17 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAdminLearners } from "@/hooks/queries/admin-learners";
-import { useDeleteAdminUser } from "@/hooks/mutations/admin-users";
+import {
+  useDeactivateUser,
+  useReactivateUser,
+  useResendUserVerification,
+  useDeleteUserPermanently,
+} from "@/hooks/mutations/admin-users";
 import { EmptyTableState } from "@/components/ui/empty-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
-import { TrashIcon } from "@/components/ui/trash-icon";
+import { ActionsMenu, type ActionMenuItem } from "@/components/ui/actions-menu";
 import { formatShortDate } from "@/lib/format";
 import type { AdminLearner } from "@/types/learner";
 
@@ -37,17 +42,89 @@ function statusLabel(status: string) {
     .join(" ");
 }
 
+// Deactivate/reactivate/resend-verification/delete are all confirmed real, work on any user type
+// (not just learners), and are distinct endpoints from each other — deactivate is a DELETE verb
+// but only blocks login, it doesn't remove the account; the real delete is a separate endpoint.
+function LearnerActions({ learner, onDeleteRequest }: { learner: AdminLearner; onDeleteRequest: () => void }) {
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const deactivate = useDeactivateUser();
+  const reactivate = useReactivateUser();
+  const resendVerification = useResendUserVerification();
+
+  const handleReactivate = () => {
+    reactivate.mutate(learner.id, {
+      onSuccess: () => toast.success(`${learner.full_name} reactivated.`),
+      onError: (err) => toast.error(err.message),
+    });
+  };
+
+  const handleDeactivate = () => {
+    deactivate.mutate(learner.id, {
+      onSuccess: () => {
+        toast.success(`${learner.full_name} deactivated.`);
+        setConfirmDeactivate(false);
+      },
+      onError: (err) => {
+        toast.error(err.message);
+        setConfirmDeactivate(false);
+      },
+    });
+  };
+
+  const handleResendVerification = () => {
+    resendVerification.mutate(learner.id, {
+      onSuccess: () => toast.success(`Verification email resent to ${learner.email}.`),
+      onError: (err) => toast.error(err.message),
+    });
+  };
+
+  const items: ActionMenuItem[] = [];
+  if (learner.status === "pending_verification") {
+    items.push({
+      label: resendVerification.isPending ? "Sending…" : "Resend Verification",
+      onClick: handleResendVerification,
+      disabled: resendVerification.isPending,
+    });
+  }
+  if (learner.is_active) {
+    items.push({ label: "Deactivate", onClick: () => setConfirmDeactivate(true), tone: "danger" });
+  } else {
+    items.push({
+      label: reactivate.isPending ? "Reactivating…" : "Reactivate",
+      onClick: handleReactivate,
+      disabled: reactivate.isPending,
+      tone: "success",
+    });
+  }
+  items.push({ label: "Delete Permanently", onClick: onDeleteRequest, tone: "danger" });
+
+  return (
+    <>
+      <ActionsMenu items={items} />
+      <ConfirmDeleteModal
+        open={confirmDeactivate}
+        title="Deactivate this account?"
+        description={`${learner.full_name} won't be able to log in until it's reactivated.`}
+        confirmLabel="Deactivate"
+        loading={deactivate.isPending}
+        onConfirm={handleDeactivate}
+        onClose={() => setConfirmDeactivate(false)}
+      />
+    </>
+  );
+}
+
 const AdminUsersPage = () => {
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AdminLearner | null>(null);
   const { data: learners, isLoading } = useAdminLearners();
-  const deleteUser = useDeleteAdminUser();
+  const deleteUser = useDeleteUserPermanently();
 
   const handleDelete = () => {
     if (!deleteTarget) return;
     deleteUser.mutate(deleteTarget.id, {
       onSuccess: () => {
-        toast.success("Account deleted.");
+        toast.success("Account permanently deleted.");
         setDeleteTarget(null);
       },
       onError: (err) => toast.error(err.message),
@@ -111,14 +188,7 @@ const AdminUsersPage = () => {
                     <StatusBadge label={statusLabel(learner.status)} tone={statusTone(learner.status)} />
                   </td>
                   <td className="px-5 py-4">
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(learner)}
-                      className="text-gray-400 hover:text-red-600"
-                      aria-label="Delete account"
-                    >
-                      <TrashIcon />
-                    </button>
+                    <LearnerActions learner={learner} onDeleteRequest={() => setDeleteTarget(learner)} />
                   </td>
                 </tr>
               ))}
@@ -129,8 +199,9 @@ const AdminUsersPage = () => {
 
       <ConfirmDeleteModal
         open={!!deleteTarget}
-        title="Delete account"
-        description={`Are you sure you want to delete "${deleteTarget?.full_name}"? This can't be undone.`}
+        title="Permanently delete account"
+        description={`This will permanently delete "${deleteTarget?.full_name}". This can't be undone — use Deactivate instead if you just want to block their access.`}
+        confirmLabel="Delete Permanently"
         loading={deleteUser.isPending}
         onConfirm={handleDelete}
         onClose={() => setDeleteTarget(null)}

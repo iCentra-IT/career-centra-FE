@@ -19,6 +19,7 @@
   --animate-pop-in: pop-in 0.16s ease-out both;
   --animate-fade-in: fade-in 0.2s ease-out both;
   --animate-modal-in: modal-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-marquee: marquee 38s linear infinite;
 
   @keyframes page-in {
     from { opacity: 0; transform: translateY(8px); }
@@ -35,6 +36,12 @@
   @keyframes modal-in {
     from { opacity: 0; transform: translateY(8px) scale(0.97); }
     to { opacity: 1; transform: none; }
+  }
+  /* Content is rendered twice back-to-back (see AutoScrollRow) so translating exactly -50% — one
+     copy's width — loops seamlessly with no visible jump or gap. */
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
   }
 }
 

@@ -38,9 +38,31 @@ export async function resendAdminUserInvite(id: number): Promise<void> {
   await apiClient.post(`/api/auth/admin/users/${id}/resend-invite/`);
 }
 
-// A separate, unified endpoint (distinct from /api/auth/admin/users/) that deletes any account by
-// id regardless of whether it's a staff/admin user or a learner — matches the "all-users" path,
-// unlike the two type-scoped list endpoints above.
-export async function deleteAdminUser(id: number): Promise<void> {
+// Four endpoints confirmed real and, per the backend team, usable on ANY user type (student,
+// facilitator, staff-admin, admin) — not scoped to the /api/auth/admin/users/ (staff-only) or
+// /api/auth/admin/learners/ (learner-only) surfaces above. Admin/staff-admin only; a staff-admin
+// can't act on a fellow staff-admin or an admin at all (see canManageUser-style scoping at each
+// call site), so that restriction naturally covers "staff-admin can't delete a fellow staff-admin"
+// without needing separate logic here.
+
+// CORRECTION: despite the DELETE verb and the path reading like a delete, this only deactivates
+// the account (blocks login) — it does not remove it. Previously mislabeled here as a real delete.
+export async function deactivateUser(id: number): Promise<void> {
   await apiClient.delete(`/api/auth/admin/all-users/${id}/`);
+}
+
+export async function reactivateUser(id: number): Promise<void> {
+  await apiClient.post(`/api/auth/reactivate/${id}/`);
+}
+
+// Distinct from resendAdminUserInvite above (that one's staff-only, and its link goes to
+// /staff/accept-invite) — this resends the ordinary signup email-verification link and works for
+// any account still in "pending_verification".
+export async function resendUserVerification(id: number): Promise<void> {
+  await apiClient.post(`/api/auth/resend-verification/${id}/`);
+}
+
+// The actual permanent delete — irreversible, unlike deactivateUser above.
+export async function deleteUserPermanently(id: number): Promise<void> {
+  await apiClient.delete(`/api/auth/delete/${id}/`);
 }
