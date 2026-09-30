@@ -1,5 +1,7 @@
 // lib/api/types/user.ts
-export type UserRole = 'student' | 'facilitator' | 'staff-admin' | 'admin';
+// marketer: new role, added for blog access — has its own dashboard at /marketer (blog tools
+// only), distinct from the full admin console at /admin.
+export type UserRole = 'student' | 'facilitator' | 'staff-admin' | 'admin' | 'marketer';
 
 // Roles that land on /admin rather than /students (dashboard/profile links, post-login redirect).
 export function isAdminDashboardRole(role: UserRole) {
@@ -10,6 +12,7 @@ export function isAdminDashboardRole(role: UserRole) {
 export function dashboardHomeFor(role: UserRole): string {
   if (isAdminDashboardRole(role)) return '/admin';
   if (role === 'facilitator') return '/facilitators';
+  if (role === 'marketer') return '/marketer';
   return '/students';
 }
 
@@ -17,6 +20,7 @@ export function dashboardHomeFor(role: UserRole): string {
 export function profilePathFor(role: UserRole): string {
   if (isAdminDashboardRole(role)) return '/admin/profile';
   if (role === 'facilitator') return '/facilitators/settings/profile';
+  if (role === 'marketer') return '/marketer/profile';
   return '/students/profile';
 }
 
@@ -25,6 +29,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   facilitator: 'Facilitator',
   'staff-admin': 'Staff Admin',
   admin: 'Admin',
+  marketer: 'Marketer',
 };
 
 // CSS `capitalize` mangles hyphenated roles like "staff-admin" → "Staff-admin", so display roles

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useLogin } from "@/hooks/mutations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { TurnstileWidget } from "@/components/ui/turnstile-widget";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),
@@ -29,6 +30,7 @@ const LoginForm = () => {
   } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
 
   const { mutate, isPending, error } = useLogin(next);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (!error) return;
@@ -51,7 +53,13 @@ const LoginForm = () => {
     }
   }, [error, setError]);
 
-  const onSubmit = (values: LoginFormValues) => mutate(values);
+  const onSubmit = (values: LoginFormValues) => {
+    if (!captchaToken) {
+      toast.error("Please complete the verification check.");
+      return;
+    }
+    mutate({ ...values, cf_turnstile_response: captchaToken });
+  };
 
   return (
     <div>
@@ -95,6 +103,8 @@ const LoginForm = () => {
             Forget Password?
           </Link>
         </div>
+
+        <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
 
         <Button type="submit" loading={isPending}>
           Login

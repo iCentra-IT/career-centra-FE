@@ -19,7 +19,7 @@
   --animate-pop-in: pop-in 0.16s ease-out both;
   --animate-fade-in: fade-in 0.2s ease-out both;
   --animate-modal-in: modal-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
-  --animate-marquee: marquee 38s linear infinite;
+  --animate-marquee: marquee 70s linear infinite;
 
   @keyframes page-in {
     from { opacity: 0; transform: translateY(8px); }

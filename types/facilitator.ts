@@ -99,6 +99,8 @@ export interface CreateFacilitatorApplicationRequest {
   experience_years: number;
   motivation_statement: string;
   cv_file: File;
+  // Field name UNCONFIRMED — see the matching note on RegisterRequest in types/auth.ts.
+  cf_turnstile_response?: string;
 }
 
 export interface CreateFacilitatorApplicationResponse {

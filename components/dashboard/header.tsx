@@ -4,7 +4,15 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
-import { roleLabel } from "@/types/user";
+import { roleLabel, type UserRole } from "@/types/user";
+
+// On the student's own dashboard chrome, "Student" reads as "Delegate" instead — a program
+// terminology preference, scoped to this one self-display. Admin-facing tables (e.g. the
+// Role-Based Access user list) still show the real "Student" role label, since that's the actual
+// system role admins need to see, not the friendlier public-facing term.
+function dashboardOwnRoleLabel(role: UserRole) {
+  return role === "student" ? "Delegate" : roleLabel(role);
+}
 import { useNotifications } from "@/hooks/queries/notifications";
 import { NotificationsPanel } from "@/components/dashboard/notifications-panel";
 import { useDashboardChromeStore } from "@/lib/store/dashboardChromeStore";
@@ -20,6 +28,11 @@ const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/admin/certificates", title: "Certificates" },
   { pattern: "/admin/exchange-rates", title: "Exchange Rates" },
   { pattern: "/admin/enrollments", title: "Enrolments History" },
+  { pattern: "/admin/blog/categories", title: "Blog Categories" },
+  { pattern: "/admin/blog/comments", title: "Comment Moderation" },
+  { pattern: "/admin/blog/analytics", title: "Blog Analytics" },
+  { pattern: "/admin/blog/newsletter", title: "Newsletter" },
+  { pattern: "/admin/blog", title: "Blog Posts" },
   { pattern: "/admin", title: "Dashboard" },
   { pattern: "/students/enrolments", title: "My Enrolments" },
   { pattern: "/students/schedules", title: "Class Schedule" },
@@ -30,6 +43,12 @@ const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/facilitators/programs", title: "Program" },
   { pattern: "/facilitators/settings", title: "Settings" },
   { pattern: "/facilitators", title: "Dashboard" },
+  { pattern: "/marketer/categories", title: "Blog Categories" },
+  { pattern: "/marketer/comments", title: "Comment Moderation" },
+  { pattern: "/marketer/analytics", title: "Blog Analytics" },
+  { pattern: "/marketer/newsletter", title: "Newsletter" },
+  { pattern: "/marketer/profile", title: "Profile" },
+  { pattern: "/marketer", title: "Blog Posts" },
 ];
 
 type Breadcrumb = { parent: string; parentHref: string; current: string };
@@ -187,7 +206,7 @@ export function Header() {
             <p className="max-w-[10rem] truncate text-sm font-medium text-gray-900">
               {user ? `${user.first_name} ${user.last_name}` : "—"}
             </p>
-            <p className="text-xs text-gray-400">{user ? roleLabel(user.role) : ""}</p>
+            <p className="text-xs text-gray-400">{user ? dashboardOwnRoleLabel(user.role) : ""}</p>
           </div>
         </div>
       </div>

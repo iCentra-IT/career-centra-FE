@@ -14,6 +14,7 @@ import { Modal } from "@/components/ui/modal";
 import { OtpInput } from "@/components/ui/otp-input";
 import { PasswordStrength } from "@/components/ui/password-strength";
 import { IconBadge } from "@/components/ui/icon-badge";
+import { TurnstileWidget } from "@/components/ui/turnstile-widget";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 105;
@@ -53,6 +54,7 @@ const ForgotPasswordPage = () => {
   const [otp, setOtp] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
   const [email, setEmail] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const emailForm = useForm<EmailFormValues>({ resolver: zodResolver(emailSchema) });
   const resetForm = useForm<ResetFormValues>({ resolver: zodResolver(resetSchema) });
@@ -67,15 +69,25 @@ const ForgotPasswordPage = () => {
   }, [otpOpen, secondsLeft]);
 
   const onRequestSubmit = (values: EmailFormValues) => {
+    if (!captchaToken) {
+      toast.error("Please complete the verification check.");
+      return;
+    }
     setEmail(values.email);
-    passwordReset.mutate(values, {
-      onSuccess: () => {
-        setOtp("");
-        setSecondsLeft(RESEND_SECONDS);
-        setOtpOpen(true);
+    passwordReset.mutate(
+      { ...values, cf_turnstile_response: captchaToken },
+      {
+        onSuccess: () => {
+          setOtp("");
+          setSecondsLeft(RESEND_SECONDS);
+          setOtpOpen(true);
+        },
+        onError: (err) => {
+          toast.error(err.message);
+          setCaptchaToken(null);
+        },
       },
-      onError: (err) => toast.error(err.message),
-    });
+    );
   };
 
   const onResend = () => {
@@ -133,6 +145,7 @@ const ForgotPasswordPage = () => {
               error={emailForm.formState.errors.email?.message}
               {...emailForm.register("email")}
             />
+            <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
             <Button type="submit" loading={passwordReset.isPending}>
               Reset Password
             </Button>

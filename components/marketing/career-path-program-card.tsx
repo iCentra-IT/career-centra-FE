@@ -65,7 +65,8 @@ export function CareerPathProgramCard({ program, buttonTone = "cyan", cohort }: 
           )}
         </div>
         <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-glass">
-          <span className="normal-case">{program.code}</span> Certification
+          <span className="normal-case">{program.code}</span>{" "}
+          {program.has_icentra_badge ? "Certificate" : "Certification"}
         </p>
         <h3 className="mt-1 text-base font-semibold">{displayTitle(program.title)}</h3>
         <p className="mt-2 text-sm text-white/70 line-clamp-3">{program.summary}</p>

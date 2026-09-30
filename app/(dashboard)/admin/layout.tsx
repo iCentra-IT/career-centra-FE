@@ -14,6 +14,7 @@ import {
   SettingsIcon,
   StarIcon,
   HandshakeIcon,
+  BlogIcon,
 } from "@/components/dashboard/nav-icons";
 
 const NAV_ITEMS = [
@@ -28,6 +29,18 @@ const NAV_ITEMS = [
   { label: "Coupons", href: "/admin/coupons", icon: <CouponsIcon /> },
   { label: "Referral Partners", href: "/admin/partners", icon: <HandshakeIcon /> },
   { label: "Certificates", href: "/admin/certificates", icon: <CertificatesIcon /> },
+  {
+    label: "Blog",
+    href: "/admin/blog",
+    icon: <BlogIcon />,
+    children: [
+      { label: "Posts", href: "/admin/blog" },
+      { label: "Categories", href: "/admin/blog/categories" },
+      { label: "Comments", href: "/admin/blog/comments" },
+      { label: "Analytics", href: "/admin/blog/analytics" },
+      { label: "Newsletter", href: "/admin/blog/newsletter" },
+    ],
+  },
   {
     label: "Settings",
     href: "/admin/settings",

@@ -2,6 +2,11 @@
 import { Industry, ReferralSource, StudentProfile } from './student';
 import { User } from './user';
 
+// cf_turnstile_response on RegisterRequest/LoginRequest/PasswordResetRequest and the other
+// Cloudflare Turnstile-protected forms: field name UNCONFIRMED — the backend team hasn't said
+// what key it expects the token under yet. Sent as `cf_turnstile_response` (matching Cloudflare's
+// own widget convention — see components/ui/turnstile-widget.tsx's TURNSTILE_FIELD_NAME, the
+// single source of truth every form reads this from) until confirmed otherwise.
 export interface RegisterRequest {
   email: string;
   first_name: string;
@@ -15,6 +20,7 @@ export interface RegisterRequest {
   years_of_experience: number;
   industry: Industry;
   referral_source: ReferralSource;
+  cf_turnstile_response?: string;
 }
 
 export type RegisterResponse = StudentProfile; // matches the "data" you gave earlier
@@ -22,6 +28,7 @@ export type RegisterResponse = StudentProfile; // matches the "data" you gave ea
 export interface LoginRequest {
   email: string;
   password: string;
+  cf_turnstile_response?: string;
 }
 
 export interface LoginResponse {
@@ -55,6 +62,7 @@ export interface ChangePasswordRequest {
 
 export interface PasswordResetRequest {
   email: string;
+  cf_turnstile_response?: string;
 }
 
 export interface PasswordResetConfirmRequest {

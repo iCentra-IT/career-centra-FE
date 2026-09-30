@@ -29,13 +29,15 @@ import type { AdminUser, UserRole, UserStatus } from "@/types/user";
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "student", label: "Student" },
   { value: "facilitator", label: "Facilitator" },
+  { value: "marketer", label: "Marketer" },
   { value: "staff-admin", label: "Staff Admin" },
   { value: "admin", label: "Admin" },
 ];
 
-// Staff-admins only have leverage over facilitator and student accounts — admins and other
-// staff-admins are outside their scope (view-only in the table, can't be assigned via Create/Edit).
-const STAFF_ADMIN_MANAGEABLE_ROLES: UserRole[] = ["student", "facilitator"];
+// Staff-admins only have leverage over facilitator, student and marketer accounts — admins and
+// other staff-admins are outside their scope (view-only in the table, can't be assigned via
+// Create/Edit).
+const STAFF_ADMIN_MANAGEABLE_ROLES: UserRole[] = ["student", "facilitator", "marketer"];
 
 const STATUS_OPTIONS: { value: UserStatus; label: string }[] = [
   { value: "active", label: "Active" },
@@ -111,7 +113,7 @@ const createUserSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),
-  role: z.enum(["student", "facilitator", "staff-admin", "admin"]),
+  role: z.enum(["student", "facilitator", "marketer", "staff-admin", "admin"]),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 type CreateUserFormValues = z.infer<typeof createUserSchema>;

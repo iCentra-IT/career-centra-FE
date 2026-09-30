@@ -128,4 +128,21 @@ export const queryKeys = {
     adminAll: ["referral-partners", "admin"] as const,
     adminDetail: (id: number) => ["referral-partners", "admin", id] as const,
   },
+
+  blog: {
+    landing: ["blog", "landing"] as const,
+    categories: ["blog", "categories"] as const,
+    categoryPosts: (slug: string, page?: number) => ["blog", "categories", slug, page] as const,
+    posts: <T extends object>(filters?: T) => ["blog", "posts", filters] as const,
+    post: (slug: string) => ["blog", "posts", slug] as const,
+    comments: (slug: string) => ["blog", "posts", slug, "comments"] as const,
+    adminPosts: <T extends object>(filters?: T) => ["blog", "admin", "posts", filters] as const,
+    adminComments: <T extends object>(filters?: T) => ["blog", "admin", "comments", filters] as const,
+    analytics: (days?: number | "all") => ["blog", "admin", "analytics", days] as const,
+    newsletterIssues: ["blog", "newsletter", "issues"] as const,
+    newsletterIssue: (id: number) => ["blog", "newsletter", "issues", id] as const,
+    newsletterSubscribers: <T extends object>(filters?: T) =>
+      ["blog", "newsletter", "subscribers", filters] as const,
+    newsletterSummary: ["blog", "newsletter", "summary"] as const,
+  },
 } as const;

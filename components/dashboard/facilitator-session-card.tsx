@@ -1,5 +1,5 @@
 import type { FacilitatorSessionSummary } from "@/types/facilitator";
-import { formatShortDate, formatTimeOfDay } from "@/lib/format";
+import { formatShortDate, formatTimeOfDay, hasSessionEnded } from "@/lib/format";
 
 function JoinIcon() {
   return (
@@ -11,6 +11,8 @@ function JoinIcon() {
 }
 
 export function FacilitatorSessionCard({ session }: { session: FacilitatorSessionSummary }) {
+  const ended = hasSessionEnded(session.date, session.end_time);
+
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 bg-white p-5">
       <div className="min-w-0">
@@ -20,7 +22,7 @@ export function FacilitatorSessionCard({ session }: { session: FacilitatorSessio
           {formatTimeOfDay(session.start_time)}–{formatTimeOfDay(session.end_time)}
         </p>
       </div>
-      {session.meeting_url ? (
+      {session.meeting_url && !ended ? (
         <a
           href={session.meeting_url}
           target="_blank"
@@ -34,7 +36,7 @@ export function FacilitatorSessionCard({ session }: { session: FacilitatorSessio
         <button
           type="button"
           disabled
-          title="Meeting link not available yet"
+          title={ended ? "This session has ended" : "Meeting link not available yet"}
           className="flex shrink-0 items-center gap-2 rounded-full bg-main px-5 py-2.5 text-sm font-medium text-white opacity-60"
         >
           <JoinIcon />

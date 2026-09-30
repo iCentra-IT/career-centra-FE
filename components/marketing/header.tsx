@@ -91,6 +91,7 @@ const NAV_LINKS: NavLink[] = [
   { label: "Home", href: "/", exact: true },
   { label: "Career Paths", href: "/career-paths" },
   { label: "Programs", href: "/programms" },
+  { label: "Blog", href: "/blog" },
   { label: "About", href: "/about", children: ABOUT_LINKS },
   { label: "Speak to Advisor", href: "/contact" },
 ];

@@ -26,8 +26,11 @@ const schema = z.object({
   delivery_mode: z.string().min(1, "Delivery mode is required"),
   location: z.string().optional(),
   seat_capacity: z.coerce.number().min(1, "Class capacity is required"),
-  price_usd: z.coerce.number().min(0, "USD price is required"),
-  price_ngn: z.coerce.number().min(0, "NGN price is required"),
+  // Optional overrides — left blank, the program's own base price applies. An empty string must
+  // stay valid here (not coerced to 0), or leaving the field blank would silently price the
+  // cohort at 0 instead of falling back to the base price.
+  price_usd: z.string().optional(),
+  price_ngn: z.string().optional(),
   facilitator_id: z.string().min(1, "Facilitator is required"),
 });
 type FormValues = z.infer<typeof schema>;
@@ -49,6 +52,8 @@ const CreateCohortPage = () => {
   const onSubmit = (values: FormValues) => {
     const facilitatorId = Number(values.facilitator_id);
     const facilitator = facilitators?.find((f) => f.id === facilitatorId);
+    const priceUsd = values.price_usd?.trim();
+    const priceNgn = values.price_ngn?.trim();
 
     createCohort.mutate(
       {
@@ -60,8 +65,8 @@ const CreateCohortPage = () => {
         delivery_mode: values.delivery_mode,
         location: values.location?.trim() ?? "",
         seat_capacity: values.seat_capacity,
-        price_override_usd: values.price_usd.toFixed(2),
-        price_override_ngn: values.price_ngn.toFixed(2),
+        ...(priceUsd && { price_override_usd: Number(priceUsd).toFixed(2) }),
+        ...(priceNgn && { price_override_ngn: Number(priceNgn).toFixed(2) }),
         facilitators: [facilitatorId],
         facilitator_name: facilitator?.full_name ?? "",
         is_active: true,
@@ -181,8 +186,7 @@ const CreateCohortPage = () => {
             label="Price (USD)"
             type="number"
             step="0.01"
-            // required
-            placeholder="$0.00"
+            placeholder="Optional — defaults to program price"
             error={errors.price_usd?.message}
             {...register("price_usd")}
           />
@@ -190,8 +194,7 @@ const CreateCohortPage = () => {
             label="Price (NGN)"
             type="number"
             step="0.01"
-            // required
-            placeholder="₦0.00"
+            placeholder="Optional — defaults to program price"
             error={errors.price_ngn?.message}
             {...register("price_ngn")}
           />

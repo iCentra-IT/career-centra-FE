@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +12,7 @@ import { usePersistedFormDraft } from "@/hooks/use-persisted-form-draft";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PasswordStrength } from "@/components/ui/password-strength";
+import { TurnstileWidget } from "@/components/ui/turnstile-widget";
 import type { Industry, ReferralSource } from "@/types/student";
 
 const DRAFT_KEY = "registration-draft";
@@ -80,6 +82,7 @@ const STEP1_FIELDS = [
 const RegistrationPage = () => {
   const router = useRouter();
   const [step, setStep] = usePersistedState<"account" | "organisation">(STEP_KEY, "account");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const registerMutation = useRegister();
 
   const form = useForm<RegisterFormValues>({
@@ -105,15 +108,25 @@ const RegistrationPage = () => {
   };
 
   const onSubmit = (values: RegisterFormValues) => {
-    registerMutation.mutate(values, {
-      onSuccess: () => {
-        toast.success("Account created — check your email to verify your address before logging in.");
-        clearPersistedState(DRAFT_KEY);
-        clearPersistedState(STEP_KEY);
-        router.push("/login");
+    if (!captchaToken) {
+      toast.error("Please complete the verification check.");
+      return;
+    }
+    registerMutation.mutate(
+      { ...values, cf_turnstile_response: captchaToken },
+      {
+        onSuccess: () => {
+          toast.success("Account created — check your email to verify your address before logging in.");
+          clearPersistedState(DRAFT_KEY);
+          clearPersistedState(STEP_KEY);
+          router.push("/login");
+        },
+        onError: (err) => {
+          toast.error(err.message);
+          setCaptchaToken(null);
+        },
       },
-      onError: (err) => toast.error(err.message),
-    });
+    );
   };
 
   return (
@@ -272,6 +285,8 @@ const RegistrationPage = () => {
                 )}
               </div>
             </div>
+
+            <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} className="mt-6" />
 
             <Button type="submit" loading={registerMutation.isPending} className="mt-6">
               Continue

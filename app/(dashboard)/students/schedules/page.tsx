@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useStudentSchedule } from "@/hooks/queries/students";
 import { RowCardSkeleton } from "@/components/ui/skeleton";
-import { formatDateRange } from "@/lib/format";
+import { formatDateRange, hasSessionEnded } from "@/lib/format";
 import type { ScheduleItem } from "@/types/student";
 
 function VideoIcon() {
@@ -103,32 +103,37 @@ function CohortScheduleBlock({ item }: { item: ScheduleItem }) {
         {visibleSessions.length === 0 && (
           <p className="text-sm text-gray-400">No sessions scheduled yet.</p>
         )}
-        {visibleSessions.map((session) => (
-          <div
-            key={session.id}
-            className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 p-4"
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-900">{session.title}</p>
-              <p className="mt-1 truncate text-xs text-gray-500">
-                {session.program_title} · {session.date} · {session.start_time}-{session.end_time} WAT
-              </p>
+        {visibleSessions.map((session) => {
+          const ended = hasSessionEnded(session.date, session.end_time);
+          return (
+            <div
+              key={session.id}
+              className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 p-4"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-900">{session.title}</p>
+                <p className="mt-1 truncate text-xs text-gray-500">
+                  {session.program_title} · {session.date} · {session.start_time}-{session.end_time} WAT
+                </p>
+              </div>
+              {session.meeting_url && !ended ? (
+                <a
+                  href={session.meeting_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex shrink-0 items-center gap-1.5 rounded-full bg-main px-4 py-2 text-sm font-medium text-white hover:bg-deep-blue"
+                >
+                  <VideoIcon />
+                  Join
+                </a>
+              ) : (
+                <span className="shrink-0 text-xs text-gray-400">
+                  {ended ? "Session ended" : "Link not available"}
+                </span>
+              )}
             </div>
-            {session.meeting_url ? (
-              <a
-                href={session.meeting_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-main px-4 py-2 text-sm font-medium text-white hover:bg-deep-blue"
-              >
-                <VideoIcon />
-                Join
-              </a>
-            ) : (
-              <span className="shrink-0 text-xs text-gray-400">Link not available</span>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

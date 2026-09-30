@@ -11,10 +11,25 @@ import { ProgramCard } from "@/components/marketing/program-card";
 import { CardGridSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { matchPathwayCategory } from "@/lib/pathways";
 import Image from "next/image";
-import { Reveal, staggerDelay } from "@/components/motion/reveal";
+import { Reveal, RevealGroup, RevealItem, staggerDelay } from "@/components/motion/reveal";
 import { TestimonialCard } from "@/components/marketing/testimonial-card";
 import { AutoScrollRow } from "@/components/marketing/auto-scroll-row";
+import { BlogPostCard } from "@/components/marketing/blog-post-card";
 import { usePublicProgramReviews } from "@/hooks/queries/testimonials";
+import { useBlogLanding } from "@/hooks/queries/blog";
+
+// Module-level (not inlined in the component) since React Compiler flags a direct Math.random()
+// call in a component body as impure — same reasoning as isBookableCohort in
+// program-detail-content.tsx. Called from useMemo below so it only re-shuffles when the fetched
+// reviews actually change, not on every render.
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
 
 function BriefcaseIcon() {
   return (
@@ -308,7 +323,10 @@ const HomePage = () => {
   const featured = programs?.results?.slice(0, 4) ?? [];
 
   const { data: reviewsData, isLoading: reviewsLoading } = usePublicProgramReviews();
-  const reviews = reviewsData?.results ?? [];
+  const reviews = useMemo(() => shuffle(reviewsData?.results ?? []), [reviewsData]);
+
+  const { data: blogLanding, isLoading: blogLoading } = useBlogLanding();
+  const featuredPosts = blogLanding?.featured_posts ?? [];
 
   return (
     <div>
@@ -688,6 +706,31 @@ const HomePage = () => {
           </AutoScrollRow>
         )}
       </Reveal>
+
+      {/* From the Blog */}
+      {!blogLoading && featuredPosts.length > 0 && (
+        <Reveal as="section" className="mx-auto max-w-6xl px-6 py-16">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-secondary">From the Blog</p>
+              <h2 className="mt-2 text-3xl font-semibold text-gray-900">Insights for Your Career Journey</h2>
+            </div>
+            <Link href="/blog" className="hidden text-sm font-medium text-secondary hover:underline sm:inline">
+              Visit the Blog →
+            </Link>
+          </div>
+          <RevealGroup className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredPosts.slice(0, 3).map((post) => (
+              <RevealItem key={post.id} className="[&>*]:h-full">
+                <BlogPostCard post={post} className="h-full" />
+              </RevealItem>
+            ))}
+          </RevealGroup>
+          <Link href="/blog" className="mt-6 block text-center text-sm font-medium text-secondary hover:underline sm:hidden">
+            Visit the Blog →
+          </Link>
+        </Reveal>
+      )}
 
       {/* CTA: advisor */}
       <Reveal as="section" className="mx-auto max-w-6xl px-6 pb-6">

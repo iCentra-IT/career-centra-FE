@@ -14,16 +14,20 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 // img-src stays broad (https: data: blob:) because programs/reviews/badges embed arbitrary
 // admin-supplied image URLs from whatever host the backend hands back (see the
 // no-next/image-domains comments next to those <img> tags) — there's no fixed CDN domain to
-// allowlist instead. frame-src is scoped to youtube-nocookie.com for the review video embeds
-// (components/marketing/review-video.tsx / lib/youtube.ts).
+// allowlist instead. frame-src covers youtube-nocookie.com (review video embeds — see
+// components/marketing/review-video.tsx / lib/youtube.ts) and challenges.cloudflare.com
+// (Cloudflare Turnstile's widget iframe — see components/ui/turnstile-widget.tsx). Turnstile's
+// own script also needs an explicit script-src entry, confirmed live: without it the browser
+// blocks "https://challenges.cloudflare.com/turnstile/v0/api.js" outright and the widget never
+// renders at all (script-src has no fallback to default-src once it's set explicitly).
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' https: data: blob:;
   font-src 'self' data:;
-  connect-src 'self' ${apiBaseUrl};
-  frame-src https://www.youtube-nocookie.com;
+  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com;
+  frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com;
   object-src 'none';
   base-uri 'self';
   form-action 'self';

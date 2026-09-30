@@ -81,7 +81,8 @@ function GuestItemCard({ item, onRemove }: { item: CartItem; onRemove: () => voi
           {item.badge}
         </span>
         <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-glass">
-          <span className="normal-case">{item.code}</span> Certification
+          <span className="normal-case">{item.code}</span>{" "}
+          {item.badge === "iCentra Authorized" ? "Certificate" : "Certification"}
         </p>
         <h3 className="mt-1 pr-6 text-base font-semibold">{displayTitle(item.title)}</h3>
         <p className="mt-2 text-sm text-white/70 line-clamp-3">{item.summary}</p>

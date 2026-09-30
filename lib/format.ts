@@ -27,6 +27,25 @@ export function formatTimeOfDay(value: string): string {
   return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
+// Combines a session's date-only `date` with the leading HH:MM of its end_time (same oddly-
+// serialized field formatTimeOfDay works around above) to decide whether the session is over —
+// used to disable its "Join" button once the meeting has ended. Built from local date/time
+// components (not `new Date(date)`, which parses a bare "YYYY-MM-DD" as UTC midnight) so this
+// can't be off by a few hours depending on the visitor's timezone.
+export function hasSessionEnded(date: string, endTime: string): boolean {
+  const timeMatch = endTime.match(/^(\d{2}):(\d{2})/);
+  const dateMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!timeMatch || !dateMatch) return false;
+  const end = new Date(
+    Number(dateMatch[1]),
+    Number(dateMatch[2]) - 1,
+    Number(dateMatch[3]),
+    Number(timeMatch[1]),
+    Number(timeMatch[2]),
+  );
+  return Date.now() > end.getTime();
+}
+
 export function formatShortDate(iso: string) {
   const date = new Date(iso);
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });

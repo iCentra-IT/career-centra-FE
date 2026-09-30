@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
+import { NewsletterForm } from "@/components/marketing/newsletter-form";
 
 const PROGRAM_LINKS = [
   { label: "Project Management", href: `/programms?track=${encodeURIComponent(PATHWAY_CATEGORIES[0].programType)}` },
@@ -23,6 +24,7 @@ const COMPANY_LINKS = [
   { label: "About CareerCentra", href: "/about" },
   { label: "Why CareerCentra", href: "/why-careercentra" },
   { label: "Partnerships", href: "/partnerships" },
+  { label: "Blog", href: "/blog" },
   { label: "Become a Facilitator", href: "/facilitator" },
 ];
 
@@ -108,11 +110,21 @@ export function MarketingFooter() {
   return (
     <footer className="bg-deep-blue px-6 py-14 text-white">
       <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
+        <div className="flex flex-col items-start justify-between gap-6 border-b border-white/10 pb-10 sm:flex-row sm:items-center">
+          <div>
+            <h3 className="text-base font-semibold text-white">Get career insights in your inbox</h3>
+            <p className="mt-1 text-sm text-white/60">
+              New CareerCentra articles, certification tips and program updates — no spam.
+            </p>
+          </div>
+          <NewsletterForm theme="dark" className="w-full sm:max-w-sm" />
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-sm text-white/60">
-              Globally aligned certifications, executive programs, and workforce capability
+              Globally aligned certifications and
               solutions that deliver measurable business outcomes.
             </p>
             <div className="mt-5 flex items-center gap-3">

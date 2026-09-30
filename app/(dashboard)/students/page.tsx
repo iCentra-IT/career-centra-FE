@@ -7,7 +7,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ListRowSkeleton } from "@/components/ui/skeleton";
-import { formatDateRange } from "@/lib/format";
+import { formatDateRange, hasSessionEnded } from "@/lib/format";
 
 function JoinIcon() {
   return (
@@ -79,32 +79,37 @@ const StudentOverviewPage = () => {
               {!isLoading && data?.upcoming_sessions?.length === 0 && (
                 <p className="text-sm text-gray-400">No upcoming sessions.</p>
               )}
-              {data?.upcoming_sessions?.map((session) => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-5"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{session.title}</p>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {session.program_title} · {session.date} · {session.start_time}-{session.end_time}
-                    </p>
+              {data?.upcoming_sessions?.map((session) => {
+                const ended = hasSessionEnded(session.date, session.end_time);
+                return (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-5"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{session.title}</p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {session.program_title} · {session.date} · {session.start_time}-{session.end_time}
+                      </p>
+                    </div>
+                    {session.meeting_url && !ended ? (
+                      <a
+                        href={session.meeting_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex shrink-0 items-center gap-2 rounded-full bg-main px-4 py-2 text-sm font-medium text-white hover:bg-deep-blue"
+                      >
+                        <JoinIcon />
+                        Join
+                      </a>
+                    ) : (
+                      <span className="shrink-0 text-xs text-gray-400">
+                        {ended ? "Session ended" : "Link not available"}
+                      </span>
+                    )}
                   </div>
-                  {session.meeting_url ? (
-                    <a
-                      href={session.meeting_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex shrink-0 items-center gap-2 rounded-full bg-main px-4 py-2 text-sm font-medium text-white hover:bg-deep-blue"
-                    >
-                      <JoinIcon />
-                      Join
-                    </a>
-                  ) : (
-                    <span className="shrink-0 text-xs text-gray-400">Link not available</span>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
 

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { TurnstileWidget } from "@/components/ui/turnstile-widget";
 import { TagListField } from "@/components/dashboard/tag-list-field";
 import { FacilitatorAvatar, FacilitatorDetailModal } from "@/components/marketing/facilitator-detail";
 import { useApprovedFacilitators } from "@/hooks/queries/facilitator-profiles";
@@ -96,6 +97,7 @@ const FacilitatorPage = () => {
   const [domainAreasError, setDomainAreasError] = useState<string | undefined>();
   const [certificationsError, setCertificationsError] = useState<string | undefined>();
   const [selectedFacilitator, setSelectedFacilitator] = useState<ApprovedFacilitator | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const { data: facilitators, isLoading: facilitatorsLoading } = useApprovedFacilitators();
   const createApplication = useCreateFacilitatorApplication();
 
@@ -137,6 +139,10 @@ const FacilitatorPage = () => {
       setCertificationsError("Add at least one credential");
       valid = false;
     }
+    if (!captchaToken) {
+      toast.error("Please complete the verification check.");
+      valid = false;
+    }
     if (!valid || !cvFile) return;
 
     const payload: CreateFacilitatorApplicationRequest = {
@@ -144,6 +150,7 @@ const FacilitatorPage = () => {
       domain_areas: domains,
       certifications_held: certifications,
       cv_file: cvFile,
+      cf_turnstile_response: captchaToken ?? undefined,
     };
 
     createApplication.mutate(payload, {
@@ -153,8 +160,12 @@ const FacilitatorPage = () => {
         setCvFile(null);
         setDomainAreas([""]);
         setCertificationsHeld([""]);
+        setCaptchaToken(null);
       },
-      onError: (err) => toast.error(err.message),
+      onError: (err) => {
+        toast.error(err.message);
+        setCaptchaToken(null);
+      },
     });
   };
 
@@ -380,6 +391,8 @@ const FacilitatorPage = () => {
                 !cvFile && <p className="text-xs text-gray-400">Resume/CV is required (PDF or Word, max 5MB).</p>
               )}
             </div>
+
+            <TurnstileWidget onVerify={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
 
             <Button type="submit" loading={createApplication.isPending} className="mt-1">
               Submit Application
