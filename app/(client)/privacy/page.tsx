@@ -1,10 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { InfoHero } from "@/components/marketing/info-page";
 import { Reveal } from "@/components/motion/reveal";
 
-export const metadata = {
-  title: "Privacy Policy | CareerCentra",
+export const metadata: Metadata = {
+  title: "Privacy Policy",
   description: "How CareerCentra collects, uses, and protects your personal data under the NDPA 2023.",
+  alternates: { canonical: "/privacy" },
 };
 
 function Section({

@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { CheckoutSuccessContent } from "@/components/marketing/checkout-success-content";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 // The payment gateway's redirect_url is configured as the backend's own /api/checkout/confirm/
 // (confirmed by a live sample — see hosted_pay's redirect_url), which verifies the charge and 302s

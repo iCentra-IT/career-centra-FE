@@ -14,7 +14,7 @@ import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { formatOrdinalDateTime } from "@/lib/format";
 import type { ReferralPartner } from "@/types/referral-partner";
 
-const COLUMNS = ["Partner", "Coupon Code", "Contact Email", "Status", "Updated", "Action"];
+const COLUMNS = ["Partner", "Coupon Code", "Contact Email", "Currency", "Status", "Updated", "Action"];
 
 const AdminReferralPartnersPage = () => {
   const { data: partners, isLoading } = useReferralPartners();
@@ -78,6 +78,7 @@ const AdminReferralPartnersPage = () => {
                 </td>
                 <td className="px-5 py-4 text-gray-600">{partner.coupon_code}</td>
                 <td className="px-5 py-4 text-gray-600">{partner.contact_email || "—"}</td>
+                <td className="px-5 py-4 text-gray-600">{partner.default_currency || "—"}</td>
                 <td className="px-5 py-4">
                   {partner.is_active ? (
                     <StatusBadge label="Active" tone="green" />

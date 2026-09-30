@@ -1,7 +1,15 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { CtaBand, InfoHero, SectionIntro } from "@/components/marketing/info-page";
 import { PARTNERS, type Partner } from "@/lib/partners";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+
+export const metadata: Metadata = {
+  title: "Partnerships",
+  description:
+    "CareerCentra is a PMI Authorized Training Partner and PECB Authorized Training Provider, delivering globally recognized certifications through official accreditation partnerships.",
+  alternates: { canonical: "/partnerships" },
+};
 
 const PARTNER_COPY: Record<Partner["id"], { meaning: string; issuedBy: string }> = {
   pmi: {

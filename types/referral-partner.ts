@@ -12,6 +12,7 @@ export interface ReferralPartner {
   slug: string;
   coupon_code: string; // the underlying coupon's code — read-only here, set via `coupon` on write
   contact_email: string;
+  default_currency: string; // e.g. "NGN" | "USD" — confirmed via PATCH /api/coupons/admin/partners/{id}/
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -28,7 +29,17 @@ export interface CreateReferralPartnerRequest {
   is_active: boolean;
 }
 
-export type PatchReferralPartnerRequest = Partial<CreateReferralPartnerRequest>;
+// Confirmed via a real sample from the backend team: unlike CreateReferralPartnerRequest, PATCH
+// doesn't re-link the coupon by id — it takes a nested (partial) coupon object and updates that
+// coupon's own fields in place, same shape as OnboardPartnerCoupon below.
+export interface PatchReferralPartnerRequest {
+  name?: string;
+  slug?: string;
+  contact_email?: string;
+  default_currency?: string;
+  is_active?: boolean;
+  coupon?: Partial<OnboardPartnerCoupon>;
+}
 
 // The coupon shape embedded in POST /api/coupons/admin/partners/onboard/ — now confirmed
 // identical to the plain CreateCouponRequest (types/coupon.ts), including max_uses_per_user and

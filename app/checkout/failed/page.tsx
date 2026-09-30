@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { CheckoutFailedContent } from "@/components/marketing/checkout-failed-content";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 // See app/checkout/success/page.tsx for why this route exists — this is the backend's real
 // failure redirect target, confirmed live with reason codes order_not_found, payment_incomplete

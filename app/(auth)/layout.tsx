@@ -1,5 +1,12 @@
 import Image from "next/image";
 import React from "react";
+import type { Metadata } from "next";
+
+// Login/registration/forgot-password/verify-email — no value indexed, and a search result linking
+// straight into an auth form is a bad landing experience anyway.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 function Logo() {
   return (

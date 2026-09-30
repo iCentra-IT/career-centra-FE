@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { CheckIcon, CtaBand, InfoHero, SectionIntro } from "@/components/marketing/info-page";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+
+export const metadata: Metadata = {
+  title: "Why CareerCentra",
+  description:
+    "Globally recognized certifications, expert-led programs, and practical, career-relevant training — see what sets CareerCentra apart.",
+  alternates: { canonical: "/why-careercentra" },
+};
 
 const REASONS = [
   {

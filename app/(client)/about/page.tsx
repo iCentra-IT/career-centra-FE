@@ -1,8 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { CheckIcon, CtaBand, InfoHero, SectionIntro } from "@/components/marketing/info-page";
 import { PARTNERS } from "@/lib/partners";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+
+export const metadata: Metadata = {
+  title: "About CareerCentra",
+  description:
+    "CareerCentra is an iCentra brand with 16+ years of enterprise transformation experience, delivering PMI, PECB and Microsoft-authorized training across 3 continents.",
+  alternates: { canonical: "/about" },
+};
 
 const STATS = [
   { value: "16+", label: "Years of Learning & Transformation Experience" },

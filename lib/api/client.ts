@@ -7,6 +7,7 @@ import {
   useAuthStore,
 } from "../store/authStore";
 import { ApiErrorResponse, normalizeError } from "@/types/api";
+import { getPersistedPartnerSlug } from "../referral-partner-session";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -14,10 +15,21 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
+// Endpoints the persisted partner referral applies to — catalog browsing, cart, and checkout
+// (checkout lives under /api/cart/checkout/, so the /api/cart prefix already covers it).
+const PARTNER_REFERRAL_URL_PREFIXES = ["/api/programs", "/api/cart"];
+
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken();
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  const url = config.url ?? "";
+  if (PARTNER_REFERRAL_URL_PREFIXES.some((prefix) => url.startsWith(prefix))) {
+    const partnerSlug = getPersistedPartnerSlug();
+    if (partnerSlug && config.headers) {
+      config.headers["X-Partner-Referral"] = partnerSlug;
+    }
   }
   return config;
 });

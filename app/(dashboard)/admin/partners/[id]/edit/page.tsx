@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSkeleton } from "@/components/ui/skeleton";
 
+const CURRENCY_OPTIONS = ["USD", "NGN"];
+
 const schema = z.object({
   name: z.string().min(1, "Partner name is required"),
   slug: z
@@ -20,7 +23,7 @@ const schema = z.object({
     .min(1, "Slug is required")
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and hyphens only"),
   contact_email: z.string().email("Enter a valid email address").optional().or(z.literal("")),
-  coupon_id: z.string().min(1, "Select the coupon this partner uses"),
+  default_currency: z.string().optional(),
   is_active: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
@@ -30,9 +33,11 @@ const EditReferralPartnerPage = () => {
   const partnerId = Number(params.id);
   const router = useRouter();
   const { data: partner, isLoading } = useReferralPartner(partnerId);
+  // The read side only exposes the coupon's code, not its id — best-effort match it against the
+  // admin coupon list so the "edit terms" link below can point straight at it.
   const { data: coupons } = useCoupons();
+  const matchedCoupon = coupons?.find((c) => c.code === partner?.coupon_code);
   const patchPartner = usePatchReferralPartner(partnerId);
-  const [couponTouched, setCouponTouched] = useState(false);
 
   const {
     register,
@@ -42,18 +47,15 @@ const EditReferralPartnerPage = () => {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   useEffect(() => {
-    if (!partner || !coupons) return;
-    // The read side only exposes the coupon's code, not its id — best-effort match it against the
-    // admin coupon list to preselect the right one in the dropdown.
-    const matched = coupons.find((c) => c.code === partner.coupon_code);
+    if (!partner) return;
     reset({
       name: partner.name,
       slug: partner.slug,
       contact_email: partner.contact_email,
-      coupon_id: matched ? String(matched.id) : "",
+      default_currency: partner.default_currency || "USD",
       is_active: partner.is_active,
     });
-  }, [partner, coupons, reset]);
+  }, [partner, reset]);
 
   const onSubmit = (values: FormValues) => {
     patchPartner.mutate(
@@ -61,7 +63,7 @@ const EditReferralPartnerPage = () => {
         name: values.name.trim(),
         slug: values.slug.trim(),
         contact_email: values.contact_email?.trim() ?? "",
-        coupon: Number(values.coupon_id),
+        default_currency: values.default_currency || "USD",
         is_active: values.is_active,
       },
       {
@@ -81,7 +83,7 @@ const EditReferralPartnerPage = () => {
     <div className="max-w-2xl">
       <h1 className="text-lg font-semibold text-gray-900">Edit Referral Partner</h1>
       <p className="mt-1 text-sm text-gray-500">
-        Update the partner&apos;s identity, public slug, and linked coupon.
+        Update the partner&apos;s identity, public slug, and default currency.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-5">
@@ -95,26 +97,35 @@ const EditReferralPartnerPage = () => {
         />
 
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-900">
-            Coupon <span className="text-secondary">*</span>
-          </label>
+          <label className="text-sm text-gray-900">Default Currency</label>
           <select
             className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
-            {...register("coupon_id", { onChange: () => setCouponTouched(true) })}
+            {...register("default_currency")}
           >
-            <option value="" disabled>
-              Select coupon
-            </option>
-            {coupons?.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.code} — {c.description || "No description"}
+            {CURRENCY_OPTIONS.map((c) => (
+              <option key={c} value={c}>
+                {c}
               </option>
             ))}
           </select>
-          {!couponTouched && (
-            <p className="text-xs text-gray-400">Currently: {partner.coupon_code}</p>
-          )}
-          {errors.coupon_id && <p className="text-xs text-red-500">{errors.coupon_id.message}</p>}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-gray-900">Coupon</p>
+          <p className="text-xs text-gray-400">
+            {partner.coupon_code}
+            {matchedCoupon && (
+              <>
+                {" — "}
+                <Link
+                  href={`/admin/coupons/${matchedCoupon.id}/edit`}
+                  className="font-medium text-secondary hover:underline"
+                >
+                  Edit discount terms
+                </Link>
+              </>
+            )}
+          </p>
         </div>
 
         <label className="flex items-center gap-2 text-sm text-gray-700">
