@@ -20,14 +20,20 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 // own script also needs an explicit script-src entry, confirmed live: without it the browser
 // blocks "https://challenges.cloudflare.com/turnstile/v0/api.js" outright and the widget never
 // renders at all (script-src has no fallback to default-src once it's set explicitly).
+//
+// googletagmanager.com in script-src loads gtm.js itself (see the <GoogleTagManager> in
+// app/layout.tsx); google-analytics.com (plus its region-pinned subdomains, e.g.
+// region1.google-analytics.com) in connect-src is where the GA4 tag configured inside that GTM
+// container actually sends hits — same "blocked outright, not just a console warning" story as
+// Turnstile above if either is missing.
 
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' https: data: blob:;
   font-src 'self' data:;
-  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com;
+  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com;
   frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com;
   object-src 'none';
   base-uri 'self';
@@ -74,21 +80,21 @@ const nextConfig: NextConfig = {
   // Canonicalizes the apex domain — metadataBase/sitemap.ts/robots.ts (app/layout.tsx) all assume
   // the bare domain, so a visit to the www host gets 301'd there instead of serving duplicate
   // content under two hosts.
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [
-          {
-            type: "host",
-            value: "www.careercentra.icentra.com",
-          },
-        ],
-        destination: "https://careercentra.icentra.com/:path*",
-        permanent: true,
-      },
-    ];
-  },
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: "/:path*",
+  //       has: [
+  //         {
+  //           type: "host",
+  //           value: "www.careercentra.icentra.com",
+  //         },
+  //       ],
+  //       destination: "https://careercentra.icentra.com/:path*",
+  //       permanent: true,
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;

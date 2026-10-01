@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import { GoogleTagManager } from "@next/third-parties/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
 const SITE_URL = "https://careercentra.icentra.com";
 const SITE_NAME = "CareerCentra";
+// GA4 (G-3DCVQ0ECY2) is configured as a tag INSIDE this GTM container, not loaded separately here
+// — Google's own guidance once GTM is already in place, since loading gtag.js directly alongside
+// GTM double-fires pageviews/events. See the GA4 Configuration tag in the GTM workspace.
+const GTM_ID = "GTM-T492M9HH";
 const DEFAULT_DESCRIPTION =
   "CareerCentra is iCentra's career advancement platform — globally aligned certifications, executive programs, and workforce capability training in project management, agile, cybersecurity, AI and digital transformation.";
 
@@ -84,8 +89,22 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
         />
       </head>
+      <GoogleTagManager gtmId={GTM_ID} />
       <Providers>
-        <body>{children}</body>
+        <body>
+          {/* Noscript fallback for GTM — the GoogleTagManager component above only injects the
+              <script> tags, not this; Google's own snippet calls for it as early in <body> as
+              possible. */}
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+          {children}
+        </body>
       </Providers>
     </html>
   );
