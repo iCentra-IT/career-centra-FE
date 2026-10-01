@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { PublicProgramListing, programOrCohortPrice } from "@/types/programs";
 import type { Cohort } from "@/types/cohort";
-import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
+import { displayTitle, formatShortDate } from "@/lib/format";
 import { BadgeIcon } from "@/components/ui/badge-icon";
+import { ReferralPrice } from "@/components/marketing/referral-price";
 
 interface ProgramCardProps {
   program: PublicProgramListing;
@@ -77,7 +78,13 @@ export function ProgramCard({ program, buttonTone = "cyan", cohort }: ProgramCar
           <p className="inline-block rounded-md bg-white/10 px-3 py-1.5 text-xs text-white/80">
             {cohort ? `Starts ${formatShortDate(cohort.starts_on)}` : "Cohort dates coming soon"}
           </p>
-          <p className="text-sm font-semibold text-white">{formatMoney(price.amount, price.currency)}</p>
+          <ReferralPrice
+            referral={program.referral}
+            amount={price.amount}
+            currency={price.currency}
+            className="text-sm font-semibold text-white"
+            strikeClassName="text-xs font-normal text-white/50 line-through"
+          />
         </div>
         {cohort?.is_nearly_full && (
           <p className="mt-2 text-xs text-amber-300">

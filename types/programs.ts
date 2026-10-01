@@ -34,6 +34,25 @@ export type ProgramAudience = 'individual' | 'corporate' | 'executive' | string;
 
 export type PurchaseMode = 'direct' | 'quote' | string;
 
+// Present on a program (list or detail) whenever the request carried a matching
+// X-Partner-Referral header (see lib/api/client.ts / lib/referral-partner-session.ts) — confirmed
+// real shape from a live GET /api/programs/?referral_partner=<slug> and GET /api/programs/{slug}/
+// capture. The object itself is sent on EVERY program once the header is active, even ones the
+// partner's coupon doesn't apply to (not in applicable_program_ids, no blanket discount) — those
+// come back with the price fields null rather than the object being omitted, confirmed by a real
+// runtime crash on a homepage program outside any partner's catalog. original_price/discounted_price
+// are already in pinned_currency (same as the program's own display currency in every sample so
+// far) when non-null, so they can be formatted directly without re-deriving from pricing_mode.
+export interface ProgramReferralPricing {
+  partner_slug: string;
+  partner_name: string;
+  pinned_currency: string;
+  pricing_pinned: boolean;
+  original_price: string | null;
+  discount_amount: string | null;
+  discounted_price: string | null;
+}
+
 // Confirmed query params for GET /api/programs/ (the public catalog listing).
 export interface ProgramListFilters {
   search?: string;
@@ -116,6 +135,9 @@ export interface PublicProgramListing {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Only present when the request carried X-Partner-Referral for an active partner — see
+  // ProgramReferralPricing above.
+  referral?: ProgramReferralPricing;
 }
 
 // The price/currency to display for a given pricing_mode, computed rather than trusted from a
@@ -205,6 +227,10 @@ export interface ProgramListItem {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Confirmed real on GET /api/programs/{slug}/ when X-Partner-Referral matched — but it rides
+  // outside the {success, message, data} envelope as a sibling of `data`, not inside it, so
+  // getProgram() (lib/api/programs) merges it onto the returned object itself.
+  referral?: ProgramReferralPricing;
 }
 
 export interface ProgramPrerequisite {

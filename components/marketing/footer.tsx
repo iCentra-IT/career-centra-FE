@@ -24,7 +24,7 @@ const COMPANY_LINKS = [
   { label: "About CareerCentra", href: "/about" },
   { label: "Why CareerCentra", href: "/why-careercentra" },
   { label: "Partnerships", href: "/partnerships" },
-  { label: "Blog", href: "/blog" },
+  // Blog temporarily hidden — see the matching note in components/marketing/header.tsx.
   { label: "Become a Facilitator", href: "/facilitator" },
 ];
 

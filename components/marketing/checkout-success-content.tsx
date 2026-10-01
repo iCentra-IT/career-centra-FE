@@ -7,6 +7,7 @@ import { queryKeys } from "@/lib/api/query-keys";
 import { Button } from "@/components/ui/button";
 import { CartOrderConfirm } from "@/components/marketing/cart-order-confirm";
 import { ConfirmShell } from "@/components/marketing/checkout-confirm-shell";
+import { clearPersistedPartnerSlug } from "@/lib/referral-partner-session";
 
 // The gateway's redirect_url is the backend itself (/api/checkout/confirm/, confirmed live), which
 // verifies the payment server-side and only then 302s the browser on to here — so unlike the old
@@ -24,6 +25,13 @@ export function CheckoutSuccessContent() {
     }
   });
   const ranOnce = useRef(false);
+
+  // This screen only renders once the backend has already verified the payment (see the file
+  // comment above) — a confirmed purchase, so the referral has done its job and shouldn't keep
+  // discounting whatever the visitor buys next.
+  useEffect(() => {
+    clearPersistedPartnerSlug();
+  }, []);
 
   useEffect(() => {
     if (ranOnce.current || (orderId && Number.isFinite(orderId))) return; // CartOrderConfirm invalidates its own queries

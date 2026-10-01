@@ -20,6 +20,7 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 // own script also needs an explicit script-src entry, confirmed live: without it the browser
 // blocks "https://challenges.cloudflare.com/turnstile/v0/api.js" outright and the widget never
 // renders at all (script-src has no fallback to default-src once it's set explicitly).
+
 const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""};
@@ -66,6 +67,25 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
           },
         ],
+      },
+    ];
+  },
+
+  // Canonicalizes the apex domain — metadataBase/sitemap.ts/robots.ts (app/layout.tsx) all assume
+  // the bare domain, so a visit to the www host gets 301'd there instead of serving duplicate
+  // content under two hosts.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.careercentra.icentra.com",
+          },
+        ],
+        destination: "https://careercentra.icentra.com/:path*",
+        permanent: true,
       },
     ];
   },

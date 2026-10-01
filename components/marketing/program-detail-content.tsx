@@ -7,7 +7,8 @@ import { useCohortsByProgram } from "@/hooks/queries/cohort";
 import { useRelatedPathPrograms } from "@/hooks/queries/career-paths";
 import type { Cohort } from "@/types/cohort";
 import { programOrCohortPrice } from "@/types/programs";
-import { displayTitle, formatShortDate, formatMoney } from "@/lib/format";
+import { displayTitle, formatShortDate } from "@/lib/format";
+import { ReferralPrice } from "@/components/marketing/referral-price";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { getYouTubeVideoId } from "@/lib/youtube";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -275,7 +276,13 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
           </div>
 
           <div className="h-fit rounded-2xl bg-white p-6 text-gray-900">
-            <p className="text-3xl font-bold text-main">{formatMoney(price.amount, price.currency)}</p>
+            <ReferralPrice
+              referral={program.referral}
+              amount={price.amount}
+              currency={price.currency}
+              className="text-3xl font-bold text-main"
+              strikeClassName="text-sm font-normal text-gray-400 line-through"
+            />
             <p className="text-xs text-gray-400">per person</p>
 
             <div className="mt-5 flex flex-col gap-3 border-t border-gray-100 pt-4 text-sm">
@@ -520,9 +527,13 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                         </p>
                         <p>
                           <span className="text-gray-400">Price:</span>{" "}
-                          <span className="font-semibold text-main">
-                            {formatMoney(cohortPrice.amount, cohortPrice.currency)}
-                          </span>
+                          <ReferralPrice
+                            referral={program.referral}
+                            amount={cohortPrice.amount}
+                            currency={cohortPrice.currency}
+                            className="font-semibold text-main"
+                            strikeClassName="text-xs font-normal text-gray-400 line-through"
+                          />
                         </p>
                       </div>
                       <AddToCartButton
@@ -563,7 +574,13 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                             </span>
                           </td>
                           <td className="px-5 py-4 text-gray-900">
-                            {formatMoney(cohortPrice.amount, cohortPrice.currency)}
+                            <ReferralPrice
+                              referral={program.referral}
+                              amount={cohortPrice.amount}
+                              currency={cohortPrice.currency}
+                              className="font-medium text-gray-900"
+                              strikeClassName="text-xs font-normal text-gray-400 line-through"
+                            />
                           </td>
                           <td className="px-5 py-4">
                             <AddToCartButton

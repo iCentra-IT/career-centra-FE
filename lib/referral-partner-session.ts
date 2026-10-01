@@ -22,3 +22,15 @@ export function persistPartnerSlug(slug: string): void {
     // localStorage can be unavailable (privacy mode) — the header just won't be sent.
   }
 }
+
+// Called once a purchase actually completes (components/marketing/checkout-success-content.tsx) —
+// the referral has been attributed server-side by then, so there's no reason to keep applying it
+// to whatever the visitor browses/buys next.
+export function clearPersistedPartnerSlug(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore — same privacy-mode case as above
+  }
+}

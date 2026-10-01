@@ -15,9 +15,10 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
-// Endpoints the persisted partner referral applies to — catalog browsing, cart, and checkout
-// (checkout lives under /api/cart/checkout/, so the /api/cart prefix already covers it).
-const PARTNER_REFERRAL_URL_PREFIXES = ["/api/programs", "/api/cart"];
+// Endpoints the persisted partner referral applies to — catalog browsing, cart (including cart
+// checkout, at /api/cart/checkout/), and the direct single-cohort "Enrol Now" checkout flow, which
+// lives under a separate /api/checkout/ prefix rather than under /api/cart.
+const PARTNER_REFERRAL_URL_PREFIXES = ["/api/programs", "/api/cart", "/api/checkout"];
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken();

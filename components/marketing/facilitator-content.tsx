@@ -196,7 +196,7 @@ export function FacilitatorContent() {
           </div>
           <div className="hidden aspect-4/3 overflow-hidden rounded-2xl lg:block">
             <Image
-              src="/hero-page.png"
+              src="/facilitator-hero.png"
               alt="Facilitator mentoring a learner"
               width={800}
               height={500}

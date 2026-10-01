@@ -91,7 +91,8 @@ const NAV_LINKS: NavLink[] = [
   { label: "Home", href: "/", exact: true },
   { label: "Career Paths", href: "/career-paths" },
   { label: "Programs", href: "/programms" },
-  { label: "Blog", href: "/blog" },
+  // Blog temporarily hidden from the public nav per request — the routes/content stay live, just
+  // not linked from here or the homepage "From the Blog" section (components/marketing/home-content.tsx).
   { label: "About", href: "/about", children: ABOUT_LINKS },
   { label: "Speak to Advisor", href: "/contact" },
 ];

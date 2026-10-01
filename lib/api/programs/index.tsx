@@ -6,6 +6,7 @@ import {
   PatchProgramRequest,
   ProgramListFilters,
   PublicProgramListing,
+  ProgramReferralPricing,
 } from "@/types/programs";
 import { ApiResponse, PaginatedResponse } from "@/types/api";
 import { apiClient } from "../client";
@@ -23,8 +24,13 @@ export async function getPrograms(
 }
 
 export async function getProgram(slug: string): Promise<Program> {
-  const { data } = await apiClient.get<ApiResponse<Program>>(`/api/programs/${slug}/`);
-  return data.data;
+  // `referral` rides as a sibling of `data` on this endpoint, not nested inside it (unlike the
+  // list endpoint, where each item embeds its own `referral`) — merge it onto the program here so
+  // callers only ever need to read program.referral.
+  const { data } = await apiClient.get<ApiResponse<Program> & { referral?: ProgramReferralPricing }>(
+    `/api/programs/${slug}/`,
+  );
+  return data.referral ? { ...data.data, referral: data.referral } : data.data;
 }
 
 // Plain JSON when there's no cover_image File to upload (confirmed by a real sample payload from
