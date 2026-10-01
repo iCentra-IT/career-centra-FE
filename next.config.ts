@@ -74,21 +74,21 @@ const nextConfig: NextConfig = {
   // Canonicalizes the apex domain — metadataBase/sitemap.ts/robots.ts (app/layout.tsx) all assume
   // the bare domain, so a visit to the www host gets 301'd there instead of serving duplicate
   // content under two hosts.
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [
-          {
-            type: "host",
-            value: "www.careercentra.icentra.com",
-          },
-        ],
-        destination: "https://careercentra.icentra.com/:path*",
-        permanent: true,
-      },
-    ];
-  },
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: "/:path*",
+  //       has: [
+  //         {
+  //           type: "host",
+  //           value: "www.careercentra.icentra.com",
+  //         },
+  //       ],
+  //       destination: "https://careercentra.icentra.com/:path*",
+  //       permanent: true,
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;
