@@ -10,13 +10,17 @@ import {
   ProfileIcon,
 } from "@/components/dashboard/nav-icons";
 
-// Marketer is scoped to the blog — no access to the rest of the admin console.
+// Marketer is scoped to the blog and CRM — no access to the rest of the admin console.
 const NAV_ITEMS = [
   { label: "Posts", href: "/marketer", icon: <BlogIcon />, exact: true },
   { label: "Categories", href: "/marketer/categories", icon: <TagIcon /> },
   { label: "Comments", href: "/marketer/comments", icon: <StarIcon /> },
   { label: "Analytics", href: "/marketer/analytics", icon: <ExchangeRateIcon /> },
   { label: "Newsletter", href: "/marketer/newsletter", icon: <CouponsIcon /> },
+  { label: "Leads", href: "/marketer/crm/leads", icon: <ProfileIcon /> },
+  { label: "Follow-up Tasks", href: "/marketer/crm/tasks", icon: <StarIcon /> },
+  { label: "Lead Magnets", href: "/marketer/crm/lead-magnets", icon: <TagIcon /> },
+  { label: "Campaigns", href: "/marketer/crm/campaigns", icon: <ExchangeRateIcon /> },
   { label: "Profile", href: "/marketer/profile", icon: <ProfileIcon /> },
 ];
 

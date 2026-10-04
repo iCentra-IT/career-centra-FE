@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSubscribeNewsletter } from "@/hooks/mutations/blog";
+import { useCaptureCrmLead } from "@/hooks/mutations/crm";
 import { TurnstileWidget } from "@/components/ui/turnstile-widget";
 
 // Reused wherever a newsletter signup makes sense (blog landing hero, site footer, bottom of a
@@ -19,6 +20,7 @@ export function NewsletterForm({
   const [email, setEmail] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const subscribe = useSubscribeNewsletter();
+  const captureLead = useCaptureCrmLead();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +33,14 @@ export function NewsletterForm({
       { email: email.trim(), cfTurnstileResponse: captchaToken },
       {
         onSuccess: () => {
+          // Also feed the CRM — the capture endpoint upserts by email, so a repeat signup is harmless.
+          captureLead.mutate({
+            email: email.trim(),
+            source: "newsletter",
+            platform: "careercentra",
+            audience_type: "individual",
+            url: window.location.href,
+          });
           toast.success("Check your inbox to confirm your subscription.");
           setEmail("");
           setCaptchaToken(null);

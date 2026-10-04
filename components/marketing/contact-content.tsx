@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useCreateLead } from "@/hooks/mutations/leads";
-import type { CreateLeadRequest } from "@/types/lead";
+import { useCaptureCrmLead } from "@/hooks/mutations/crm";
+import type { CaptureLeadRequest } from "@/types/crm";
 import { Input } from "@/components/ui/input";
 import { Reveal, staggerDelay } from "@/components/motion/reveal";
 
@@ -70,7 +70,7 @@ type InquiryFormValues = z.infer<typeof inquirySchema>;
 export function ContactContent() {
   const formRef = useRef<HTMLDivElement>(null);
   const [submitted, setSubmitted] = useState(false);
-  const createLead = useCreateLead();
+  const captureLead = useCaptureCrmLead();
 
   const {
     register,
@@ -84,17 +84,21 @@ export function ContactContent() {
   });
 
   const onSubmit = (values: InquiryFormValues) => {
-    const payload: CreateLeadRequest = {
-      name: values.name,
+    const [firstName, ...rest] = values.name.trim().split(/\s+/);
+    const payload: CaptureLeadRequest = {
+      first_name: firstName,
+      last_name: rest.join(" "),
       email: values.email,
       phone: values.phone,
-      audience_type: values.audience_type,
+      source: "enquiry",
+      url: window.location.href,
       platform: "careercentra",
-      intent_tier: "medium",
+      audience_type: values.audience_type === "corporate" ? "enterprise" : "individual",
+      intent_level: "mid",
       message: values.message,
     };
 
-    createLead.mutate(payload, {
+    captureLead.mutate(payload, {
       onSuccess: () => {
         toast.success("Thanks! We'll be in touch shortly.");
         setSubmitted(true);
@@ -205,10 +209,10 @@ export function ContactContent() {
 
           <button
             type="submit"
-            disabled={createLead.isPending}
+            disabled={captureLead.isPending}
             className="rounded-md bg-main px-6 py-3.5 text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {createLead.isPending ? "Sending…" : "Submit Inquiry →"}
+            {captureLead.isPending ? "Sending…" : "Submit Inquiry →"}
           </button>
         </form>
       </section>

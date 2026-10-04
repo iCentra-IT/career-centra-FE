@@ -128,6 +128,16 @@ export const queryKeys = {
     adminAll: ["referral-partners", "admin"] as const,
     adminDetail: (id: number) => ["referral-partners", "admin", id] as const,
   },
+  crm: {
+    leads: <T extends object>(filters?: T) => ["crm", "leads", filters] as const,
+    lead: (id: string) => ["crm", "leads", id] as const,
+    notes: (leadId: string) => ["crm", "lead-notes", leadId] as const,
+    tasks: <T extends object>(filters?: T) => ["crm", "tasks", filters] as const,
+    leadMagnets: ["crm", "lead-magnets"] as const,
+    leadMagnet: (slug: string) => ["crm", "lead-magnets", slug] as const,
+    campaigns: ["crm", "campaigns"] as const,
+    campaign: (id: string) => ["crm", "campaigns", id] as const,
+  },
 
   blog: {
     landing: ["blog", "landing"] as const,

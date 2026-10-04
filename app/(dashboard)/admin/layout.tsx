@@ -42,6 +42,17 @@ const NAV_ITEMS = [
     ],
   },
   {
+    label: "CRM",
+    href: "/admin/crm/leads",
+    icon: <HandshakeIcon />,
+    children: [
+      { label: "Leads", href: "/admin/crm/leads" },
+      { label: "Follow-up Tasks", href: "/admin/crm/tasks" },
+      { label: "Lead Magnets", href: "/admin/crm/lead-magnets" },
+      { label: "Campaigns", href: "/admin/crm/campaigns" },
+    ],
+  },
+  {
     label: "Settings",
     href: "/admin/settings",
     icon: <SettingsIcon />,
