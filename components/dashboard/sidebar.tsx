@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useLogout } from "@/hooks/mutations/auth";
 import { useDashboardChromeStore } from "@/lib/store/dashboardChromeStore";
 import { LogoutIcon, CollapseIcon, ChevronDownIcon, GlobeIcon } from "@/components/dashboard/nav-icons";
@@ -13,6 +13,8 @@ export interface NavItem {
   href: string;
   icon: React.ReactNode;
   exact?: boolean;
+  // Items sharing a `section` are grouped under one heading; the heading shows where a new section starts.
+  section?: string;
   children?: { label: string; href: string }[];
 }
 
@@ -89,55 +91,67 @@ export function Sidebar({ items }: { items: NavItem[] }) {
         </button>
 
         <nav className="mt-8 flex flex-1 flex-col gap-1">
-          {items.map((item) => {
+          {items.map((item, index) => {
             const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             const hasChildren = !!item.children?.length;
             const expanded = expandedKey === item.href;
+            const startsSection = !!item.section && item.section !== items[index - 1]?.section;
 
             return (
-              <div key={item.href}>
-                {hasChildren ? (
-                  <button
-                    type="button"
-                    onClick={() => setExpandedKey(expanded ? null : item.href)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive ? "bg-main text-white" : "text-gray-600 hover:bg-gray-50"
+              <Fragment key={item.href}>
+                {startsSection && (
+                  <p
+                    className={`px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-gray-400 first:pt-0 ${
+                      collapsed ? "lg:hidden" : ""
                     }`}
                   >
-                    {item.icon}
-                    <span className={`flex-1 text-left ${collapsed ? "lg:hidden" : ""}`}>{item.label}</span>
-                    <span className={`${expanded ? "rotate-180" : ""} ${collapsed ? "lg:hidden" : ""}`}>
-                      <ChevronDownIcon />
-                    </span>
-                  </button>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive ? "bg-main text-white" : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    {item.icon}
-                    <span className={collapsed ? "lg:hidden" : ""}>{item.label}</span>
-                  </Link>
+                    {item.section}
+                  </p>
                 )}
+                <div>
+                  {hasChildren ? (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedKey(expanded ? null : item.href)}
+                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                        isActive ? "bg-main text-white" : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {item.icon}
+                      <span className={`flex-1 text-left ${collapsed ? "lg:hidden" : ""}`}>{item.label}</span>
+                      <span className={`${expanded ? "rotate-180" : ""} ${collapsed ? "lg:hidden" : ""}`}>
+                        <ChevronDownIcon />
+                      </span>
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                        isActive ? "bg-main text-white" : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {item.icon}
+                      <span className={collapsed ? "lg:hidden" : ""}>{item.label}</span>
+                    </Link>
+                  )}
 
-                {hasChildren && expanded && (
-                  <div className={`ml-8 mt-1 flex flex-col gap-1 ${collapsed ? "lg:hidden" : ""}`}>
-                    {item.children!.map((child) => (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        className={`rounded-lg px-3 py-2 text-sm ${
-                          pathname === child.href ? "font-semibold text-main" : "text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+                  {hasChildren && expanded && (
+                    <div className={`ml-8 mt-1 flex flex-col gap-1 ${collapsed ? "lg:hidden" : ""}`}>
+                      {item.children!.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={`rounded-lg px-3 py-2 text-sm ${
+                            pathname === child.href ? "font-semibold text-main" : "text-gray-500 hover:bg-gray-50"
+                          }`}
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Fragment>
             );
           })}
         </nav>

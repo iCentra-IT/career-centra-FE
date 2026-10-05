@@ -1,5 +1,5 @@
 // lib/api/types/user.ts
-// marketer: new role, added for blog access — has its own dashboard at /marketer (blog tools
+// marketer: new role, added for blog access — has its own dashboard at /marketer/crm (CRM + blog tools
 // only), distinct from the full admin console at /admin.
 export type UserRole = 'student' | 'facilitator' | 'staff-admin' | 'admin' | 'marketer';
 
@@ -12,7 +12,7 @@ export function isAdminDashboardRole(role: UserRole) {
 export function dashboardHomeFor(role: UserRole): string {
   if (isAdminDashboardRole(role)) return '/admin';
   if (role === 'facilitator') return '/facilitators';
-  if (role === 'marketer') return '/marketer';
+  if (role === 'marketer') return '/marketer/crm';
   return '/students';
 }
 
