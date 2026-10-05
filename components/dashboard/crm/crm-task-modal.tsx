@@ -19,8 +19,8 @@ const schema = z.object({
   description: z.string().optional(),
   assignee_id: z.string().min(1, "Choose who this is assigned to"),
   due_date: z.string().min(1, "Due date is required"),
-  priority: z.string().min(1, "Priority is required"),
-  status: z.string().min(1, "Status is required"),
+  priority: z.enum(["low", "medium", "high"]),
+  status: z.enum(["pending", "completed"]),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -80,8 +80,8 @@ export function CrmTaskModal({
       description: values.description?.trim() ?? "",
       assignee_id: Number(values.assignee_id),
       due_date: new Date(values.due_date).toISOString(),
-      priority: values.priority.trim(),
-      status: values.status.trim(),
+      priority: values.priority,
+      status: values.status,
     };
     const done = {
       onSuccess: () => {
@@ -133,9 +133,26 @@ export function CrmTaskModal({
               error={errors.due_date?.message}
               {...register("due_date")}
             />
-            <Input label="Priority" required error={errors.priority?.message} {...register("priority")} />
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-900">
+                Priority <span className="text-secondary">*</span>
+              </label>
+              <select className={selectClass} {...register("priority")}>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
           </div>
-          <Input label="Status" required error={errors.status?.message} {...register("status")} />
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-900">
+              Status <span className="text-secondary">*</span>
+            </label>
+            <select className={selectClass} {...register("status")}>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
           <div className="mt-2 flex justify-end gap-3">
             <button
               type="button"

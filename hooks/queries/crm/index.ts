@@ -11,7 +11,7 @@ import {
   getLeadMagnets,
 } from "@/lib/api/crm";
 import { queryKeys } from "@/lib/api/query-keys";
-import type { LeadFilters } from "@/types/crm";
+import type { CrmTaskFilters, LeadFilters } from "@/types/crm";
 
 export function useCrmLeads(filters?: LeadFilters) {
   return useQuery({
@@ -37,7 +37,7 @@ export function useCrmLeadNotes(leadId: string) {
   });
 }
 
-export function useCrmTasks(filters?: { lead?: string; page_size?: number }) {
+export function useCrmTasks(filters?: CrmTaskFilters) {
   return useQuery({
     queryKey: queryKeys.crm.tasks(filters),
     queryFn: () => getCrmTasks(filters),

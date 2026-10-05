@@ -11,7 +11,7 @@ import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { ActionsMenu } from "@/components/ui/actions-menu";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatOrdinalDateTime } from "@/lib/format";
-import type { CrmTask } from "@/types/crm";
+import type { CrmTask, CrmTaskFilters, CrmTaskPriority, CrmTaskStatus } from "@/types/crm";
 
 const COLUMNS = ["Task", "Assignee", "Due", "Priority", "Status", "Reminder", "Action"];
 
@@ -21,8 +21,12 @@ function isDueSoon(task: CrmTask): boolean {
   return due - Date.now() <= 24 * 60 * 60 * 1000;
 }
 
+const selectClass =
+  "rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary";
+
 export function CrmTasksPage({ basePath }: { basePath: string }) {
-  const { data, isLoading } = useCrmTasks({ page_size: 100 });
+  const [filters, setFilters] = useState<CrmTaskFilters>({ page_size: 100 });
+  const { data, isLoading } = useCrmTasks(filters);
   const deleteTask = useDeleteCrmTask();
   const [editing, setEditing] = useState<CrmTask | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CrmTask | null>(null);
@@ -35,6 +39,30 @@ export function CrmTasksPage({ basePath }: { basePath: string }) {
         <p className="mt-1 text-sm text-gray-500">
           Every open follow-up across leads. Add tasks from a lead&apos;s page.
         </p>
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        <select
+          value={filters.status ?? ""}
+          onChange={(e) => setFilters((f) => ({ ...f, status: (e.target.value || undefined) as CrmTaskStatus | undefined }))}
+          className={selectClass}
+        >
+          <option value="">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select
+          value={filters.priority ?? ""}
+          onChange={(e) =>
+            setFilters((f) => ({ ...f, priority: (e.target.value || undefined) as CrmTaskPriority | undefined }))
+          }
+          className={selectClass}
+        >
+          <option value="">All priorities</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-gray-100 bg-white">
@@ -69,9 +97,14 @@ export function CrmTasksPage({ basePath }: { basePath: string }) {
                 <td className={`px-5 py-4 ${isDueSoon(task) ? "font-medium text-red-600" : "text-gray-600"}`}>
                   {formatOrdinalDateTime(task.due_date)}
                 </td>
-                <td className="px-5 py-4 text-gray-600">{task.priority}</td>
                 <td className="px-5 py-4">
-                  <StatusBadge label={task.status} tone="gray" />
+                  <StatusBadge
+                    label={task.priority}
+                    tone={task.priority === "high" ? "red" : task.priority === "medium" ? "yellow" : "gray"}
+                  />
+                </td>
+                <td className="px-5 py-4">
+                  <StatusBadge label={task.status} tone={task.status === "completed" ? "green" : "yellow"} />
                 </td>
                 <td className="px-5 py-4 text-gray-500">{task.reminder_sent ? "Sent" : "—"}</td>
                 <td className="px-5 py-4">

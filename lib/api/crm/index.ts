@@ -12,6 +12,7 @@ import type {
   CrmLeadNoteWriteRequest,
   CrmLeadWriteRequest,
   CrmTask,
+  CrmTaskFilters,
   CrmTaskWriteRequest,
   LeadFilters,
   LeadMagnet,
@@ -107,7 +108,7 @@ export async function deleteCrmLeadNote(id: string): Promise<void> {
 // -------------------------------------------------------------------------- follow-up tasks
 
 // ASSUMPTION: tasks are filtered per lead with a `lead` query param, same as notes above.
-export async function getCrmTasks(filters?: { lead?: string; page_size?: number }): Promise<PaginatedResponse<CrmTask>> {
+export async function getCrmTasks(filters?: CrmTaskFilters): Promise<PaginatedResponse<CrmTask>> {
   const { data } = await apiClient.get<PaginatedResponse<CrmTask>>("/api/crm/tasks/", {
     params: filters,
   });

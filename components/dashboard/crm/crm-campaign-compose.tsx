@@ -9,13 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { crmLeadName } from "@/lib/crm";
+import { textToEmailHtml } from "@/lib/crm-email";
 
 // Recipients are picked from the lead list only. Opted-out leads are excluded server-side even
 // if selected here, so the count shown is what was selected, not necessarily what gets emailed.
 export function CrmCampaignCompose({ basePath }: { basePath: string }) {
   const router = useRouter();
   const [subject, setSubject] = useState("");
-  const [bodyHtml, setBodyHtml] = useState("");
+  const [bodyText, setBodyText] = useState("");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState(false);
@@ -42,11 +43,11 @@ export function CrmCampaignCompose({ basePath }: { basePath: string }) {
     });
   };
 
-  const canSend = subject.trim() && bodyHtml.trim() && selected.size > 0;
+  const canSend = subject.trim() && bodyText.trim() && selected.size > 0;
 
   const send = () => {
     sendCampaign.mutate(
-      { subject: subject.trim(), body_html: bodyHtml, lead_ids: Array.from(selected) },
+      { subject: subject.trim(), body_html: textToEmailHtml(bodyText), lead_ids: Array.from(selected) },
       {
         onSuccess: () => {
           toast.success(`Campaign queued for ${selected.size} recipient${selected.size === 1 ? "" : "s"}.`);
@@ -67,16 +68,29 @@ export function CrmCampaignCompose({ basePath }: { basePath: string }) {
           <Input label="Subject" required value={subject} onChange={(e) => setSubject(e.target.value)} />
           <div className="flex flex-col gap-2">
             <label className="text-sm text-gray-900">
-              Body (HTML) <span className="text-secondary">*</span>
+              Message <span className="text-secondary">*</span>
             </label>
             <textarea
-              rows={14}
-              value={bodyHtml}
-              onChange={(e) => setBodyHtml(e.target.value)}
-              placeholder="<p>Hello {{first_name}},</p>"
-              className="w-full rounded-md border border-gray-200 px-4 py-3 font-mono text-xs outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+              rows={12}
+              value={bodyText}
+              onChange={(e) => setBodyText(e.target.value)}
+              placeholder={"Hi there,\n\nWrite your message the way you'd write an email. Leave a blank line to start a new paragraph.\n\nVisit https://careercentra.icentra.com to see our programs."}
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm leading-relaxed outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
             />
+            <p className="text-xs text-gray-400">
+              Plain English is fine — paragraphs, line breaks and web links are formatted for email automatically.
+            </p>
           </div>
+          {bodyText.trim() && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-gray-900">Preview</p>
+              <div
+                className="rounded-xl border border-gray-100 bg-white p-5"
+                // Safe: textToEmailHtml escapes everything the marketer typed before wrapping it.
+                dangerouslySetInnerHTML={{ __html: textToEmailHtml(bodyText) }}
+              />
+            </div>
+          )}
           <div className="flex justify-end">
             <Button type="button" disabled={!canSend} onClick={() => setConfirming(true)} className="w-auto px-6">
               Send to {selected.size} {selected.size === 1 ? "recipient" : "recipients"}

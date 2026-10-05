@@ -17,6 +17,8 @@ import {
   resendSubscriberConfirmation,
   scheduleBlogPost,
   subscribeNewsletter,
+  confirmNewsletter,
+  unsubscribeNewsletter,
   unpublishBlogPost,
   updateBlogPost,
 } from "@/lib/api/blog";
@@ -52,6 +54,18 @@ export function useCreateBlogComment(slug: string) {
       // public thread — this just keeps the admin queue's pending count fresh if it's open.
       queryClient.invalidateQueries({ queryKey: ["blog", "admin", "comments"] });
     },
+  });
+}
+
+export function useConfirmNewsletter() {
+  return useMutation<NewsletterActionResult, NormalizedError, string>({
+    mutationFn: confirmNewsletter,
+  });
+}
+
+export function useUnsubscribeNewsletter() {
+  return useMutation<NewsletterActionResult, NormalizedError, string>({
+    mutationFn: unsubscribeNewsletter,
   });
 }
 

@@ -112,6 +112,10 @@ export interface CrmLeadNoteWriteRequest {
   note: string;
 }
 
+// Confirmed by the backend's query-param docs for the tasks list.
+export type CrmTaskPriority = "low" | "medium" | "high";
+export type CrmTaskStatus = "pending" | "completed";
+
 export interface CrmTask {
   id: string;
   lead: string;
@@ -119,8 +123,8 @@ export interface CrmTask {
   description: string;
   assignee: CrmUserRef;
   due_date: string;
-  priority: "low" | (string & {}); // only "low" seen so far
-  status: "pending" | (string & {}); // only "pending" seen so far
+  priority: CrmTaskPriority;
+  status: CrmTaskStatus;
   reminder_sent: boolean;
   created_at: string;
   updated_at: string;
@@ -132,11 +136,20 @@ export interface CrmTaskWriteRequest {
   description?: string;
   assignee_id: number;
   due_date: string;
-  priority?: string;
-  status?: string;
+  priority?: CrmTaskPriority;
+  status?: CrmTaskStatus;
 }
 
 export type PatchCrmTaskRequest = Partial<CrmTaskWriteRequest>;
+
+export interface CrmTaskFilters {
+  lead?: string;
+  status?: CrmTaskStatus;
+  priority?: CrmTaskPriority;
+  search?: string;
+  page?: number;
+  page_size?: number;
+}
 
 export interface LeadMagnet {
   id: string;

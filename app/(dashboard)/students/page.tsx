@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useStudentDashboard } from "@/hooks/queries/students";
 import { useAuthStore } from "@/lib/store/authStore";
 import { StatCard } from "@/components/ui/stat-card";
@@ -8,6 +7,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { ListRowSkeleton } from "@/components/ui/skeleton";
 import { formatDateRange, hasSessionEnded } from "@/lib/format";
+import { Card, EmptyState, HeroBanner, HeroButton, greetingFor } from "@/components/dashboard/dashboard-kit";
 
 function JoinIcon() {
   return (
@@ -21,75 +21,74 @@ function JoinIcon() {
 const StudentOverviewPage = () => {
   const user = useAuthStore((s) => s.user);
   const { data, isLoading } = useStudentDashboard();
+  const active = data?.active_courses ?? [];
+  const upcoming = data?.upcoming_sessions ?? [];
+  const completed = data?.completed_courses ?? [];
+  const updates = data?.class_updates ?? [];
 
   return (
-    <div>
-      <h1 className="text-3xl font-semibold text-gray-900">
-        Welcome back{user?.first_name ? `, ${user.first_name}` : ""}
-      </h1>
-      <p className="mt-1 text-sm text-gray-500">Your learning account at a glance.</p>
+    <div className="flex flex-col gap-6">
+      <HeroBanner
+        eyebrow={`${greetingFor()}${user?.first_name ? `, ${user.first_name}` : ""}`}
+        title="Your learning, at a glance"
+        subtitle="Pick up where you left off — your courses, sessions and certificates are all here."
+      >
+        <HeroButton href="/students/enrolments" primary>
+          My Courses
+        </HeroButton>
+        <HeroButton href="/students/schedules">Class Schedule</HeroButton>
+      </HeroBanner>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatCard label="Purchased courses" value={data?.stats?.purchased} loading={isLoading} />
         <StatCard label="Active courses" value={data?.stats?.active} loading={isLoading} />
         <StatCard label="Completed courses" value={data?.stats?.completed} loading={isLoading} />
         <StatCard label="Certificates" value={data?.stats?.certificates} loading={isLoading} />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-8 lg:col-span-2">
-          <section>
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-900">Active courses &amp; progress</h2>
-              <Link href="/students/enrolments" className="text-sm text-secondary hover:underline">
-                View all
-              </Link>
-            </div>
-            <div className="mt-4 flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="flex flex-col gap-6 xl:col-span-2">
+          <Card title="Active courses & progress" action={{ label: "View all", href: "/students/enrolments" }}>
+            <div className="flex flex-col gap-4">
               {isLoading && <ListRowSkeleton rows={3} />}
-              {!isLoading && data?.active_courses?.length === 0 && (
-                <p className="text-sm text-gray-400">No active courses yet.</p>
-              )}
-              {data?.active_courses?.map((course) => (
-                <div key={course.id} className="rounded-2xl border border-gray-100 bg-white p-5">
+              {!isLoading && active.length === 0 && <EmptyState>No active courses yet.</EmptyState>}
+              {active.map((course) => (
+                <div key={course.id} className="rounded-xl border border-gray-100 p-5">
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-base font-semibold text-gray-900">{course.program.title}</h3>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-base font-semibold text-gray-900">{course.program.title}</h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {formatDateRange(course.cohort.starts_on, course.cohort.ends_on)} · {course.cohort.facilitator_name}
+                      </p>
+                    </div>
                     <StatusBadge label="Active" tone="green" />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {formatDateRange(course.cohort.starts_on, course.cohort.ends_on)} ·{" "}
-                    {course.cohort.facilitator_name}
-                  </p>
-                  <p className="mt-4 text-xs text-gray-400">Progress</p>
-                  <ProgressBar percent={course.progress.percent} />
+                  <div className="mt-4 flex items-center gap-3">
+                    <div className="flex-1">
+                      <ProgressBar percent={course.progress.percent} />
+                    </div>
+                    <span className="text-xs font-medium text-gray-500">{course.progress.percent}%</span>
+                  </div>
                 </div>
               ))}
             </div>
-          </section>
+          </Card>
 
-          <section>
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-900">Upcoming Sessions</h2>
-              <Link href="/students/schedules" className="text-sm text-secondary hover:underline">
-                View all
-              </Link>
-            </div>
-            <div className="mt-4 flex flex-col gap-3">
+          <Card title="Upcoming sessions" action={{ label: "Schedule", href: "/students/schedules" }}>
+            <div className="flex flex-col gap-3">
               {isLoading && <ListRowSkeleton rows={3} />}
-              {!isLoading && data?.upcoming_sessions?.length === 0 && (
-                <p className="text-sm text-gray-400">No upcoming sessions.</p>
-              )}
-              {data?.upcoming_sessions?.map((session) => {
+              {!isLoading && upcoming.length === 0 && <EmptyState>No upcoming sessions.</EmptyState>}
+              {upcoming.map((session) => {
                 const ended = hasSessionEnded(session.date, session.end_time);
                 return (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-5"
+                    className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 p-4"
                   >
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{session.title}</p>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {session.program_title} · {session.date} · {session.start_time}-{session.end_time}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-gray-900">{session.title}</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {session.program_title} · {session.date} · {session.start_time}–{session.end_time}
                       </p>
                     </div>
                     {session.meeting_url && !ended ? (
@@ -111,30 +110,17 @@ const StudentOverviewPage = () => {
                 );
               })}
             </div>
-          </section>
+          </Card>
 
-          <section>
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-900">Completed Courses</h2>
-              <Link href="/students/enrolments" className="text-sm text-secondary hover:underline">
-                View all
-              </Link>
-            </div>
-            <div className="mt-4 flex flex-col gap-3">
+          <Card title="Completed courses" action={{ label: "View all", href: "/students/enrolments" }}>
+            <div className="flex flex-col gap-3">
               {isLoading && <ListRowSkeleton rows={3} />}
-              {!isLoading && data?.completed_courses?.length === 0 && (
-                <p className="text-sm text-gray-400">No completed courses yet.</p>
-              )}
-              {data?.completed_courses?.map((course) => (
-                <div
-                  key={course.id}
-                  className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-5"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{course.program.title}</p>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {formatDateRange(course.cohort.starts_on, course.cohort.ends_on)}
-                    </p>
+              {!isLoading && completed.length === 0 && <EmptyState>No completed courses yet.</EmptyState>}
+              {completed.map((course) => (
+                <div key={course.id} className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 p-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-gray-900">{course.program.title}</p>
+                    <p className="mt-1 text-xs text-gray-500">{formatDateRange(course.cohort.starts_on, course.cohort.ends_on)}</p>
                   </div>
                   {course.certificate?.file_url ? (
                     <a
@@ -143,7 +129,7 @@ const StudentOverviewPage = () => {
                       rel="noopener noreferrer"
                       className="shrink-0 rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100"
                     >
-                      View Certificate
+                      View certificate
                     </a>
                   ) : (
                     <span className="shrink-0 text-xs text-gray-400">No certificate yet</span>
@@ -151,27 +137,24 @@ const StudentOverviewPage = () => {
                 </div>
               ))}
             </div>
-          </section>
+          </Card>
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-5">
-          <h2 className="text-base font-semibold text-gray-900">Class updates</h2>
-          <div className="mt-4 flex flex-col divide-y divide-gray-50">
-            {isLoading && <ListRowSkeleton rows={3} />}
-            {!isLoading && data?.class_updates?.length === 0 && (
-              <p className="py-3 text-sm text-gray-400">No updates yet.</p>
-            )}
-            {data?.class_updates?.map((update) => (
-              <div key={update.id} className="py-4 first:pt-0 last:pb-0">
+        <Card title="Class updates">
+          {isLoading && <ListRowSkeleton rows={3} />}
+          {!isLoading && updates.length === 0 && <EmptyState>No updates yet.</EmptyState>}
+          <ul className="divide-y divide-gray-100">
+            {updates.map((update) => (
+              <li key={update.id} className="py-4 first:pt-0 last:pb-0">
                 <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium capitalize text-secondary">
                   {update.kind}
                 </span>
                 <p className="mt-2 text-sm font-medium text-gray-900">{update.body}</p>
                 <p className="mt-1 text-xs text-gray-500">{update.program_title}</p>
-              </div>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </Card>
       </div>
     </div>
   );
