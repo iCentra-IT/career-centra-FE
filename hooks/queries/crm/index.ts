@@ -4,6 +4,7 @@ import {
   getCampaigns,
   getCrmLead,
   getCrmLeadNotes,
+  getCrmDashboard,
   getCrmLeads,
   getCrmTasks,
   getLeadMagnet,
@@ -70,5 +71,13 @@ export function useCampaign(id: string) {
     queryKey: queryKeys.crm.campaign(id),
     queryFn: () => getCampaign(id),
     enabled: !!id,
+  });
+}
+
+export function useCrmDashboard() {
+  return useQuery({
+    queryKey: queryKeys.crm.dashboard,
+    queryFn: getCrmDashboard,
+    staleTime: 60 * 1000,
   });
 }

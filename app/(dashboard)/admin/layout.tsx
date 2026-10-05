@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { label: "Facilitator", href: "/admin/facilitators", icon: <FacilitatorGroupIcon /> },
   { label: "Cohorts", href: "/admin/cohorts", icon: <TagIcon /> },
   { label: "Reviews", href: "/admin/reviews", icon: <StarIcon /> },
+  { label: "Carts", href: "/admin/carts", icon: <CouponsIcon /> },
   { label: "Users", href: "/admin/users", icon: <ProfileIcon /> },
   { label: "Coupons", href: "/admin/coupons", icon: <CouponsIcon /> },
   { label: "Referral Partners", href: "/admin/partners", icon: <HandshakeIcon /> },

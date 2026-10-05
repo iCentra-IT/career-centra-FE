@@ -128,7 +128,14 @@ export const queryKeys = {
     adminAll: ["referral-partners", "admin"] as const,
     adminDetail: (id: number) => ["referral-partners", "admin", id] as const,
   },
+  adminCarts: {
+    all: ["admin-carts"] as const,
+    list: (page?: number) => ["admin-carts", "list", page] as const,
+    user: (userId: number) => ["admin-carts", "user", userId] as const,
+  },
+
   crm: {
+    dashboard: ["crm", "dashboard"] as const,
     leads: <T extends object>(filters?: T) => ["crm", "leads", filters] as const,
     lead: (id: string) => ["crm", "leads", id] as const,
     notes: (leadId: string) => ["crm", "lead-notes", leadId] as const,

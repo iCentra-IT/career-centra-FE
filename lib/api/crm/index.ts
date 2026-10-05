@@ -4,6 +4,7 @@ import { toRequestBody } from "../form-data";
 import { PaginatedResponse, ApiResponse, unwrapObject, unwrapList } from "@/types/api";
 import type {
   CaptureLeadRequest,
+  CrmDashboard,
   CaptureLeadResponse,
   Campaign,
   CrmLead,
@@ -222,5 +223,13 @@ export async function deleteCampaign(id: string): Promise<void> {
 // Public. Matches a token against both Lead and User records and opts whichever it finds out.
 export async function unsubscribeByToken(token: string): Promise<UnsubscribeResponse> {
   const { data } = await apiClient.get<UnsubscribeResponse>(`/api/crm/unsubscribe/${token}/`);
+  return data;
+}
+
+// ----------------------------------------------------------------------------- marketer dashboard
+
+// Marketer only — read-only roll-up across leads, campaigns, lead magnets, enrolments and carts.
+export async function getCrmDashboard(): Promise<CrmDashboard> {
+  const { data } = await apiClient.get<CrmDashboard>("/api/crm/dashboard/");
   return data;
 }

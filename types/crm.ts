@@ -210,3 +210,80 @@ export interface UnsubscribeResponse {
   detail?: string;
   message?: string;
 }
+
+// GET /api/crm/dashboard/ — marketer only. Read-only roll-up of the CRM, campaigns, lead magnets,
+// enrolment funnel and cart activity.
+export interface CrmDashboardCohort {
+  id: number;
+  platform: string;
+  starts_on: string;
+  ends_on: string;
+  number_of_class_days: number;
+  delivery_mode: string;
+  location: string;
+  seat_capacity: number;
+  seats_taken: number;
+  is_enrollment_open: boolean;
+  is_sold_out: boolean;
+  is_nearly_full: boolean;
+  effective_price_usd: string;
+  effective_price_ngn: string;
+  default_price: string;
+  currency: string;
+  facilitator_display: unknown[];
+}
+
+export interface CrmDashboard {
+  leads: {
+    total_leads: number;
+    new_leads_7d: number;
+    by_status: Record<string, number>;
+  };
+  follow_up_tasks: {
+    pending_count: number;
+    overdue_count: number;
+    due_today_count: number;
+  };
+  campaigns_and_newsletter: {
+    campaigns_sent_last_30_days: number;
+    recent_campaigns: {
+      id: string;
+      subject: string;
+      status: string;
+      sent_at: string | null;
+      recipient_count: number;
+    }[];
+    active_subscribers: number;
+    new_subscribers_7d: number;
+  };
+  referral_partners_and_lead_magnets: {
+    active_referral_partners: number;
+    top_referral_partners: { id: number; name: string; slug: string; uses_count: number }[];
+    total_lead_magnet_downloads: number;
+    lead_magnet_downloads_7d: number;
+    top_lead_magnet: { id: string; title: string; downloads: number } | null;
+  };
+  enrollment_funnel: {
+    confirmed_enrollments_total: number;
+    new_enrollments_7d: number;
+    checkouts_initiated_7d: number;
+    checkouts_confirmed_7d: number;
+  };
+  cart_activity: {
+    overview: {
+      total_carts: number;
+      carts_with_items: number;
+      empty_carts: number;
+      abandoned_carts: number;
+      new_carts_last_7_days: number;
+      total_items_in_carts: number;
+    };
+    top_cohorts: { cohort: CrmDashboardCohort; in_cart_count: number }[];
+    recent_activity: {
+      id: number;
+      user: { id: number; email: string; full_name: string };
+      item_count: number;
+      updated_at: string;
+    }[];
+  };
+}
