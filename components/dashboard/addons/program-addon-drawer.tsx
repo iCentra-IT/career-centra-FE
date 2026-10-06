@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -9,26 +9,34 @@ import { useCreateProgramAddon, useDeleteProgramAddon, usePatchProgramAddon } fr
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
+import { useQuestionBanks } from "@/hooks/queries/question-banks";
 import { ADDON_KIND_OPTIONS, type ProgramAddon, type ProgramAddonWriteRequest } from "@/types/addon";
 
 const selectClass =
   "w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary";
 
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  kind: z.enum(["support", "coaching_group", "coaching_personalized", "exam_membership", "exam_non_membership", "question_bank"]),
-  description: z.string().optional(),
-  price_usd: z.string().min(1, "USD price is required"),
-  price_ngn: z.string().optional(),
-  selection_group: z.string().optional(),
-  sort_order: z.coerce.number().int().min(0, "Use 0 or more"),
-  is_active: z.boolean(),
-});
+const schema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    kind: z.enum(["support", "coaching_group", "coaching_personalized", "exam_membership", "exam_non_membership", "question_bank"]),
+    question_bank: z.string().optional(),
+    description: z.string().optional(),
+    price_usd: z.string().min(1, "USD price is required"),
+    price_ngn: z.string().optional(),
+    selection_group: z.string().optional(),
+    sort_order: z.coerce.number().int().min(0, "Use 0 or more"),
+    is_active: z.boolean(),
+  })
+  .refine((v) => v.kind !== "question_bank" || !!v.question_bank, {
+    message: "Choose the question bank this add-on unlocks",
+    path: ["question_bank"],
+  });
 type FormValues = z.infer<typeof schema>;
 
 const EMPTY: FormValues = {
   name: "",
   kind: "support",
+  question_bank: "",
   description: "",
   price_usd: "",
   price_ngn: "",
@@ -60,8 +68,11 @@ export function ProgramAddonDrawer({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY });
+  const kind = useWatch({ control, name: "kind" });
+  const { data: banks = [] } = useQuestionBanks();
 
   // Reset whenever a different add-on (or a fresh create) opens in the drawer.
   useEffect(() => {
@@ -71,6 +82,7 @@ export function ProgramAddonDrawer({
         ? {
             name: addon.name,
             kind: addon.kind,
+            question_bank: addon.question_bank ? String(addon.question_bank) : "",
             description: addon.description,
             price_usd: addon.price_usd,
             price_ngn: addon.pricing_mode === "usd_only" ? "" : addon.price_ngn,
@@ -97,7 +109,8 @@ export function ProgramAddonDrawer({
       selection_group: v.selection_group?.trim() ?? "",
       sort_order: v.sort_order,
       is_active: v.is_active,
-      question_bank: addon?.question_bank ?? null,
+      // Only question-bank add-ons unlock a bank; for every other kind the server expects null.
+      question_bank: v.kind === "question_bank" && v.question_bank ? Number(v.question_bank) : null,
     };
     const done = {
       onSuccess: () => {
@@ -170,10 +183,22 @@ export function ProgramAddonDrawer({
               Active
             </label>
           </div>
-          {isEdit && addon?.question_bank && (
-            <p className="rounded-xl bg-secondary/5 p-3 text-xs text-gray-600">
-              Unlocks question bank #{addon.question_bank}. Change which bank it unlocks from the bank&apos;s own page.
-            </p>
+          {kind === "question_bank" && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-900">
+                Question bank <span className="text-secondary">*</span>
+              </label>
+              <select className={selectClass} {...register("question_bank")}>
+                <option value="">Choose a question bank</option>
+                {banks.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+              {errors.question_bank && <p className="text-xs text-red-500">{errors.question_bank.message}</p>}
+              <p className="text-xs text-gray-400">Buying this add-on gives the learner access to the chosen bank.</p>
+            </div>
           )}
         </form>
 
