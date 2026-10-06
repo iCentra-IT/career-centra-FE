@@ -24,3 +24,10 @@ export function useInitiateCheckout() {
   });
 }
 
+
+// Add-ons bought without a cohort. Same gateway hand-off as Enrol Now, so the caller redirects.
+export function useInitiateStandaloneAddons() {
+  return useMutation<CheckoutInitiateResponse, NormalizedError, number[]>({
+    mutationFn: (addonIds) => initiateCheckout({ standalone_addon_ids: addonIds }),
+  });
+}

@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useAttempt, useMyAttempts } from "@/hooks/queries/question-banks";
+import { useAttempt, useMyAttempts, useMyQuestionBanks } from "@/hooks/queries/question-banks";
+import { BankPurchaseCard } from "@/components/dashboard/question-banks/bank-purchase-card";
 import { useStartAttempt, useSubmitAttempt } from "@/hooks/mutations/question-banks";
 import { Button } from "@/components/ui/button";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
@@ -22,7 +23,9 @@ export function StudentQuestionBankPage({ bankId }: { bankId: number }) {
   const router = useRouter();
   const { data: attempts, isLoading } = useMyAttempts(bankId);
   const start = useStartAttempt(bankId);
+  const { data: mine, isLoading: mineLoading } = useMyQuestionBanks();
   const [limit, setLimit] = useState(10);
+  const hasAccess = !!mine?.some((a) => a.question_bank.id === bankId && a.has_access);
 
   const onStart = () =>
     start.mutate(
@@ -32,6 +35,8 @@ export function StudentQuestionBankPage({ bankId }: { bankId: number }) {
         onError: (err) => toast.error(err.message),
       },
     );
+
+  if (!mineLoading && !hasAccess) return <BankPurchaseCard bankId={bankId} />;
 
   const sorted = [...(attempts ?? [])].sort((a, b) => b.id - a.id);
   const best = sorted.reduce<number | null>((max, a) => {

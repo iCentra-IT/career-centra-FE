@@ -10,6 +10,7 @@ import { programOrCohortPrice } from "@/types/programs";
 import { displayTitle, formatMoney, formatShortDate } from "@/lib/format";
 import { ReferralPrice } from "@/components/marketing/referral-price";
 import { AddonPicker } from "@/components/marketing/addon-picker";
+import { AddonsOnlyCheckout } from "@/components/marketing/addons-only-checkout";
 import { useCohortAddons } from "@/hooks/queries/addons";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { getYouTubeVideoId } from "@/lib/youtube";
@@ -360,6 +361,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               </Link>
               {currentCohort && <AddToCartButton item={cartItemFor(currentCohort)} />}
             </div>
+            <AddonsOnlyCheckout programSlug={slug} />
           </div>
         </div>
       </section>

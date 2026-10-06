@@ -59,10 +59,12 @@ export interface EnrollmentReceipt {
 // lib/api/types/checkout.ts
 
 export interface CheckoutInitiateRequest {
-  cohort_ids: number[]; // the endpoint takes a list even for a single-cohort "Enrol now"
-  coupon_code: string; // empty string if none applied
+  cohort_ids?: number[]; // the endpoint takes a list even for a single-cohort "Enrol now"
+  coupon_code?: string; // empty string if none applied
   // Omit for a training-only purchase — backward compatible.
   addon_selections?: { cohort_id: number; addon_ids: number[] }[];
+  // Add-ons bought on their own, with no cohort (e.g. a question bank or exam fee).
+  standalone_addon_ids?: number[];
 }
 
 export interface CheckoutInitiateResponse {

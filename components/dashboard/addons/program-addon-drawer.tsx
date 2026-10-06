@@ -23,7 +23,6 @@ const schema = z
     description: z.string().optional(),
     price_usd: z.string().min(1, "USD price is required"),
     price_ngn: z.string().optional(),
-    selection_group: z.string().optional(),
     sort_order: z.coerce.number().int().min(0, "Use 0 or more"),
     is_active: z.boolean(),
   })
@@ -40,7 +39,6 @@ const EMPTY: FormValues = {
   description: "",
   price_usd: "",
   price_ngn: "",
-  selection_group: "",
   sort_order: 0,
   is_active: true,
 };
@@ -86,7 +84,6 @@ export function ProgramAddonDrawer({
             description: addon.description,
             price_usd: addon.price_usd,
             price_ngn: addon.pricing_mode === "usd_only" ? "" : addon.price_ngn,
-            selection_group: addon.selection_group,
             sort_order: addon.sort_order,
             is_active: addon.is_active,
           }
@@ -106,7 +103,6 @@ export function ProgramAddonDrawer({
       price_ngn: hasNgn ? Number(v.price_ngn).toFixed(2) : "0.00",
       // A blank NGN price means the add-on sells in USD only.
       pricing_mode: hasNgn ? "dual" : "usd_only",
-      selection_group: v.selection_group?.trim() ?? "",
       sort_order: v.sort_order,
       is_active: v.is_active,
       // Only question-bank add-ons unlock a bank; for every other kind the server expects null.
@@ -139,23 +135,15 @@ export function ProgramAddonDrawer({
 
         <form id="addon-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-6">
           <Input label="Name" required error={errors.name?.message} {...register("name")} />
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-gray-900">Kind</label>
-              <select className={selectClass} {...register("kind")}>
-                {ADDON_KIND_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Input
-              label="Selection group"
-              placeholder="e.g. Coaching"
-              error={errors.selection_group?.message}
-              {...register("selection_group")}
-            />
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-900">Kind</label>
+            <select className={selectClass} {...register("kind")}>
+              {ADDON_KIND_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-sm text-gray-900">Description</label>
