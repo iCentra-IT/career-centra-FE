@@ -61,6 +61,8 @@ export interface EnrollmentReceipt {
 export interface CheckoutInitiateRequest {
   cohort_ids: number[]; // the endpoint takes a list even for a single-cohort "Enrol now"
   coupon_code: string; // empty string if none applied
+  // Omit for a training-only purchase — backward compatible.
+  addon_selections?: { cohort_id: number; addon_ids: number[] }[];
 }
 
 export interface CheckoutInitiateResponse {

@@ -7,12 +7,14 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore, type CartItem } from "@/lib/store/cartStore";
 import { useCart } from "@/hooks/queries/cart";
-import { useEmptyCart, useRemoveCartItem, useCheckoutCart } from "@/hooks/mutations/cart";
+import { useProgramAddons } from "@/hooks/queries/addons";
+import { useEmptyCart, useRemoveCartItem, useCheckoutCart, useSetCartItemAddons } from "@/hooks/mutations/cart";
 import { queryKeys } from "@/lib/api/query-keys";
 import { displayTitle, formatShortDate, formatCurrency, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CartItemLine } from "@/types/cart";
+import { AddonPicker } from "@/components/marketing/addon-picker";
 
 function TrashIcon() {
   return (
@@ -174,6 +176,32 @@ function GuestCart() {
 
 /* ----------------------------------------------------------------- server cart */
 
+function CartLineAddons({ line, currency }: { line: CartItemLine; currency: string }) {
+  const { data: addons = [], isLoading } = useProgramAddons(line.program.slug);
+  const setAddons = useSetCartItemAddons();
+  const selectedIds = line.addons.map((a) => a.id);
+
+  // Saving returns the full priced cart, so the totals here update with the selection.
+  const onChange = (ids: number[]) =>
+    setAddons.mutate(
+      { cohortId: line.cohort.id, payload: { addon_ids: ids } },
+      { onError: (err) => toast.error(err.message) },
+    );
+
+  if (isLoading || addons.length === 0) return null;
+
+  return (
+    <div className="mt-4 rounded-xl bg-white p-3 text-gray-900">
+      <AddonPicker addons={addons} currency={currency} selectedIds={selectedIds} onChange={onChange} disabled={setAddons.isPending} />
+      {parseFloat(line.addon_total) > 0 && (
+        <p className="mt-2 text-xs font-medium text-secondary">
+          Add-ons total {formatCurrency(line.addon_total, currency)}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ServerItemCard({
   line,
   currency,
@@ -217,6 +245,7 @@ function ServerItemCard({
             {line.unavailable_reason}
           </p>
         )}
+        {line.available && <CartLineAddons line={line} currency={currency} />}
       </div>
       <div className="mt-6 flex flex-col items-cente justify-between gap-2">
         <span className="text-lg font-semibold">
@@ -384,6 +413,13 @@ function ServerCart() {
             <p className="text-xs font-medium text-red-500">
               {cart.coupon?.error ?? "That coupon code isn't valid."}
             </p>
+          )}
+
+          {parseFloat(cart.addon_total) > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">Add-ons</span>
+              <span className="font-medium text-gray-900">{formatCurrency(cart.addon_total, cart.currency)}</span>
+            </div>
           )}
 
           <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-3 text-base">

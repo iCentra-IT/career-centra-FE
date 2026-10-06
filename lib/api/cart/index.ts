@@ -8,6 +8,7 @@ import type {
   CartCountResponse,
   MergeGuestCartRequest,
   MergeGuestCartResponse,
+  SetCartAddonsRequest,
 } from "@/types/cart";
 import { apiClient } from "../client";
 
@@ -51,4 +52,10 @@ export async function checkoutCart(
 ): Promise<CartCheckoutResponse> {
   const { data } = await apiClient.post("/api/cart/checkout/", payload);
   return unwrapObject<CartCheckoutResponse>(data);
+}
+
+// Replaces the add-on selection for one cohort line. An empty list clears it.
+export async function setCartItemAddons(cohortId: number, payload: SetCartAddonsRequest): Promise<Cart> {
+  const { data } = await apiClient.put(`/api/cart/items/${cohortId}/addons/`, payload);
+  return unwrapObject<Cart>(data);
 }

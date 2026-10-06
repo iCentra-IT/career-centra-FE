@@ -29,6 +29,8 @@ const PAGE_TITLES: { pattern: string; title: string }[] = [
   { pattern: "/admin/exchange-rates", title: "Exchange Rates" },
   { pattern: "/admin/enrollments", title: "Enrolments History" },
   { pattern: "/admin/carts", title: "Carts" },
+  { pattern: "/admin/question-banks", title: "Question Banks" },
+  { pattern: "/students/question-banks", title: "Question Bank" },
   { pattern: "/admin/crm/leads", title: "Leads" },
   { pattern: "/admin/crm/tasks", title: "Follow-up Tasks" },
   { pattern: "/admin/crm/lead-magnets", title: "Lead Magnets" },

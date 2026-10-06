@@ -128,6 +128,22 @@ export const queryKeys = {
     adminAll: ["referral-partners", "admin"] as const,
     adminDetail: (id: number) => ["referral-partners", "admin", id] as const,
   },
+  questionBanks: {
+    all: ["question-banks"] as const,
+    detail: (id: number) => ["question-banks", id] as const,
+    attempts: (bankId: number) => ["question-banks", bankId, "attempts"] as const,
+    attempt: (attemptId: number) => ["attempts", attemptId] as const,
+    question: (id: number) => ["admin-questions", id] as const,
+  },
+
+  programAddons: {
+    list: (slug: string) => ["program-addons", slug] as const,
+  },
+
+  cohortAddonOverrides: {
+    list: (cohortId: number) => ["cohort-addon-overrides", cohortId] as const,
+  },
+
   adminCarts: {
     all: ["admin-carts"] as const,
     list: (page?: number) => ["admin-carts", "list", page] as const,

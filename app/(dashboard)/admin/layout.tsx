@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { label: "Career Path", href: "/admin/career-paths", icon: <TicketIcon /> },
   { label: "Facilitator", href: "/admin/facilitators", icon: <FacilitatorGroupIcon /> },
   { label: "Cohorts", href: "/admin/cohorts", icon: <TagIcon /> },
+  { label: "Question Banks", href: "/admin/question-banks", icon: <CertificatesIcon /> },
   { label: "Reviews", href: "/admin/reviews", icon: <StarIcon /> },
   { label: "Carts", href: "/admin/carts", icon: <CouponsIcon /> },
   { label: "Users", href: "/admin/users", icon: <ProfileIcon /> },

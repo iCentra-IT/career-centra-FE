@@ -42,6 +42,15 @@ export interface CartProgramSummary {
   certificate_provider: CertificateProvider;
 }
 
+// An add-on attached to one cart line — priced in the cart's currency.
+export interface CartAddonLine {
+  id: number;
+  name: string;
+  kind: string;
+  amount: string;
+  amount_usd: string | null;
+}
+
 export interface CartItemLine {
   id: number; // cart item id
   program: CartProgramSummary;
@@ -51,6 +60,8 @@ export interface CartItemLine {
   discount_amount: string; // this line's share of the coupon ("0.00" if none)
   available: boolean;
   unavailable_reason: string | null; // string when available=false
+  addons: CartAddonLine[];
+  addon_total: string;
 }
 
 export interface CartCoupon {
@@ -67,9 +78,15 @@ export interface Cart {
   subtotal: string; // sum of item amounts, PRE-discount
   subtotal_usd: string | null; // null if any item isn't USD-priced
   discount_amount: string; // "0.00" if no/invalid coupon
-  total: string; // subtotal - discount_amount
+  addon_total: string; // add-ons are never discounted by a coupon
+  addon_total_usd: string | null;
+  total: string; // subtotal - discount_amount + addon_total
   coupon: CartCoupon | null; // null unless ?coupon= was passed
   items: CartItemLine[];
+}
+
+export interface SetCartAddonsRequest {
+  addon_ids: number[];
 }
 
 export interface AddToCartRequest {

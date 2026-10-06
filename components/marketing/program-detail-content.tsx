@@ -7,8 +7,11 @@ import { useCohortsByProgram } from "@/hooks/queries/cohort";
 import { useRelatedPathPrograms } from "@/hooks/queries/career-paths";
 import type { Cohort } from "@/types/cohort";
 import { programOrCohortPrice } from "@/types/programs";
-import { displayTitle, formatShortDate } from "@/lib/format";
+import { displayTitle, formatMoney, formatShortDate } from "@/lib/format";
 import { ReferralPrice } from "@/components/marketing/referral-price";
+import { AddonPicker } from "@/components/marketing/addon-picker";
+import { useProgramAddons } from "@/hooks/queries/addons";
+import { addonPriceFor } from "@/lib/addons";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { getYouTubeVideoId } from "@/lib/youtube";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -90,6 +93,8 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
   const [activeTabId, setActiveTabId] = useState<string>(TABS[0].id);
   const [selectedFacilitator, setSelectedFacilitator] = useState<FacilitatorDetail | null>(null);
   const [headerOffset, setHeaderOffset] = useState(0);
+  const { data: addons = [] } = useProgramAddons(slug);
+  const [addonIds, setAddonIds] = useState<number[]>([]);
   const tabBarRef = useRef<HTMLDivElement>(null);
 
   // Measure the sticky marketing header's real height so the tab bar sticks flush beneath it —
@@ -276,6 +281,18 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
           </div>
 
           <div className="h-fit rounded-2xl bg-white p-6 text-gray-900">
+            {addonIds.length > 0 && (
+              <p className="mt-1 text-sm text-gray-500">
+                + add-ons{" "}
+                {formatMoney(
+                  addons
+                    .filter((a) => addonIds.includes(a.id))
+                    .reduce((sum, a) => sum + parseFloat(addonPriceFor(a, price.currency).amount), 0)
+                    .toFixed(2),
+                  price.currency,
+                )}
+              </p>
+            )}
             <ReferralPrice
               referral={program.referral}
               amount={price.amount}
@@ -318,9 +335,21 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               )}
             </div>
 
+            {addons.length > 0 && currentCohort && (
+              <div className="mt-5">
+                <AddonPicker
+                  addons={addons}
+                  currency={price.currency}
+                  selectedIds={addonIds}
+                  onChange={setAddonIds}
+                />
+              </div>
+            )}
+
             <div className="mt-5 flex flex-col gap-2">
               <EnrolButton
                 cohortId={currentCohort?.id}
+                addonIds={addonIds}
                 enrollmentOpen={currentCohort?.is_enrollment_open}
                 withCoupon
                 programId={program.id}

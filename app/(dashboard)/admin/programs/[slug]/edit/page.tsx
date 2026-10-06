@@ -6,6 +6,7 @@ import { useProgram } from "@/hooks/queries/programs";
 import { usePatchProgram } from "@/hooks/mutations/programs";
 import { ProgramForm, EMPTY_CERTIFICATION } from "@/components/dashboard/program-form";
 import { FormSkeleton } from "@/components/ui/skeleton";
+import { ProgramAddonsManager } from "@/components/dashboard/program-addons-manager";
 
 const EditProgramPage = () => {
   const params = useParams<{ slug: string }>();
@@ -75,6 +76,10 @@ const EditProgramPage = () => {
             })
           }
         />
+      </div>
+
+      <div className="mt-8">
+        <ProgramAddonsManager programSlug={params.slug} />
       </div>
     </div>
   );

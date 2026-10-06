@@ -5,6 +5,7 @@ import {
   emptyCart,
   mergeGuestCart,
   removeCartItem,
+  setCartItemAddons,
 } from "@/lib/api/cart";
 import { queryKeys } from "@/lib/api/query-keys";
 import { NormalizedError } from "@/types/api";
@@ -15,6 +16,7 @@ import type {
   CartCheckoutResponse,
   MergeGuestCartRequest,
   MergeGuestCartResponse,
+  SetCartAddonsRequest,
 } from "@/types/cart";
 
 // Every cart write returns the full priced Cart — push it into cache and keep the nav badge in sync.
@@ -58,4 +60,10 @@ export function useCheckoutCart() {
   return useMutation<CartCheckoutResponse, NormalizedError, CartCheckoutRequest>({
     mutationFn: checkoutCart,
   });
+}
+
+export function useSetCartItemAddons() {
+  return useCartWrite(({ cohortId, payload }: { cohortId: number; payload: SetCartAddonsRequest }) =>
+    setCartItemAddons(cohortId, payload),
+  );
 }

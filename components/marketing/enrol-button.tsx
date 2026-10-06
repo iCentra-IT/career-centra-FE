@@ -11,6 +11,7 @@ import { formatMoney } from "@/lib/format";
 
 export function EnrolButton({
   cohortId,
+  addonIds = [],
   enrollmentOpen = true,
   withCoupon = false,
   programId,
@@ -20,6 +21,8 @@ export function EnrolButton({
   children,
 }: {
   cohortId?: number;
+  // Add-ons picked for this cohort on the program page — sent as addon_selections at checkout.
+  addonIds?: number[];
   enrollmentOpen?: boolean;
   // Show an optional "Have a coupon code?" field — the direct-enrol equivalent of the cart's
   // coupon box. Off by default so compact usages (e.g. the schedule table) stay a bare button.
@@ -76,6 +79,7 @@ export function EnrolButton({
       {
         cohort_ids: [cohortId],
         coupon_code: coupon.trim(),
+        ...(addonIds.length > 0 ? { addon_selections: [{ cohort_id: cohortId, addon_ids: addonIds }] } : {}),
       },
       {
         onSuccess: (data) => {

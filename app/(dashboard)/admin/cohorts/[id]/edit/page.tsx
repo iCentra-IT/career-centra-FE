@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSkeleton } from "@/components/ui/skeleton";
 import { CohortSessionsManager } from "@/components/dashboard/cohort-sessions-manager";
+import { CohortAddonOverrides } from "@/components/dashboard/cohort-addon-overrides";
 
 const DELIVERY_MODE_OPTIONS = [
   { value: "online", label: "Live Online" },
@@ -271,6 +272,9 @@ const EditCohortPage = () => {
         </p>
         <div className="mt-5">
           <CohortSessionsManager cohortId={cohortId} />
+        </div>
+        <div className="mt-8">
+          <CohortAddonOverrides cohortId={cohortId} programSlug={cohort.program.slug} />
         </div>
       </div>
     </div>
