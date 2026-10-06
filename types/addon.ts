@@ -88,3 +88,21 @@ export interface CohortAddonOverrideWriteRequest {
   price_override_usd?: string | null;
   price_override_ngn?: string | null;
 }
+
+// Embedded in GET /api/programs/{slug}/ as `addons` — public, so it's the one list a logged-out
+// visitor can see. Availability per cohort still comes from /api/cohorts/<id>/addons/ (login only).
+export interface ProgramAddonSummary {
+  id: number;
+  name: string;
+  description: string;
+  kind: AddonKind;
+  addon_type: AddonKind;
+  selection_group: string;
+  price_usd: string;
+  price_ngn: string;
+  pricing_mode: AddonPricingMode;
+  is_program_price_effective?: boolean;
+  question_bank: number | null;
+  is_active: boolean;
+  sort_order: number;
+}

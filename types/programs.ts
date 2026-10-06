@@ -1,6 +1,7 @@
 // lib/api/types/program.ts
 import { ProgramAccreditation } from "./student";
 import { CertificateProvider } from "./cart";
+import type { ProgramAddonSummary } from "./addon";
 
 // Confirmed the only two real values: "dual" (both base_price_usd and base_price_ngn apply) and
 // "usd_only" (single-currency, USD).
@@ -298,6 +299,8 @@ export interface ProgramResource {
 
 // Detail view — adds the rich fields used on the program detail page
 export interface Program extends ProgramListItem {
+  // Embedded add-ons from the detail endpoint — public, so visible without signing in.
+  addons?: ProgramAddonSummary[];
   outline: string;
   learning_outcomes: string[];
   who_should_attend: string[];

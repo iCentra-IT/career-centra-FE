@@ -145,6 +145,23 @@ export function ProgramAddonDrawer({
               ))}
             </select>
           </div>
+          {kind === "question_bank" && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-900">
+                Question bank <span className="text-secondary">*</span>
+              </label>
+              <select className={selectClass} {...register("question_bank")}>
+                <option value="">Choose a question bank</option>
+                {banks.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+              {errors.question_bank && <p className="text-xs text-red-500">{errors.question_bank.message}</p>}
+              <p className="text-xs text-gray-400">Buying this add-on gives the learner access to the chosen bank.</p>
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <label className="text-sm text-gray-900">Description</label>
             <textarea
@@ -171,23 +188,7 @@ export function ProgramAddonDrawer({
               Active
             </label>
           </div>
-          {kind === "question_bank" && (
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-gray-900">
-                Question bank <span className="text-secondary">*</span>
-              </label>
-              <select className={selectClass} {...register("question_bank")}>
-                <option value="">Choose a question bank</option>
-                {banks.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-              {errors.question_bank && <p className="text-xs text-red-500">{errors.question_bank.message}</p>}
-              <p className="text-xs text-gray-400">Buying this add-on gives the learner access to the chosen bank.</p>
-            </div>
-          )}
+
         </form>
 
         <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-6 py-4">

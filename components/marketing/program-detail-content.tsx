@@ -7,11 +7,9 @@ import { useCohortsByProgram } from "@/hooks/queries/cohort";
 import { useRelatedPathPrograms } from "@/hooks/queries/career-paths";
 import type { Cohort } from "@/types/cohort";
 import { programOrCohortPrice } from "@/types/programs";
-import { displayTitle, formatMoney, formatShortDate } from "@/lib/format";
+import { displayTitle, formatShortDate } from "@/lib/format";
 import { ReferralPrice } from "@/components/marketing/referral-price";
-import { AddonPicker } from "@/components/marketing/addon-picker";
-import { AddonsOnlyCheckout } from "@/components/marketing/addons-only-checkout";
-import { useCohortAddons } from "@/hooks/queries/addons";
+import { ProgramAddonsPanel } from "@/components/marketing/program-addons-panel";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { getYouTubeVideoId } from "@/lib/youtube";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -143,7 +141,6 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
     .filter((c) => isBookableCohort(c.starts_on))
     .sort((a, b) => a.starts_on.localeCompare(b.starts_on));
   const [currentCohort, nextCohort] = programCohorts;
-  const { data: addons = [] } = useCohortAddons(currentCohort?.id);
 
   if (isLoading) {
     return <DetailPageSkeleton />;
@@ -281,17 +278,6 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
           </div>
 
           <div className="h-fit rounded-2xl bg-white p-6 text-gray-900">
-            {addonIds.length > 0 && (
-              <p className="mt-1 text-sm text-gray-500">
-                + add-ons{" "}
-                {formatMoney(
-                  addons
-                    .filter((a) => addonIds.includes(a.id))
-                    .reduce((sum, a) => sum + a.amount, 0),
-                  addons[0]?.currency ?? price.currency,
-                )}
-              </p>
-            )}
             <ReferralPrice
               referral={program.referral}
               amount={price.amount}
@@ -334,11 +320,12 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               )}
             </div>
 
-            {addons.length > 0 && currentCohort && (
-              <div className="mt-5">
-                <AddonPicker addons={addons} selectedIds={addonIds} onChange={setAddonIds} />
-              </div>
-            )}
+            <ProgramAddonsPanel
+              addons={program.addons ?? []}
+              cohortId={currentCohort?.id}
+              selectedIds={addonIds}
+              onChange={setAddonIds}
+            />
 
             <div className="mt-5 flex flex-col gap-2">
               <EnrolButton
@@ -361,7 +348,6 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
               </Link>
               {currentCohort && <AddToCartButton item={cartItemFor(currentCohort)} />}
             </div>
-            <AddonsOnlyCheckout programSlug={slug} />
           </div>
         </div>
       </section>

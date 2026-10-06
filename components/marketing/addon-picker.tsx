@@ -26,7 +26,6 @@ export function AddonPicker({
       <ul className="flex flex-col gap-2">
         {offered.map((addon) => {
           const checked = selectedIds.includes(addon.id);
-          const exclusive = !!addon.selection_group;
           const unavailable = !addon.is_available;
           return (
             <li key={addon.id}>
@@ -40,8 +39,7 @@ export function AddonPicker({
                 } ${disabled ? "cursor-wait" : ""}`}
               >
                 <input
-                  type={exclusive ? "radio" : "checkbox"}
-                  name={exclusive ? `addon-group-${addon.selection_group}` : undefined}
+                  type="checkbox"
                   checked={checked}
                   disabled={disabled || unavailable}
                   onChange={() => onChange(applyAddonSelection(addons, selectedIds, addon.id))}
