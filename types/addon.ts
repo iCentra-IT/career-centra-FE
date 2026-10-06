@@ -34,8 +34,26 @@ export interface ProgramAddon {
   question_bank: number | null; // set for question_bank-kind add-ons
   is_active: boolean;
   sort_order: number;
+  // Added by the backend: false when at least one cohort overrides this add-on's price or availability.
+  is_program_price_effective?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// GET /api/cohorts/<cohort_pk>/addons/ — what a learner can buy for one cohort. Availability and the
+// price in the cohort's currency are already resolved server-side.
+export interface CohortAddon {
+  id: number;
+  name: string;
+  description: string;
+  kind: AddonKind;
+  addon_type: AddonKind;
+  selection_group: string;
+  is_available: boolean;
+  currency: string;
+  amount: number;
+  amount_usd: number | null;
+  sort_order: number;
 }
 
 export interface ProgramAddonWriteRequest {

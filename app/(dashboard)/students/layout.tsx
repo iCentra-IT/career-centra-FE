@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { label: "Class Schedules", href: "/students/schedules", icon: <ScheduleIcon /> },
   { label: "Certificates", href: "/students/certificates", icon: <CertificatesIcon /> },
   { label: "Purchase History", href: "/students/purchase-history", icon: <PurchaseHistoryIcon /> },
+  { label: "Question Banks", href: "/students/question-banks", icon: <CertificatesIcon /> },
   { label: "Profile", href: "/students/profile", icon: <ProfileIcon /> },
 ];
 

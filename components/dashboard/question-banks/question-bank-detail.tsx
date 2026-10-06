@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useQuestionBank, useAdminQuestion } from "@/hooks/queries/question-banks";
+import { useQuestionBank, useAdminQuestions } from "@/hooks/queries/question-banks";
 import {
   useDeleteAdminQuestion,
   useGrantQuestionBankAccess,
@@ -18,7 +18,7 @@ import { Modal } from "@/components/ui/modal";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
-import { Card, MetricTile } from "@/components/dashboard/dashboard-kit";
+import { Card, EmptyState, MetricTile } from "@/components/dashboard/dashboard-kit";
 import { ACCESS_DURATION_OPTIONS, type AdminQuestion, type AnswerLetter } from "@/types/question-bank";
 
 const selectClass =
@@ -103,9 +103,17 @@ function GrantAccessCard({ bankId }: { bankId: number }) {
   );
 }
 
-function QuestionEditorModal({ question, onClose }: { question: AdminQuestion; onClose: () => void }) {
-  const patch = usePatchAdminQuestion();
-  const remove = useDeleteAdminQuestion();
+function QuestionEditorModal({
+  bankId,
+  question,
+  onClose,
+}: {
+  bankId: number;
+  question: AdminQuestion;
+  onClose: () => void;
+}) {
+  const patch = usePatchAdminQuestion(bankId);
+  const remove = useDeleteAdminQuestion(bankId);
   const [draft, setDraft] = useState({
     text: question.text,
     option_a: question.option_a,
@@ -134,7 +142,7 @@ function QuestionEditorModal({ question, onClose }: { question: AdminQuestion; o
     <>
       <Modal open onClose={onClose} size="lg">
         <div className="text-left">
-          <h2 className="text-lg font-semibold text-gray-900">Question #{question.id}</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Edit question</h2>
           <div className="mt-5 flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm text-gray-900">Question</label>
@@ -223,48 +231,82 @@ function QuestionEditorModal({ question, onClose }: { question: AdminQuestion; o
   );
 }
 
-// The API has no list-questions endpoint yet, so questions are opened by id here.
-function QuestionLookupCard() {
-  const [input, setInput] = useState("");
-  const [id, setId] = useState<number | null>(null);
-  const { data: question, isFetching, isError, error } = useAdminQuestion(id);
-  const [editing, setEditing] = useState(false);
+// Every question in the bank with its answer key. Editing or removing one refreshes the list.
+function QuestionsCard({ bankId }: { bankId: number }) {
+  const { data: questions, isLoading, isError, error } = useAdminQuestions(bankId);
+  const [editing, setEditing] = useState<AdminQuestion | null>(null);
+  const [deleting, setDeleting] = useState<AdminQuestion | null>(null);
+  const remove = useDeleteAdminQuestion(bankId);
+  const [query, setQuery] = useState("");
+
+  const visible = (questions ?? []).filter((q) => q.text.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
-    <Card title="Edit a question">
-      <p className="-mt-2 mb-4 text-xs text-gray-400">Open a question by its ID to review, edit or remove it.</p>
-      <div className="flex gap-2">
+    <Card title={`Questions${questions ? ` (${questions.length})` : ""}`}>
+      <div className="-mt-2 mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-gray-400">Shows the correct answer for every question. Learners never see it.</p>
         <input
-          value={input}
-          onChange={(e) => setInput(e.target.value.replace(/\D/g, ""))}
-          onKeyDown={(e) => e.key === "Enter" && input && setId(Number(input))}
-          placeholder="Question ID"
-          className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search questions"
+          className="w-60 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
         />
-        <Button type="button" onClick={() => input && setId(Number(input))} disabled={!input} className="w-auto px-4">
-          Open
-        </Button>
       </div>
 
-      {isFetching && <p className="mt-4 text-sm text-gray-400">Loading…</p>}
-      {isError && <p className="mt-4 text-sm text-red-600">{error.message}</p>}
-      {question && !isFetching && (
-        <div className="mt-4 rounded-xl border border-gray-100 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <p className="text-sm font-medium text-gray-900">{question.text}</p>
-            <StatusBadge label={question.is_active ? "Active" : "Hidden"} tone={question.is_active ? "green" : "gray"} />
-          </div>
-          <p className="mt-2 text-xs text-gray-500">Correct answer: {question.correct_option}</p>
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="mt-3 text-sm font-medium text-secondary hover:underline"
-          >
-            Edit question
-          </button>
-        </div>
+      {isLoading && <p className="text-sm text-gray-400">Loading questions…</p>}
+      {isError && <p className="text-sm text-red-600">{error.message}</p>}
+      {!isLoading && !isError && visible.length === 0 && (
+        <EmptyState>{questions?.length ? "No questions match that search." : "No questions yet — upload a CSV above."}</EmptyState>
       )}
-      {editing && question && <QuestionEditorModal question={question} onClose={() => setEditing(false)} />}
+
+      {visible.length > 0 && (
+        <ol className="divide-y divide-gray-100">
+          {visible.map((q, i) => (
+            <li key={q.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  <span className="mr-2 text-gray-400">{i + 1}.</span>
+                  {q.text}
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  A) {q.option_a} · B) {q.option_b} · C) {q.option_c} · D) {q.option_d}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                  Answer {q.correct_option}
+                </span>
+                <StatusBadge label={q.is_active ? "Active" : "Hidden"} tone={q.is_active ? "green" : "gray"} />
+                <button type="button" onClick={() => setEditing(q)} className="text-sm text-gray-500 hover:text-gray-900">
+                  Edit
+                </button>
+                <button type="button" onClick={() => setDeleting(q)} className="text-sm text-gray-500 hover:text-red-600">
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {editing && <QuestionEditorModal bankId={bankId} question={editing} onClose={() => setEditing(null)} />}
+      <ConfirmDeleteModal
+        open={!!deleting}
+        title="Delete question"
+        description="This removes the question from the bank. Past attempts keep their recorded answers."
+        loading={remove.isPending}
+        onConfirm={() => {
+          if (!deleting) return;
+          remove.mutate(deleting.id, {
+            onSuccess: () => {
+              toast.success("Question deleted.");
+              setDeleting(null);
+            },
+            onError: (err) => toast.error(err.message),
+          });
+        }}
+        onClose={() => setDeleting(null)}
+      />
     </Card>
   );
 }
@@ -309,8 +351,8 @@ export function QuestionBankDetailPage({ bankId }: { bankId: number }) {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <CsvUploadCard bankId={bank.id} />
         <GrantAccessCard bankId={bank.id} />
-        <QuestionLookupCard />
       </div>
+      <QuestionsCard bankId={bank.id} />
 
       {editing && <QuestionBankModal open onClose={() => setEditing(false)} bank={bank} />}
     </div>

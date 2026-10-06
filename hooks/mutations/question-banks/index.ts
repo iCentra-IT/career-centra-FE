@@ -67,22 +67,26 @@ export function useUploadQuestionBankCsv(bankId: number) {
   });
 }
 
-export function usePatchAdminQuestion() {
+// Question edits and deletes change the bank's list and count, so both caches are refreshed.
+export function usePatchAdminQuestion(bankId: number) {
   const qc = useQueryClient();
   return useMutation<AdminQuestion, NormalizedError, { id: number; payload: PatchQuestionRequest }>({
     mutationFn: ({ id, payload }) => patchAdminQuestion(id, payload),
     onSuccess: (q) => {
       qc.setQueryData(queryKeys.questionBanks.question(q.id), q);
+      qc.invalidateQueries({ queryKey: queryKeys.questionBanks.questions(bankId) });
     },
   });
 }
 
-export function useDeleteAdminQuestion() {
+export function useDeleteAdminQuestion(bankId: number) {
   const qc = useQueryClient();
   return useMutation<void, NormalizedError, number>({
     mutationFn: deleteAdminQuestion,
     onSuccess: (_, id) => {
       qc.removeQueries({ queryKey: queryKeys.questionBanks.question(id) });
+      qc.invalidateQueries({ queryKey: queryKeys.questionBanks.questions(bankId) });
+      qc.invalidateQueries({ queryKey: queryKeys.questionBanks.detail(bankId) });
       qc.invalidateQueries({ queryKey: queryKeys.questionBanks.all });
     },
   });

@@ -10,8 +10,7 @@ import { programOrCohortPrice } from "@/types/programs";
 import { displayTitle, formatMoney, formatShortDate } from "@/lib/format";
 import { ReferralPrice } from "@/components/marketing/referral-price";
 import { AddonPicker } from "@/components/marketing/addon-picker";
-import { useProgramAddons } from "@/hooks/queries/addons";
-import { addonPriceFor } from "@/lib/addons";
+import { useCohortAddons } from "@/hooks/queries/addons";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { getYouTubeVideoId } from "@/lib/youtube";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -93,7 +92,6 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
   const [activeTabId, setActiveTabId] = useState<string>(TABS[0].id);
   const [selectedFacilitator, setSelectedFacilitator] = useState<FacilitatorDetail | null>(null);
   const [headerOffset, setHeaderOffset] = useState(0);
-  const { data: addons = [] } = useProgramAddons(slug);
   const [addonIds, setAddonIds] = useState<number[]>([]);
   const tabBarRef = useRef<HTMLDivElement>(null);
 
@@ -144,6 +142,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
     .filter((c) => isBookableCohort(c.starts_on))
     .sort((a, b) => a.starts_on.localeCompare(b.starts_on));
   const [currentCohort, nextCohort] = programCohorts;
+  const { data: addons = [] } = useCohortAddons(currentCohort?.id);
 
   if (isLoading) {
     return <DetailPageSkeleton />;
@@ -287,9 +286,8 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                 {formatMoney(
                   addons
                     .filter((a) => addonIds.includes(a.id))
-                    .reduce((sum, a) => sum + parseFloat(addonPriceFor(a, price.currency).amount), 0)
-                    .toFixed(2),
-                  price.currency,
+                    .reduce((sum, a) => sum + a.amount, 0),
+                  addons[0]?.currency ?? price.currency,
                 )}
               </p>
             )}
@@ -337,12 +335,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
 
             {addons.length > 0 && currentCohort && (
               <div className="mt-5">
-                <AddonPicker
-                  addons={addons}
-                  currency={price.currency}
-                  selectedIds={addonIds}
-                  onChange={setAddonIds}
-                />
+                <AddonPicker addons={addons} selectedIds={addonIds} onChange={setAddonIds} />
               </div>
             )}
 

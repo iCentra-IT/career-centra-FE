@@ -117,3 +117,13 @@ export interface StartAttemptRequest {
 export interface SubmitAttemptRequest {
   answers: { question_id: number; answer: AnswerLetter }[];
 }
+
+// GET /api/question-banks/mine/ — banks the signed-in learner can currently open.
+export interface MyQuestionBankAccess {
+  id: number;
+  question_bank: QuestionBank;
+  starts_at: string;
+  expires_at: string | null;
+  status: string;
+  has_access: boolean;
+}

@@ -2,6 +2,7 @@
 import { apiClient } from "../client";
 import { ApiResponse, unwrapList, unwrapObject } from "@/types/api";
 import type {
+  CohortAddon,
   CohortAddonOverride,
   CohortAddonOverrideWriteRequest,
   PatchProgramAddonRequest,
@@ -16,6 +17,14 @@ export async function getProgramAddons(programSlug: string): Promise<ProgramAddo
     `/api/programs/${programSlug}/addons/`,
   );
   return unwrapList<ProgramAddon>(data);
+}
+
+// What a learner can buy for one cohort, with availability and price resolved for that run.
+export async function getCohortAddons(cohortId: number): Promise<CohortAddon[]> {
+  const { data } = await apiClient.get<ApiResponse<CohortAddon[]> | CohortAddon[]>(
+    `/api/cohorts/${cohortId}/addons/`,
+  );
+  return unwrapList<CohortAddon>(data);
 }
 
 export async function createProgramAddon(programSlug: string, payload: ProgramAddonWriteRequest): Promise<ProgramAddon> {

@@ -6,13 +6,15 @@ import { useProgram } from "@/hooks/queries/programs";
 import { usePatchProgram } from "@/hooks/mutations/programs";
 import { ProgramForm, EMPTY_CERTIFICATION } from "@/components/dashboard/program-form";
 import { FormSkeleton } from "@/components/ui/skeleton";
-import { ProgramAddonsManager } from "@/components/dashboard/program-addons-manager";
+import Link from "next/link";
+import { useProgramAddons } from "@/hooks/queries/addons";
 
 const EditProgramPage = () => {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const { data: program, isLoading } = useProgram(params.slug);
   const patchProgram = usePatchProgram(params.slug);
+  const { data: addons } = useProgramAddons(params.slug);
 
   if (isLoading) return <FormSkeleton fields={8} />;
   if (!program) return <p className="text-sm text-gray-400">Program not found.</p>;
@@ -78,9 +80,18 @@ const EditProgramPage = () => {
         />
       </div>
 
-      <div className="mt-8">
-        <ProgramAddonsManager programSlug={params.slug} />
-      </div>
+      <Link
+        href={`/admin/programs/${params.slug}/addons`}
+        className="mt-8 flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm hover:bg-gray-50"
+      >
+        <div>
+          <p className="text-sm font-semibold text-gray-900">Add-ons</p>
+          <p className="mt-1 text-xs text-gray-500">
+            {addons ? `${addons.length} add-on${addons.length === 1 ? "" : "s"}` : "Loading…"} · coaching, exams, question banks
+          </p>
+        </div>
+        <span className="text-sm font-medium text-secondary">Manage →</span>
+      </Link>
     </div>
   );
 };

@@ -133,11 +133,17 @@ export const queryKeys = {
     detail: (id: number) => ["question-banks", id] as const,
     attempts: (bankId: number) => ["question-banks", bankId, "attempts"] as const,
     attempt: (attemptId: number) => ["attempts", attemptId] as const,
+    questions: (bankId: number) => ["question-banks", bankId, "questions"] as const,
     question: (id: number) => ["admin-questions", id] as const,
+    mine: ["question-banks", "mine"] as const,
   },
 
   programAddons: {
     list: (slug: string) => ["program-addons", slug] as const,
+  },
+
+  cohortAddons: {
+    list: (cohortId: number) => ["cohort-addons", cohortId] as const,
   },
 
   cohortAddonOverrides: {

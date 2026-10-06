@@ -1,5 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAdminQuestion, getAttempt, getMyAttempts, getQuestionBank, getQuestionBanks } from "@/lib/api/question-banks";
+import {
+  getAdminQuestion,
+  getAdminQuestions,
+  getAttempt,
+  getMyAttempts,
+  getMyQuestionBanks,
+  getQuestionBank,
+  getQuestionBanks,
+} from "@/lib/api/question-banks";
 import { queryKeys } from "@/lib/api/query-keys";
 
 export function useQuestionBanks() {
@@ -36,4 +44,16 @@ export function useAttempt(attemptId: number) {
     queryFn: () => getAttempt(attemptId),
     enabled: !!attemptId,
   });
+}
+
+export function useAdminQuestions(bankId: number) {
+  return useQuery({
+    queryKey: queryKeys.questionBanks.questions(bankId),
+    queryFn: () => getAdminQuestions(bankId),
+    enabled: !!bankId,
+  });
+}
+
+export function useMyQuestionBanks() {
+  return useQuery({ queryKey: queryKeys.questionBanks.mine, queryFn: getMyQuestionBanks });
 }

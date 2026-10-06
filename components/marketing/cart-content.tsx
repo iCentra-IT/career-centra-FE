@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore, type CartItem } from "@/lib/store/cartStore";
 import { useCart } from "@/hooks/queries/cart";
-import { useProgramAddons } from "@/hooks/queries/addons";
+import { useCohortAddons } from "@/hooks/queries/addons";
 import { useEmptyCart, useRemoveCartItem, useCheckoutCart, useSetCartItemAddons } from "@/hooks/mutations/cart";
 import { queryKeys } from "@/lib/api/query-keys";
 import { displayTitle, formatShortDate, formatCurrency, formatMoney } from "@/lib/format";
@@ -177,7 +177,7 @@ function GuestCart() {
 /* ----------------------------------------------------------------- server cart */
 
 function CartLineAddons({ line, currency }: { line: CartItemLine; currency: string }) {
-  const { data: addons = [], isLoading } = useProgramAddons(line.program.slug);
+  const { data: addons = [], isLoading } = useCohortAddons(line.cohort.id);
   const setAddons = useSetCartItemAddons();
   const selectedIds = line.addons.map((a) => a.id);
 
@@ -192,7 +192,7 @@ function CartLineAddons({ line, currency }: { line: CartItemLine; currency: stri
 
   return (
     <div className="mt-4 rounded-xl bg-white p-3 text-gray-900">
-      <AddonPicker addons={addons} currency={currency} selectedIds={selectedIds} onChange={onChange} disabled={setAddons.isPending} />
+      <AddonPicker addons={addons} selectedIds={selectedIds} onChange={onChange} disabled={setAddons.isPending} />
       {parseFloat(line.addon_total) > 0 && (
         <p className="mt-2 text-xs font-medium text-secondary">
           Add-ons total {formatCurrency(line.addon_total, currency)}

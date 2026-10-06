@@ -3,6 +3,7 @@ import { apiClient } from "../client";
 import { ApiResponse, PaginatedResponse, unwrapList, unwrapObject } from "@/types/api";
 import type {
   AdminQuestion,
+  MyQuestionBankAccess,
   CreateQuestionBankRequest,
   GrantQuestionBankAccessRequest,
   PatchQuestionBankRequest,
@@ -69,7 +70,14 @@ export async function uploadQuestionBankCsv(id: number, file: File): Promise<Que
 
 // ---------------------------------------------------------------- admin: questions
 
-// The spec has no endpoint that lists a bank's questions, only get/update/delete by question id.
+// Admin/staff: every question in the bank, including the answer key.
+export async function getAdminQuestions(bankId: number): Promise<AdminQuestion[]> {
+  const { data } = await apiClient.get<ApiResponse<AdminQuestion[]> | AdminQuestion[]>(
+    `/api/admin/question-banks/${bankId}/questions/`,
+  );
+  return unwrapList<AdminQuestion>(data);
+}
+
 export async function getAdminQuestion(id: number): Promise<AdminQuestion> {
   const { data } = await apiClient.get<ApiResponse<AdminQuestion>>(`/api/admin/questions/${id}/`);
   return unwrapObject<AdminQuestion>(data);
@@ -85,6 +93,14 @@ export async function deleteAdminQuestion(id: number): Promise<void> {
 }
 
 // ---------------------------------------------------------------- learner: attempts
+
+// Learner: the banks this user currently has active access to.
+export async function getMyQuestionBanks(): Promise<MyQuestionBankAccess[]> {
+  const { data } = await apiClient.get<ApiResponse<MyQuestionBankAccess[]> | MyQuestionBankAccess[]>(
+    "/api/question-banks/mine/",
+  );
+  return unwrapList<MyQuestionBankAccess>(data);
+}
 
 export async function getMyAttempts(questionBankId: number): Promise<QuestionBankAttempt[]> {
   const { data } = await apiClient.get<ApiResponse<QuestionBankAttempt[]> | QuestionBankAttempt[]>(
