@@ -1,8 +1,23 @@
 // lib/api/types/addon.ts
 // Program add-ons (sold alongside a cohort) and per-cohort overrides of their price/availability.
 
-// Seen so far: support, question_bank, coaching_group. Kept open for kinds not yet listed.
-export type AddonKind = "support" | "question_bank" | "coaching_group" | (string & {});
+// Confirmed full enum from the backend.
+export type AddonKind =
+  | "support"
+  | "coaching_group"
+  | "coaching_personalized"
+  | "exam_membership"
+  | "exam_non_membership"
+  | "question_bank";
+
+export const ADDON_KIND_OPTIONS: { value: AddonKind; label: string }[] = [
+  { value: "support", label: "Support" },
+  { value: "coaching_group", label: "Group coaching" },
+  { value: "coaching_personalized", label: "Personalized coaching" },
+  { value: "exam_membership", label: "Exam (member price)" },
+  { value: "exam_non_membership", label: "Exam (non-member price)" },
+  { value: "question_bank", label: "Question bank" },
+];
 export type AddonPricingMode = "dual" | "usd_only" | (string & {});
 
 export interface ProgramAddon {

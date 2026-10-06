@@ -15,22 +15,18 @@ import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ListRowSkeleton } from "@/components/ui/skeleton";
 import { Card, EmptyState } from "@/components/dashboard/dashboard-kit";
-import type { ProgramAddon, ProgramAddonWriteRequest } from "@/types/addon";
+import { ADDON_KIND_OPTIONS, type ProgramAddon, type ProgramAddonWriteRequest } from "@/types/addon";
 
 const selectClass =
   "w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary";
 
-const KIND_OPTIONS = [
-  { value: "support", label: "Support" },
-  { value: "question_bank", label: "Question bank" },
-  { value: "coaching_group", label: "Group coaching" },
-];
+const KIND_OPTIONS = ADDON_KIND_OPTIONS;
 
 const schema = z
   .object({
     name: z.string().min(1, "Name is required"),
     description: z.string().optional(),
-    kind: z.string().min(1, "Choose a kind"),
+    kind: z.enum(["support", "coaching_group", "coaching_personalized", "exam_membership", "exam_non_membership", "question_bank"]),
     price_usd: z.string().min(1, "USD price is required"),
     price_ngn: z.string().optional(),
     pricing_mode: z.enum(["dual", "usd_only"]),
