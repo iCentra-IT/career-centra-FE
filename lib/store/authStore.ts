@@ -31,7 +31,15 @@ export const useAuthStore = create<AuthState>()(
 
 export const getAccessToken = () => useAuthStore.getState().accessToken;
 export const getRefreshToken = () => useAuthStore.getState().refreshToken;
+// Only pages that need a logged-in session send the visitor to login. A stale token on a public
+// page (program details, blog, etc.) just drops the session — the page itself still loads.
+const LOGIN_REQUIRED_PREFIXES = ["/admin", "/students", "/facilitators", "/marketer", "/staff", "/orders"];
+
 export const handleUnauthorized = () => {
   useAuthStore.getState().clearAuth();
-  if (typeof window !== "undefined") window.location.href = "/login";
+  if (typeof window === "undefined") return;
+  const path = window.location.pathname;
+  if (LOGIN_REQUIRED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
+    window.location.href = "/login";
+  }
 };

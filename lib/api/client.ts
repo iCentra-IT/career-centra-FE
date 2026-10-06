@@ -47,6 +47,21 @@ function onRefreshed(token: string) {
   pendingQueue = [];
 }
 
+// The session is no longer valid. Drop it, then retry a GET once without the stale token — the
+// backend rejects an invalid token even on public endpoints, so this is what lets them load.
+function recoverFromUnauthorized(
+  originalRequest: InternalAxiosRequestConfig & { _retry?: boolean },
+  error: unknown,
+) {
+  handleUnauthorized();
+  originalRequest._retry = true; // the anonymous retry must not re-enter the refresh path
+  if (originalRequest.method?.toUpperCase() === "GET") {
+    delete originalRequest.headers.Authorization;
+    return apiClient(originalRequest);
+  }
+  return Promise.reject(normalizeError(error));
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiErrorResponse>) => {
@@ -66,8 +81,7 @@ apiClient.interceptors.response.use(
       const refreshToken = getRefreshToken();
 
       if (!refreshToken) {
-        handleUnauthorized();
-        return Promise.reject(normalizeError(error));
+        return recoverFromUnauthorized(originalRequest, error);
       }
 
       originalRequest._retry = true;
@@ -96,8 +110,7 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        handleUnauthorized();
-        return Promise.reject(normalizeError(refreshError));
+        return recoverFromUnauthorized(originalRequest, refreshError);
       } finally {
         isRefreshing = false;
       }
