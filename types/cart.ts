@@ -1,5 +1,6 @@
 // lib/api/types/cart.ts
 import { ProgramAccreditation } from "./student";
+import type { ProgramReferralPricing } from "./programs";
 
 export type CertificateProvider = "icentra" | "pmi" | "pecb" | "none" | string;
 export type OrderStatus = "pending" | "confirmed" | "failed" | string;
@@ -20,7 +21,9 @@ export interface CartCohortSummary {
   platform: string;
   starts_on: string;
   ends_on: string;
-  duration_weeks: number;
+  // Confirmed against the live OpenAPI schema — the field is number_of_class_days, not
+  // duration_weeks (that name never matched this endpoint; nothing in the app actually read it).
+  number_of_class_days: number;
   delivery_mode: string;
   location: string;
   seat_capacity: number;
@@ -64,6 +67,20 @@ export interface CartItemLine {
   addon_total: string;
 }
 
+// One cohort-less add-on sitting directly in the cart (e.g. a Question Bank bought on its own via
+// POST /api/cart/standalone-addons/{addon_id}/) — confirmed shape from the live OpenAPI schema.
+export interface CartStandaloneAddon {
+  id: number; // the cart line's own id — pass addon_id (below), not this, back to the API
+  addon_id: number;
+  program: CartProgramSummary;
+  name: string;
+  kind: string;
+  amount: string | null;
+  amount_usd: string | null;
+  available: boolean;
+  unavailable_reason: string | null;
+}
+
 export interface CartCoupon {
   code: string;
   applied: boolean;
@@ -74,13 +91,17 @@ export interface CartCoupon {
 export interface Cart {
   currency: string; // resolved display currency
   country_code: string; // resolved buyer country
+  referral: ProgramReferralPricing | null; // null unless a partner referral is pinned
   item_count: number;
   subtotal: string; // sum of item amounts, PRE-discount
   subtotal_usd: string | null; // null if any item isn't USD-priced
   discount_amount: string; // "0.00" if no/invalid coupon
-  addon_total: string; // add-ons are never discounted by a coupon
+  addon_total: string; // cohort-line add-ons — never discounted by a coupon
   addon_total_usd: string | null;
-  total: string; // subtotal - discount_amount + addon_total
+  standalone_addons: CartStandaloneAddon[]; // add-ons bought with no cohort at all
+  standalone_addon_total: string;
+  standalone_addon_total_usd: string | null;
+  total: string; // subtotal - discount_amount + addon_total + standalone_addon_total
   coupon: CartCoupon | null; // null unless ?coupon= was passed
   items: CartItemLine[];
 }
@@ -97,13 +118,27 @@ export interface CartCountResponse {
   count: number;
 }
 
+// Replays an anonymous visitor's locally-stored cart after sign-in/sign-up. `items` (cohort + its
+// own add-on selection) is the full shape; `cohort_ids` is the legacy cohorts-only form, still
+// accepted alongside it. At least one of cohort_ids/items/standalone_addon_ids must be non-empty.
+// Best-effort: a cohort is added if purchasable regardless of its add-ons — an addon_id that
+// doesn't apply (wrong programme, or it loses a selection-group conflict) is just left out, never
+// a reason to skip the cohort. Each standalone add-on is reported added/skipped independently in
+// the response's `merged` breakdown.
 export interface MergeGuestCartRequest {
-  cohort_ids: number[];
+  cohort_ids?: number[];
+  items?: { cohort_id: number; addon_ids?: number[] }[];
+  standalone_addon_ids?: number[];
 }
 
 // Merge returns the Cart plus a best-effort `merged` breakdown of what was / wasn't added.
 export interface MergeGuestCartResponse extends Cart {
-  merged?: unknown;
+  merged?: {
+    added?: number[];
+    skipped?: Record<string, string>;
+    standalone_addons_added?: number[];
+    standalone_addons_skipped?: Record<string, string>;
+  };
 }
 
 export interface CartCheckoutRequest {
@@ -118,6 +153,11 @@ export interface CartCheckoutResponse {
   payment_reference: string;
   gateway: CheckoutGateway;
   gateway_url: string; // redirect the buyer here
+  currency: string; // the currency actually charged (a pinned referral can override the request)
+  referral: ProgramReferralPricing | null;
+  original_total: string; // pre-coupon total in the charged currency
+  discount_amount: string; // original_total - total_amount
+  total_amount: string; // what the gateway actually collects
 }
 
 // 400 body when one or more cohorts can't be checked out.

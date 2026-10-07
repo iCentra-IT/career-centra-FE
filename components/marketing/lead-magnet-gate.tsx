@@ -46,6 +46,10 @@ export function LeadMagnetGate({
       },
       {
         onSuccess: ({ file_url }) => {
+          if (!file_url) {
+            toast.error("That download isn't available right now — please try again shortly.");
+            return;
+          }
           window.open(file_url, "_blank", "noopener,noreferrer");
           toast.success("Your download is starting.");
           reset();

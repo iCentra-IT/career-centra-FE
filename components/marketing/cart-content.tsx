@@ -8,12 +8,18 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore, type CartItem } from "@/lib/store/cartStore";
 import { useCart } from "@/hooks/queries/cart";
 import { useCohortAddons } from "@/hooks/queries/addons";
-import { useEmptyCart, useRemoveCartItem, useCheckoutCart, useSetCartItemAddons } from "@/hooks/mutations/cart";
+import {
+  useEmptyCart,
+  useRemoveCartItem,
+  useCheckoutCart,
+  useSetCartItemAddons,
+  useRemoveStandaloneCartAddon,
+} from "@/hooks/mutations/cart";
 import { queryKeys } from "@/lib/api/query-keys";
 import { displayTitle, formatShortDate, formatCurrency, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CartItemLine } from "@/types/cart";
+import type { CartItemLine, CartStandaloneAddon } from "@/types/cart";
 import { AddonPicker } from "@/components/marketing/addon-picker";
 import { trackEvent } from "@/lib/analytics";
 
@@ -175,6 +181,42 @@ function GuestCart() {
   );
 }
 
+function StandaloneAddonsList({ addons, currency }: { addons: CartStandaloneAddon[]; currency: string }) {
+  const removeAddon = useRemoveStandaloneCartAddon();
+  if (addons.length === 0) return null;
+
+  return (
+    <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-5">
+      <h2 className="text-sm font-semibold text-gray-900">Add-ons (no cohort)</h2>
+      <ul className="mt-3 flex flex-col divide-y divide-gray-50">
+        {addons.map((addon) => (
+          <li key={addon.id} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-gray-900">{addon.name}</p>
+              <p className="truncate text-xs text-gray-400">{displayTitle(addon.program.title)}</p>
+              {!addon.available && addon.unavailable_reason && (
+                <p className="mt-1 text-xs text-red-600">{addon.unavailable_reason}</p>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="text-sm font-semibold text-gray-900">{formatCurrency(addon.amount, currency)}</span>
+              <button
+                type="button"
+                onClick={() => removeAddon.mutate(addon.addon_id, { onError: (err) => toast.error(err.message) })}
+                disabled={removeAddon.isPending}
+                aria-label={`Remove ${addon.name}`}
+                className="text-gray-400 hover:text-red-600 disabled:opacity-50"
+              >
+                <TrashIcon />
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /* ----------------------------------------------------------------- server cart */
 
 function CartLineAddons({ line, currency }: { line: CartItemLine; currency: string }) {
@@ -296,7 +338,7 @@ function ServerCart() {
     );
   }
 
-  if (!cart || cart.items.length === 0) return <EmptyCart />;
+  if (!cart || (cart.items.length === 0 && cart.standalone_addons.length === 0)) return <EmptyCart />;
 
   const discount = parseFloat(cart.discount_amount) || 0;
   const couponRejected = !!cart.coupon && !cart.coupon.applied;
@@ -360,6 +402,7 @@ function ServerCart() {
             />
           ))}
         </div>
+        <StandaloneAddonsList addons={cart.standalone_addons} currency={cart.currency} />
         <button
           type="button"
           onClick={() => emptyCart.mutate()}
@@ -428,6 +471,14 @@ function ServerCart() {
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Add-ons</span>
               <span className="font-medium text-gray-900">{formatCurrency(cart.addon_total, cart.currency)}</span>
+            </div>
+          )}
+          {parseFloat(cart.standalone_addon_total) > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">Add-ons (no cohort)</span>
+              <span className="font-medium text-gray-900">
+                {formatCurrency(cart.standalone_addon_total, cart.currency)}
+              </span>
             </div>
           )}
 

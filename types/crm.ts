@@ -172,6 +172,15 @@ export interface LeadMagnetWriteRequest {
 
 export type PatchLeadMagnetRequest = Partial<LeadMagnetWriteRequest>;
 
+// GET /api/crm/lead-magnets/active/ — public, unauthenticated. The one lead magnet currently
+// promoted site-wide (204 No Content when none is active — see getActiveLeadMagnet). Deliberately
+// omits file_url: the asset is only handed out by the download action below, after capture.
+export interface PublicLeadMagnet {
+  title: string;
+  slug: string;
+  description: string;
+}
+
 export interface LeadMagnetDownloadRequest {
   email: string;
   first_name?: string;
@@ -183,7 +192,9 @@ export interface LeadMagnetDownloadRequest {
 
 export interface LeadMagnetDownloadResponse {
   message: string;
-  file_url: string; // expires after 15 minutes — start the download immediately
+  // Confirmed nullable on the live schema — null presumably on some rejected/edge state even
+  // though the endpoint still returns 200; guard before opening it.
+  file_url: string | null;
 }
 
 export interface Campaign {

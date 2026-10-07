@@ -16,6 +16,7 @@ import type {
   CrmTaskWriteRequest,
   LeadFilters,
   LeadMagnet,
+  PublicLeadMagnet,
   LeadMagnetDownloadRequest,
   LeadMagnetDownloadResponse,
   LeadMagnetWriteRequest,
@@ -133,6 +134,13 @@ export async function deleteCrmTask(id: string): Promise<void> {
 }
 
 // ----------------------------------------------------------------------------- lead magnets
+
+// Public, unauthenticated. 204 (no active magnet) comes back as an empty body, not JSON — axios
+// still resolves it, so `data` is just falsy rather than throwing.
+export async function getActiveLeadMagnet(): Promise<PublicLeadMagnet | null> {
+  const { data } = await apiClient.get<PublicLeadMagnet | "">("/api/crm/lead-magnets/active/");
+  return data || null;
+}
 
 export async function getLeadMagnets(): Promise<LeadMagnet[]> {
   const { data } = await apiClient.get<PaginatedResponse<LeadMagnet> | LeadMagnet[]>(

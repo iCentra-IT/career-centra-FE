@@ -59,3 +59,15 @@ export async function setCartItemAddons(cohortId: number, payload: SetCartAddons
   const { data } = await apiClient.put(`/api/cart/items/${cohortId}/addons/`, payload);
   return unwrapObject<Cart>(data);
 }
+
+// Adds an add-on to the cart with no cohort attached (e.g. a Question Bank bought on its own).
+// addon_id travels in the URL only — confirmed against the live schema, no request body needed.
+export async function addStandaloneCartAddon(addonId: number): Promise<Cart> {
+  const { data } = await apiClient.post(`/api/cart/standalone-addons/${addonId}/`);
+  return unwrapObject<Cart>(data);
+}
+
+export async function removeStandaloneCartAddon(addonId: number): Promise<Cart> {
+  const { data } = await apiClient.delete(`/api/cart/standalone-addons/${addonId}/`);
+  return unwrapObject<Cart>(data);
+}

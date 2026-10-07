@@ -8,6 +8,7 @@ import {
   getCrmLeads,
   getCrmTasks,
   getLeadMagnet,
+  getActiveLeadMagnet,
   getLeadMagnets,
 } from "@/lib/api/crm";
 import { queryKeys } from "@/lib/api/query-keys";
@@ -41,6 +42,15 @@ export function useCrmTasks(filters?: CrmTaskFilters) {
   return useQuery({
     queryKey: queryKeys.crm.tasks(filters),
     queryFn: () => getCrmTasks(filters),
+  });
+}
+
+// Public — the one lead magnet currently promoted site-wide, or null when none is active.
+export function useActiveLeadMagnet() {
+  return useQuery({
+    queryKey: queryKeys.crm.activeLeadMagnet,
+    queryFn: getActiveLeadMagnet,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

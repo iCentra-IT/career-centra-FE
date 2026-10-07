@@ -162,6 +162,7 @@ export const queryKeys = {
     lead: (id: string) => ["crm", "leads", id] as const,
     notes: (leadId: string) => ["crm", "lead-notes", leadId] as const,
     tasks: <T extends object>(filters?: T) => ["crm", "tasks", filters] as const,
+    activeLeadMagnet: ["crm", "lead-magnets", "active"] as const,
     leadMagnets: ["crm", "lead-magnets"] as const,
     leadMagnet: (slug: string) => ["crm", "lead-magnets", slug] as const,
     campaigns: ["crm", "campaigns"] as const,

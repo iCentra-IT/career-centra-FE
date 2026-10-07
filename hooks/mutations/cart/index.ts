@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   addCartItem,
+  addStandaloneCartAddon,
   checkoutCart,
   emptyCart,
   mergeGuestCart,
   removeCartItem,
+  removeStandaloneCartAddon,
   setCartItemAddons,
 } from "@/lib/api/cart";
 import { queryKeys } from "@/lib/api/query-keys";
@@ -66,4 +68,12 @@ export function useSetCartItemAddons() {
   return useCartWrite(({ cohortId, payload }: { cohortId: number; payload: SetCartAddonsRequest }) =>
     setCartItemAddons(cohortId, payload),
   );
+}
+
+export function useAddStandaloneCartAddon() {
+  return useCartWrite<number>(addStandaloneCartAddon);
+}
+
+export function useRemoveStandaloneCartAddon() {
+  return useCartWrite<number>(removeStandaloneCartAddon);
 }

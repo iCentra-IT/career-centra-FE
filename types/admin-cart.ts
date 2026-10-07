@@ -1,8 +1,6 @@
 // lib/api/types/admin-cart.ts
 // GET /api/admin/carts/ (list) and GET /api/admin/carts/{user_id}/ (one learner's cart) — admin,
-// staff-admin and marketer, read-only. The detail is the regular cart shape plus `user` and the
-// partner `referral` block, confirmed by a real sample.
-import type { ProgramReferralPricing } from "./programs";
+// staff-admin and marketer, read-only. The detail is the regular cart shape plus `user`.
 import type { Cart } from "./cart";
 
 export interface AdminCartUserRef {
@@ -24,5 +22,4 @@ export interface AdminCartSummary {
 
 export interface AdminUserCart extends Cart {
   user: AdminCartUserRef;
-  referral?: ProgramReferralPricing | null;
 }
