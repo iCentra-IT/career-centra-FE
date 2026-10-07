@@ -16,7 +16,12 @@ import {
   useRemoveStandaloneCartAddon,
 } from "@/hooks/mutations/cart";
 import { queryKeys } from "@/lib/api/query-keys";
-import { displayTitle, formatShortDate, formatCurrency, formatMoney } from "@/lib/format";
+import {
+  displayTitle,
+  formatShortDate,
+  formatCurrency,
+  formatMoney,
+} from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CartItemLine, CartStandaloneAddon } from "@/types/cart";
@@ -27,7 +32,13 @@ import { trackEvent } from "@/lib/analytics";
 
 function TrashIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M3 4.5h10M6.5 4.5V3a1 1 0 011-1h1a1 1 0 011 1v1.5M6 7.5v4M10 7.5v4M4 4.5l.6 8a1 1 0 001 .9h4.8a1 1 0 001-.9l.6-8"
         stroke="currentColor"
@@ -41,30 +52,81 @@ function TrashIcon() {
 
 function EmptyCartIcon() {
   return (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-      <path d="M10 22h30l6 6h8a2 2 0 012 2v20a4 4 0 01-4 4H14a4 4 0 01-4-4V22z" fill="#00AFEB" />
+    <svg
+      width="64"
+      height="64"
+      viewBox="0 0 64 64"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M10 22h30l6 6h8a2 2 0 012 2v20a4 4 0 01-4 4H14a4 4 0 01-4-4V22z"
+        fill="#00AFEB"
+      />
       <path d="M10 22a4 4 0 014-4h10l4 5" fill="#00AFEB" />
       <circle cx="42" cy="42" r="9" fill="white" />
       <circle cx="42" cy="42" r="6" stroke="#0c236c" strokeWidth="2" />
-      <path d="M46.5 46.5L51 51" stroke="#0c236c" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M46.5 46.5L51 51"
+        stroke="#0c236c"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 
 function EmptyCart() {
   return (
-    <div className="flex flex-col items-center gap-4 py-24 text-center">
-      <EmptyCartIcon />
-      <p className="max-w-xs text-sm text-gray-500">
-        Your cart is empty. Please add a course to your cart to place an order.
-      </p>
-      <Link
-        href="/programms"
-        className="rounded-md bg-main px-8 py-3 text-sm font-medium text-white hover:bg-deep-blue"
-      >
-        Start shopping
-      </Link>
-    </div>
+    <section className="mt-8 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+      <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="relative px-6 py-10 sm:px-10 sm:py-14">
+          <div className="inline-flex rounded-full bg-main/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-main">
+            Empty cart
+          </div>
+          <h2 className="mt-4 max-w-lg text-3xl font-semibold tracking-tight text-gray-900">
+            Nothing in your cart yet.
+          </h2>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-gray-600">
+            Add a cohort or standalone add-on to see your pricing here, compare
+            payment options, and continue to checkout when you are ready.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/programms"
+              className="inline-flex items-center justify-center rounded-md bg-main px-6 py-3 text-sm font-medium text-white transition hover:bg-deep-blue"
+            >
+              Browse programs
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-md border border-gray-200 px-6 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              Talk to an advisor
+            </Link>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 bg-linear-to-br from-slate-50 via-white to-blue-50 px-6 py-10 sm:px-10 lg:border-t-0 lg:border-l">
+          <div className="flex h-full flex-col justify-between gap-8">
+            <div className="flex justify-center lg:justify-start">
+              <EmptyCartIcon />
+            </div>
+            <div className="grid gap-3 text-sm text-gray-600">
+              <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3">
+                Cohorts, add-ons, and checkout stay in one place.
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3">
+                Add a course to unlock payment and coupon options.
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3">
+                Your cart will stay saved while you keep browsing.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -76,7 +138,13 @@ function certificateProviderLabel(provider: string): string | null {
 
 /* ------------------------------------------------------------------ guest cart */
 
-function GuestItemCard({ item, onRemove }: { item: CartItem; onRemove: () => void }) {
+function GuestItemCard({
+  item,
+  onRemove,
+}: {
+  item: CartItem;
+  onRemove: () => void;
+}) {
   return (
     <div className="relative flex flex-col justify-between rounded-2xl bg-linear-to-br from-main to-deep-blue p-5 text-white">
       <button
@@ -93,10 +161,16 @@ function GuestItemCard({ item, onRemove }: { item: CartItem; onRemove: () => voi
         </span>
         <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-glass">
           <span className="normal-case">{item.code}</span>{" "}
-          {item.badge === "iCentra Authorized" ? "Certificate" : "Certification"}
+          {item.badge === "iCentra Authorized"
+            ? "Certificate"
+            : "Certification"}
         </p>
-        <h3 className="mt-1 pr-6 text-base font-semibold">{displayTitle(item.title)}</h3>
-        <p className="mt-2 text-sm text-white/70 line-clamp-3">{item.summary}</p>
+        <h3 className="mt-1 pr-6 text-base font-semibold">
+          {displayTitle(item.title)}
+        </h3>
+        <p className="mt-2 text-sm text-white/70 line-clamp-3">
+          {item.summary}
+        </p>
       </div>
       <div className="mt-6">
         <p className="inline-block rounded-md bg-white/10 px-3 py-1.5 text-xs text-white/80">
@@ -120,13 +194,22 @@ function GuestStandaloneAddonsList() {
 
   return (
     <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-5">
-      <h2 className="text-sm font-semibold text-gray-900">Add-ons (no cohort)</h2>
+      <h2 className="text-sm font-semibold text-gray-900">
+        Add-ons (no cohort)
+      </h2>
       <ul className="mt-3 flex flex-col divide-y divide-gray-50">
         {addons.map((addon) => (
-          <li key={addon.addonId} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+          <li
+            key={addon.addonId}
+            className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+          >
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-gray-900">{addon.name}</p>
-              <p className="truncate text-xs text-gray-400">{displayTitle(addon.programTitle)}</p>
+              <p className="truncate text-sm font-medium text-gray-900">
+                {addon.name}
+              </p>
+              <p className="truncate text-xs text-gray-400">
+                {displayTitle(addon.programTitle)}
+              </p>
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <span className="text-sm font-semibold text-gray-900">
@@ -153,13 +236,13 @@ function GuestCart() {
   const removeItem = useCartStore((s) => s.removeItem);
   const standaloneAddons = useCartStore((s) => s.standaloneAddons);
 
-  const totalsByCurrency = [...items, ...standaloneAddons].reduce<Record<string, number>>(
-    (acc, entry) => {
-      acc[entry.priceCurrency] = (acc[entry.priceCurrency] ?? 0) + (parseFloat(entry.priceAmount) || 0);
-      return acc;
-    },
-    {},
-  );
+  const totalsByCurrency = [...items, ...standaloneAddons].reduce<
+    Record<string, number>
+  >((acc, entry) => {
+    acc[entry.priceCurrency] =
+      (acc[entry.priceCurrency] ?? 0) + (parseFloat(entry.priceAmount) || 0);
+    return acc;
+  }, {});
   const currencies = Object.keys(totalsByCurrency);
 
   if (items.length === 0 && standaloneAddons.length === 0) return <EmptyCart />;
@@ -200,7 +283,10 @@ function GuestCart() {
           />
           <div className="mt-2 flex flex-col gap-1 border-t border-gray-100 pt-3">
             {currencies.map((currency) => (
-              <div key={currency} className="flex items-center justify-between text-base">
+              <div
+                key={currency}
+                className="flex items-center justify-between text-base"
+              >
                 <span className="font-semibold text-gray-900">
                   Total{currencies.length > 1 ? ` (${currency})` : ""}
                 </span>
@@ -225,28 +311,51 @@ function GuestCart() {
   );
 }
 
-function StandaloneAddonsList({ addons, currency }: { addons: CartStandaloneAddon[]; currency: string }) {
+function StandaloneAddonsList({
+  addons,
+  currency,
+}: {
+  addons: CartStandaloneAddon[];
+  currency: string;
+}) {
   const removeAddon = useRemoveStandaloneCartAddon();
   if (addons.length === 0) return null;
 
   return (
     <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-5">
-      <h2 className="text-sm font-semibold text-gray-900">Add-ons (no cohort)</h2>
+      <h2 className="text-sm font-semibold text-gray-900">
+        Add-ons (no cohort)
+      </h2>
       <ul className="mt-3 flex flex-col divide-y divide-gray-50">
         {addons.map((addon) => (
-          <li key={addon.id} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+          <li
+            key={addon.id}
+            className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+          >
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-gray-900">{addon.name}</p>
-              <p className="truncate text-xs text-gray-400">{displayTitle(addon.program.title)}</p>
+              <p className="truncate text-sm font-medium text-gray-900">
+                {addon.name}
+              </p>
+              <p className="truncate text-xs text-gray-400">
+                {displayTitle(addon.program.title)}
+              </p>
               {!addon.available && addon.unavailable_reason && (
-                <p className="mt-1 text-xs text-red-600">{addon.unavailable_reason}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {addon.unavailable_reason}
+                </p>
               )}
             </div>
             <div className="flex shrink-0 items-center gap-3">
-              <span className="text-sm font-semibold text-gray-900">{formatCurrency(addon.amount, currency)}</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {formatCurrency(addon.amount, currency)}
+              </span>
               <button
                 type="button"
-                onClick={() => removeAddon.mutate(addon.addon_id, { onError: (err) => toast.error(err.message) })}
+                onClick={() =>
+                  removeAddon.mutate(addon.addon_id, {
+                    onError: (err) => toast.error(err.message),
+                  })
+                }
                 disabled={removeAddon.isPending}
                 aria-label={`Remove ${addon.name}`}
                 className="text-gray-400 hover:text-red-600 disabled:opacity-50"
@@ -294,9 +403,13 @@ function CartLineAddons({
   // "Available" excludes add-ons already sitting in the cart as a standalone line — those are
   // greyed out and unselectable in the picker (see AddonPicker's inCartIds), so counting them as
   // "available" here would overstate what's actually pickable.
-  const availableCount = addons.filter((a) => !standaloneAddonIds.includes(a.id)).length;
+  const availableCount = addons.filter(
+    (a) => !standaloneAddonIds.includes(a.id),
+  ).length;
   const summary =
-    line.addons.length > 0 ? line.addons.map((a) => a.name).join(", ") : `${availableCount} available`;
+    line.addons.length > 0
+      ? line.addons.map((a) => a.name).join(", ")
+      : `${availableCount} available`;
 
   return (
     <>
@@ -320,7 +433,9 @@ function CartLineAddons({
 
       <Modal open={open} onClose={() => setOpen(false)}>
         <h3 className="text-lg font-semibold text-gray-900">Add-ons</h3>
-        <p className="mt-1 text-sm text-gray-500">{displayTitle(line.program.title)}</p>
+        <p className="mt-1 text-sm text-gray-500">
+          {displayTitle(line.program.title)}
+        </p>
         <div className="mt-4">
           <AddonPicker
             addons={addons}
@@ -365,15 +480,18 @@ function ServerItemCard({
       >
         <TrashIcon />
       </button>
-      <div >
+      <div>
         {badge && (
           <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
             {badge}
           </span>
         )}
-        <h3 className="mt-5 pr-6 text-base font-semibold">{displayTitle(line.program.title)}</h3>
+        <h3 className="mt-5 pr-6 text-base font-semibold">
+          {displayTitle(line.program.title)}
+        </h3>
         <p className="mt-2 text-sm text-white/70">
-          {formatShortDate(line.cohort.starts_on)} – {formatShortDate(line.cohort.ends_on)}
+          {formatShortDate(line.cohort.starts_on)} –{" "}
+          {formatShortDate(line.cohort.ends_on)}
         </p>
         {!line.available && line.unavailable_reason && (
           <p className="mt-3 rounded-md bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-100">
@@ -381,7 +499,11 @@ function ServerItemCard({
           </p>
         )}
         {line.available && (
-          <CartLineAddons line={line} currency={currency} standaloneAddonIds={standaloneAddonIds} />
+          <CartLineAddons
+            line={line}
+            currency={currency}
+            standaloneAddonIds={standaloneAddonIds}
+          />
         )}
       </div>
       <div className="mt-6 flex flex-col items-cente justify-between gap-2">
@@ -404,7 +526,11 @@ function ServerCart() {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
 
-  const { data: cart, isLoading, isError } = useCart({
+  const {
+    data: cart,
+    isLoading,
+    isError,
+  } = useCart({
     coupon: appliedCoupon || undefined,
   });
   const removeItem = useRemoveCartItem();
@@ -432,17 +558,18 @@ function ServerCart() {
     );
   }
 
-  if (!cart || (cart.items.length === 0 && cart.standalone_addons.length === 0)) return <EmptyCart />;
+  if (!cart || (cart.items.length === 0 && cart.standalone_addons.length === 0))
+    return <EmptyCart />;
 
   // Every program with a cohort or a standalone add-on already in the cart — each gets its own
   // "add another add-on" picker below, deduped by slug since the same program can appear via both
   // a cart line and a standalone addon, or via two cohort lines.
   const programsInCart = Array.from(
     new Map(
-      [...cart.items.map((l) => l.program), ...cart.standalone_addons.map((a) => a.program)].map((p) => [
-        p.slug,
-        p,
-      ]),
+      [
+        ...cart.items.map((l) => l.program),
+        ...cart.standalone_addons.map((a) => a.program),
+      ].map((p) => [p.slug, p]),
     ).values(),
   );
 
@@ -482,7 +609,9 @@ function ServerCart() {
           window.location.href = res.gateway_url;
         },
         onError: (err) => {
-          const body = err.data as { item_errors?: Record<string, string> } | undefined;
+          const body = err.data as
+            | { item_errors?: Record<string, string> }
+            | undefined;
           if (body?.item_errors && Object.keys(body.item_errors).length > 0) {
             toast.error(Object.values(body.item_errors).join(" • "));
             queryClient.invalidateQueries({ queryKey: queryKeys.cart.root });
@@ -511,10 +640,15 @@ function ServerCart() {
             />
           ))}
         </div>
-        <StandaloneAddonsList addons={cart.standalone_addons} currency={cart.currency} />
+        <StandaloneAddonsList
+          addons={cart.standalone_addons}
+          currency={cart.currency}
+        />
         {programsInCart.length > 0 && (
           <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-900">More add-ons</h2>
+            <h2 className="text-sm font-semibold text-gray-900">
+              More add-ons
+            </h2>
             {programsInCart.map((p) => (
               <StandaloneAddonPicker
                 key={p.slug}
@@ -527,21 +661,30 @@ function ServerCart() {
             ))}
           </div>
         )}
-        <button
-          type="button"
-          onClick={() => emptyCart.mutate()}
-          disabled={emptyCart.isPending}
-          className="mt-5 text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
-        >
-          Empty cart
-        </button>
+        <div className="mt-5 border-t border-gray-100 pt-4">
+          <button
+            type="button"
+            onClick={() => emptyCart.mutate()}
+            disabled={emptyCart.isPending}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <TrashIcon />
+            Empty cart
+          </button>
+          <p className="mt-2 text-center text-xs text-gray-400">
+            Remove all cohorts and add-ons from this cart.
+          </p>
+        </div>
       </div>
 
       <div className="h-fit rounded-2xl border border-gray-100 bg-white p-6">
         <h2 className="text-xl font-bold text-gray-900">Order Summary</h2>
         <div className="mt-5 flex flex-col gap-3 text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-gray-500">Sub total ({cart.item_count} item{cart.item_count === 1 ? "" : "s"})</span>
+            <span className="text-gray-500">
+              Sub total ({cart.item_count} item
+              {cart.item_count === 1 ? "" : "s"})
+            </span>
             <span className="font-medium text-gray-900">
               {formatCurrency(cart.subtotal, cart.currency)}
             </span>
@@ -549,8 +692,12 @@ function ServerCart() {
 
           {discount > 0 && (
             <div className="flex items-center justify-between text-green-700">
-              <span>Discount{cart.coupon?.applied ? ` (${cart.coupon.code})` : ""}</span>
-              <span className="font-medium">−{formatCurrency(cart.discount_amount, cart.currency)}</span>
+              <span>
+                Discount{cart.coupon?.applied ? ` (${cart.coupon.code})` : ""}
+              </span>
+              <span className="font-medium">
+                −{formatCurrency(cart.discount_amount, cart.currency)}
+              </span>
             </div>
           )}
 
@@ -594,7 +741,9 @@ function ServerCart() {
           {parseFloat(cart.addon_total) > 0 && (
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Add-ons</span>
-              <span className="font-medium text-gray-900">{formatCurrency(cart.addon_total, cart.currency)}</span>
+              <span className="font-medium text-gray-900">
+                {formatCurrency(cart.addon_total, cart.currency)}
+              </span>
             </div>
           )}
           {parseFloat(cart.standalone_addon_total) > 0 && (
@@ -634,10 +783,10 @@ export function CartContent() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
-      <h1 className="text-2xl font-semibold text-gray-900">Your shopping cart</h1>
+      <h1 className="text-2xl font-semibold text-gray-900">
+        Your shopping cart
+      </h1>
       {user ? <ServerCart /> : <GuestCart />}
     </div>
   );
-};
-
-
+}
