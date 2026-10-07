@@ -9,6 +9,7 @@ import { queryKeys } from "@/lib/api/query-keys";
 import { useCartStore } from "@/lib/store/cartStore";
 import { Button } from "@/components/ui/button";
 import { ConfirmShell, ConfirmSpinner } from "@/components/marketing/checkout-confirm-shell";
+import { trackEvent } from "@/lib/analytics";
 
 function clearCheckoutId() {
   try {
@@ -60,6 +61,13 @@ export function CartOrderConfirm({
     queryClient.invalidateQueries({ queryKey: ["enrollments"] });
 
     if (order?.status === "confirmed") {
+      trackEvent("payment_success", {
+        programme_id: order.items.map((item) => item.program.id),
+        programme_name: order.items.map((item) => item.program.title).join(", "),
+        value: order.total_amount,
+        currency: order.currency,
+        transaction_id: order.payment_reference,
+      });
       toast.success("Payment confirmed — you're enrolled!");
     } else {
       toast.error("Payment failed.");

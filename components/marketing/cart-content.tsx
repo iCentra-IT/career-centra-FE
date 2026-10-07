@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CartItemLine } from "@/types/cart";
 import { AddonPicker } from "@/components/marketing/addon-picker";
+import { trackEvent } from "@/lib/analytics";
 
 function TrashIcon() {
   return (
@@ -312,6 +313,14 @@ function ServerCart() {
   };
 
   const onCheckout = () => {
+    // A cart can hold several programs at once, unlike the single-cohort Enrol Now flow — send
+    // every line's id/title rather than forcing this into a single programme_id/name pair.
+    trackEvent("enrolment_started", {
+      programme_id: cart.items.map((line) => line.program.id),
+      programme_name: cart.items.map((line) => line.program.title).join(", "),
+      value: cart.total,
+      currency: cart.currency,
+    });
     checkout.mutate(
       { coupon_code: appliedCoupon || undefined },
       {

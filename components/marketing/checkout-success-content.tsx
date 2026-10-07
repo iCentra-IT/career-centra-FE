@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CartOrderConfirm } from "@/components/marketing/cart-order-confirm";
 import { ConfirmShell } from "@/components/marketing/checkout-confirm-shell";
 import { clearPersistedPartnerSlug } from "@/lib/referral-partner-session";
+import { trackEvent } from "@/lib/analytics";
 
 // The gateway's redirect_url is the backend itself (/api/checkout/confirm/, confirmed live), which
 // verifies the payment server-side and only then 302s the browser on to here — so unlike the old
@@ -34,8 +35,12 @@ export function CheckoutSuccessContent() {
   }, []);
 
   useEffect(() => {
-    if (ranOnce.current || (orderId && Number.isFinite(orderId))) return; // CartOrderConfirm invalidates its own queries
+    if (ranOnce.current || (orderId && Number.isFinite(orderId))) return; // CartOrderConfirm invalidates its own queries (and fires its own payment_success)
     ranOnce.current = true;
+    // No order id means the legacy single-cohort flow, which doesn't hand this screen an amount or
+    // programme — the confirmed-payment moment is still real (see the file comment above), just
+    // without those details to report.
+    trackEvent("payment_success");
     queryClient.invalidateQueries({ queryKey: queryKeys.studentDashboard.enrollments });
     queryClient.invalidateQueries({ queryKey: ["enrollments"] });
   }, [orderId, queryClient]);

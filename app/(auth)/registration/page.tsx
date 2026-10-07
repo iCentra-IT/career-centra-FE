@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { PasswordStrength } from "@/components/ui/password-strength";
 import { TurnstileWidget } from "@/components/ui/turnstile-widget";
 import type { Industry, ReferralSource } from "@/types/student";
+import { trackEvent } from "@/lib/analytics";
 
 const DRAFT_KEY = "registration-draft";
 const STEP_KEY = "registration-step";
@@ -116,6 +117,7 @@ const RegistrationPage = () => {
       { ...values, cf_turnstile_response: captchaToken },
       {
         onSuccess: () => {
+          trackEvent("account_created");
           toast.success("Account created — check your email to verify your address before logging in.");
           clearPersistedState(DRAFT_KEY);
           clearPersistedState(STEP_KEY);

@@ -10,6 +10,7 @@ import { programOrCohortPrice } from "@/types/programs";
 import { displayTitle, formatShortDate } from "@/lib/format";
 import { ReferralPrice } from "@/components/marketing/referral-price";
 import { ProgramAddonsPanel } from "@/components/marketing/program-addons-panel";
+import { trackEvent } from "@/lib/analytics";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
 import { getYouTubeVideoId } from "@/lib/youtube";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -82,6 +83,11 @@ function isBookableCohort(startsOn: string): boolean {
 
 export function ProgramDetailContent({ slug }: { slug: string }) {
   const { data: program, isLoading } = useProgram(slug);
+
+  useEffect(() => {
+    if (!program) return;
+    trackEvent("programme_view", { programme_id: program.id, programme_name: program.title });
+  }, [program]);
   // /api/programs/ doesn't embed cohorts (confirmed by a runtime crash — see types/programs.ts),
   // so a program's scheduled cohorts come from /api/cohorts/ instead, filtered to this program.
   const { data: cohortsData } = useCohortsByProgram(program?.id);
@@ -334,6 +340,7 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
                 enrollmentOpen={currentCohort?.is_enrollment_open}
                 withCoupon
                 programId={program.id}
+                programName={program.title}
                 amount={price.amount}
                 currency={price.currency}
                 className="w-full rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"

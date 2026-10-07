@@ -8,6 +8,7 @@ import { useInitiateCheckout } from "@/hooks/mutations/enrollment";
 import { useValidateCoupon } from "@/hooks/mutations/coupon";
 import type { ValidateCouponResponse } from "@/types/coupon";
 import { formatMoney } from "@/lib/format";
+import { trackEvent } from "@/lib/analytics";
 
 export function EnrolButton({
   cohortId,
@@ -15,6 +16,7 @@ export function EnrolButton({
   enrollmentOpen = true,
   withCoupon = false,
   programId,
+  programName,
   amount,
   currency,
   className,
@@ -31,6 +33,7 @@ export function EnrolButton({
   // — the "Apply" button only appears once all three are known. The actual applied discount is
   // still re-validated server-side at checkout via coupon_code, this is just a live preview.
   programId?: number;
+  programName?: string;
   amount?: string;
   currency?: string;
   className: string;
@@ -74,6 +77,13 @@ export function EnrolButton({
       return;
     }
     if (!cohortId) return;
+
+    trackEvent("enrolment_started", {
+      programme_id: programId,
+      programme_name: programName,
+      value: amount,
+      currency,
+    });
 
     initiateCheckout.mutate(
       {
