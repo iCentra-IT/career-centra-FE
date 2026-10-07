@@ -139,6 +139,11 @@ export interface PublicProgramListing {
   // Only present when the request carried X-Partner-Referral for an active partner — see
   // ProgramReferralPricing above.
   referral?: ProgramReferralPricing;
+  // This program's active add-ons, embedded here the same way they're embedded on the program
+  // detail payload — so the add-ons catalog page can read them straight off one GET /api/programs/
+  // call instead of firing one further (and, as it happens, authenticated-only) request per
+  // program just to find out which ones have any.
+  addons: ProgramAddonSummary[];
 }
 
 // The price/currency to display for a given pricing_mode, computed rather than trusted from a

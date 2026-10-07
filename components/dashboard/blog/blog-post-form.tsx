@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useBlogCategories } from "@/hooks/queries/blog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FileFieldShell } from "@/components/ui/file-field-shell";
 import type { BlogPostStatus, CreateBlogPostRequest } from "@/types/blog";
 
 function slugify(value: string) {
@@ -153,8 +154,7 @@ export function BlogPostForm({
         {errors.content && <p className="text-xs text-red-500">{errors.content.message}</p>}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-sm text-gray-900">Cover Image</label>
+      <FileFieldShell label="Cover Image">
         {initialValues?.cover_image_url && !coverImage && (
           // eslint-disable-next-line @next/next/no-img-element -- an arbitrary hosted URL, not worth configuring next/image's domains for
           <img src={initialValues.cover_image_url} alt="" className="h-32 w-full max-w-sm rounded-lg object-cover" />
@@ -165,7 +165,7 @@ export function BlogPostForm({
           onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
           className="text-sm text-gray-600"
         />
-      </div>
+      </FileFieldShell>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-2">

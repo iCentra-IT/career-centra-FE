@@ -28,7 +28,7 @@ function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-const COLUMNS = ["Program", "Date", "Amount Paid", "Reference ID", "Payment Provider", "Status"];
+const COLUMNS = ["Program", "Type", "Date", "Amount Paid", "Reference ID", "Payment Provider", "Status"];
 
 const PurchaseHistoryPage = () => {
   const { data, isLoading } = usePurchaseHistory();
@@ -90,7 +90,18 @@ const PurchaseHistoryPage = () => {
             )}
             {filteredResults.map((item) => (
               <tr key={item.id} className="border-b border-gray-50 last:border-0">
-                <td className="px-5 py-4 text-gray-900">{item.program_title}</td>
+                <td className="px-5 py-4 text-gray-900">
+                  <p>{item.program_title}</p>
+                  {item.item_type === "addon" && item.item_label && (
+                    <p className="mt-0.5 text-xs text-gray-400">{item.item_label}</p>
+                  )}
+                </td>
+                <td className="px-5 py-4">
+                  <StatusBadge
+                    label={item.item_type === "addon" ? "Add-on" : "Program"}
+                    tone={item.item_type === "addon" ? "purple" : "gray"}
+                  />
+                </td>
                 <td className="px-5 py-4 text-gray-600">{formatOrdinalDateTime(item.date)}</td>
                 <td className="px-5 py-4 text-gray-900">{formatMoney(item.amount_paid, item.currency)}</td>
                 <td className="px-5 py-4 text-gray-600">{item.reference}</td>

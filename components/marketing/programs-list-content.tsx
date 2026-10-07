@@ -11,6 +11,7 @@ import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
 import { Reveal, staggerDelay } from "@/components/motion/reveal";
 import { PATHWAY_CATEGORIES } from "@/lib/pathways";
+import { AddonCard } from "@/components/marketing/addon-card";
 
 type SortOption = "relevance" | "price_asc" | "price_desc" | "newest";
 
@@ -26,9 +27,20 @@ const LEVEL_FILTER_OPTIONS = [
 
 function SearchIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+    >
       <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M13 13l-2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M13 13l-2.5-2.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -70,7 +82,9 @@ function ProgramsPageContent() {
   const searchParams = useSearchParams();
 
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>(searchParams.get("track") ?? "");
+  const [category, setCategory] = useState<string>(
+    searchParams.get("track") ?? "",
+  );
   const [level, setLevel] = useState("");
   const [certBody, setCertBody] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -98,15 +112,30 @@ function ProgramsPageContent() {
 
     // "Relevance" is whatever order the backend itself returns — it already accounts for cohorts,
     // so no client-side re-sorting on top of that.
-    if (sort === "price_asc") list.sort((a, b) => parseFloat(a.base_price_usd) - parseFloat(b.base_price_usd));
-    if (sort === "price_desc") list.sort((a, b) => parseFloat(b.base_price_usd) - parseFloat(a.base_price_usd));
-    if (sort === "newest") list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    if (sort === "price_asc")
+      list.sort(
+        (a, b) => parseFloat(a.base_price_usd) - parseFloat(b.base_price_usd),
+      );
+    if (sort === "price_desc")
+      list.sort(
+        (a, b) => parseFloat(b.base_price_usd) - parseFloat(a.base_price_usd),
+      );
+    if (sort === "newest")
+      list.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
 
     return list;
   }, [programs, sort]);
 
   const totalCount = programs?.count ?? pageItems.length;
   const totalPages = programs?.total_pages ?? 1;
+  // Add-ons aren't a separately-paginated resource (they're an attachment on each program, not
+  // their own page-able collection), so this is scoped to "on this page" rather than folded into
+  // totalCount — unlike the "Showing X of Y programs" line below, this one carries no "of Y"
+  // implication, so a plain add-on count alongside it doesn't read as a mismatch.
+  const pageAddonCount = pageItems.reduce((sum, program) => sum + program.addons.length, 0);
 
   const clearFilters = () => {
     setSearch("");
@@ -129,7 +158,9 @@ function ProgramsPageContent() {
             </Link>{" "}
             › Programs
           </p>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">Programs &amp; Courses</h1>
+          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">
+            Programs &amp; Courses
+          </h1>
           <p className="mt-3 max-w-xl text-white/70">
             Browse all certification programs and enrol in your next course.
           </p>
@@ -160,7 +191,9 @@ function ProgramsPageContent() {
               setPage(1);
             }}
             className={`rounded-full px-4 py-2 text-sm font-medium ${
-              category === "" ? "bg-main text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+              category === ""
+                ? "bg-main text-white"
+                : "border border-gray-200 text-gray-600 hover:bg-gray-50"
             }`}
           >
             All Programs
@@ -193,7 +226,10 @@ function ProgramsPageContent() {
                 setLevel(v);
                 setPage(1);
               }}
-              options={[{ label: "All Levels", value: "" }, ...LEVEL_FILTER_OPTIONS]}
+              options={[
+                { label: "All Levels", value: "" },
+                ...LEVEL_FILTER_OPTIONS,
+              ]}
             />
           </div>
 
@@ -215,7 +251,9 @@ function ProgramsPageContent() {
           </div>
 
           <div className="flex flex-col gap-1.5 w-full sm:w-auto hidden md:block">
-            <label className="text-xs font-medium text-gray-500">Price Range</label>
+            <label className="text-xs font-medium text-gray-500">
+              Price Range
+            </label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -267,23 +305,42 @@ function ProgramsPageContent() {
         {!isLoading && (
           <p className="mt-4 text-sm text-gray-400">
             {totalCount} program{totalCount === 1 ? "" : "s"} found
+            {pageAddonCount > 0 && ` · ${pageAddonCount} add-on${pageAddonCount === 1 ? "" : "s"} available`}
           </p>
         )}
 
         <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {isLoading && <CardGridSkeleton count={8} />}
           {!isLoading && pageItems.length === 0 && (
-            <p className="text-sm text-gray-400">No programs match these filters.</p>
+            <p className="text-sm text-gray-400">
+              No programs match these filters.
+            </p>
           )}
-          {pageItems.map((program, i) => (
-            <Reveal key={program.id} delay={staggerDelay(i)} className="[&>*]:h-full">
+          {pageItems.flatMap((program, i) => [
+            <Reveal
+              key={program.id}
+              delay={staggerDelay(i)}
+              className="[&>*]:h-full"
+            >
               <ProgramCard
                 program={program}
                 buttonTone="blue"
-                cohort={nextOpenCohortForProgram(cohortsData?.results ?? [], program.id)}
+                cohort={nextOpenCohortForProgram(
+                  cohortsData?.results ?? [],
+                  program.id,
+                )}
               />
-            </Reveal>
-          ))}
+            </Reveal>,
+            ...program.addons.map((addon) => (
+              <Reveal
+                key={`addon-${addon.id}`}
+                delay={staggerDelay(i)}
+                className="[&>*]:h-full"
+              >
+                <AddonCard program={program} addon={addon} />
+              </Reveal>
+            )),
+          ])}
         </div>
 
         {!isLoading && totalCount > 0 && (
@@ -291,7 +348,11 @@ function ProgramsPageContent() {
             <p className="text-sm text-gray-400">
               Showing {pageItems.length} of {totalCount} programs
             </p>
-            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
       </section>
@@ -301,10 +362,8 @@ function ProgramsPageContent() {
 
 export function ProgramsListContent() {
   return (
-  <Suspense fallback={null}>
-    <ProgramsPageContent />
-  </Suspense>
+    <Suspense fallback={null}>
+      <ProgramsPageContent />
+    </Suspense>
   );
 }
-
-
