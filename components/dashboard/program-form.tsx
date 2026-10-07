@@ -3,11 +3,20 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FileFieldShell } from "@/components/ui/file-field-shell";
 import { TagListField } from "@/components/dashboard/tag-list-field";
 import { FaqListField } from "@/components/dashboard/faq-list-field";
-import { ModuleListField, type ModuleFormValue } from "@/components/dashboard/module-list-field";
+import {
+  ModuleListField,
+  type ModuleFormValue,
+} from "@/components/dashboard/module-list-field";
 import { ImageFileField } from "@/components/dashboard/image-file-field";
-import type { CreateProgramRequest, PricingMode, ProgramFaq, ProgramResource } from "@/types/programs";
+import type {
+  CreateProgramRequest,
+  PricingMode,
+  ProgramFaq,
+  ProgramResource,
+} from "@/types/programs";
 import type { CertificateProvider } from "@/types/cart";
 
 // Confirmed full enum from GET /api/programs/'s program_type filter parameter docs.
@@ -38,7 +47,10 @@ const AUDIENCE_OPTIONS = [
   { value: "individual", label: "Individual" },
   { value: "corporate", label: "Corporate" },
 ];
-const CERTIFICATE_PROVIDER_OPTIONS: { value: CertificateProvider; label: string }[] = [
+const CERTIFICATE_PROVIDER_OPTIONS: {
+  value: CertificateProvider;
+  label: string;
+}[] = [
   { value: "none", label: "No certificate" },
   { value: "icentra", label: "iCentra" },
   { value: "pmi", label: "PMI" },
@@ -146,7 +158,9 @@ export function ProgramForm({
 }: ProgramFormProps) {
   const [step, setStep] = useState<1 | 2>(1);
 
-  const [title, setTitle] = useState(initialValues?.title ?? EMPTY_VALUES.title);
+  const [title, setTitle] = useState(
+    initialValues?.title ?? EMPTY_VALUES.title,
+  );
   const [code, setCode] = useState(initialValues?.code ?? EMPTY_VALUES.code);
   const [description, setDescription] = useState(
     initialValues?.description ?? EMPTY_VALUES.description,
@@ -154,26 +168,41 @@ export function ProgramForm({
   const [programType, setProgramType] = useState(
     initialValues?.programType ?? EMPTY_VALUES.programType,
   );
-  const [pmiBadge, setPmiBadge] = useState(initialValues?.pmiBadge ?? EMPTY_VALUES.pmiBadge);
-  const [pecbBadge, setPecbBadge] = useState(initialValues?.pecbBadge ?? EMPTY_VALUES.pecbBadge);
+  const [pmiBadge, setPmiBadge] = useState(
+    initialValues?.pmiBadge ?? EMPTY_VALUES.pmiBadge,
+  );
+  const [pecbBadge, setPecbBadge] = useState(
+    initialValues?.pecbBadge ?? EMPTY_VALUES.pecbBadge,
+  );
   const [icentraBadge, setIcentraBadge] = useState(
     initialValues?.icentraBadge ?? EMPTY_VALUES.icentraBadge,
   );
   const [isBestseller, setIsBestseller] = useState(
     initialValues?.isBestseller ?? EMPTY_VALUES.isBestseller,
   );
-  const [certificateProvider, setCertificateProvider] = useState<CertificateProvider>(
-    initialValues?.certificateProvider ?? EMPTY_VALUES.certificateProvider,
+  const [certificateProvider, setCertificateProvider] =
+    useState<CertificateProvider>(
+      initialValues?.certificateProvider ?? EMPTY_VALUES.certificateProvider,
+    );
+  const [level, setLevel] = useState(
+    initialValues?.level ?? EMPTY_VALUES.level,
   );
-  const [level, setLevel] = useState(initialValues?.level ?? EMPTY_VALUES.level);
-  const [audience, setAudience] = useState(initialValues?.audience ?? EMPTY_VALUES.audience);
+  const [audience, setAudience] = useState(
+    initialValues?.audience ?? EMPTY_VALUES.audience,
+  );
   const [pricingMode, setPricingMode] = useState<PricingMode>(
     initialValues?.pricingMode ?? EMPTY_VALUES.pricingMode,
   );
-  const [priceUsd, setPriceUsd] = useState(initialValues?.priceUsd ?? EMPTY_VALUES.priceUsd);
-  const [priceNgn, setPriceNgn] = useState(initialValues?.priceNgn ?? EMPTY_VALUES.priceNgn);
+  const [priceUsd, setPriceUsd] = useState(
+    initialValues?.priceUsd ?? EMPTY_VALUES.priceUsd,
+  );
+  const [priceNgn, setPriceNgn] = useState(
+    initialValues?.priceNgn ?? EMPTY_VALUES.priceNgn,
+  );
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
+    null,
+  );
   // Distinct from coverImageFile being null on its own (which just means "no new file picked
   // yet") — this tracks that the admin explicitly cleared the already-uploaded image, so the
   // existing preview should stop showing and the submit payload should send `cover_image: null`
@@ -187,11 +216,17 @@ export function ProgramForm({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setErrors1((prev) => ({ ...prev, coverImage: "Please choose an image file" }));
+      setErrors1((prev) => ({
+        ...prev,
+        coverImage: "Please choose an image file",
+      }));
       return;
     }
     if (file.size > MAX_COVER_IMAGE_BYTES) {
-      setErrors1((prev) => ({ ...prev, coverImage: "Image must be 2MB or smaller" }));
+      setErrors1((prev) => ({
+        ...prev,
+        coverImage: "Image must be 2MB or smaller",
+      }));
       return;
     }
 
@@ -218,12 +253,16 @@ export function ProgramForm({
     setCoverImageRemoved(true);
   };
 
-  const [badgeImageFile, setBadgeImageFile] = useState<File | null | undefined>(undefined);
+  const [badgeImageFile, setBadgeImageFile] = useState<File | null | undefined>(
+    undefined,
+  );
 
   const [resourceFiles, setResourceFiles] = useState<File[]>([]);
   const [resourceErrors, setResourceErrors] = useState<string | undefined>();
 
-  const handleResourceFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleResourceFilesChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const picked = Array.from(e.target.files ?? []);
     e.target.value = ""; // allow re-selecting after removing one
     if (picked.length === 0) return;
@@ -260,7 +299,9 @@ export function ProgramForm({
     initialValues?.prerequisites ?? EMPTY_VALUES.prerequisites,
   );
   const [faqs, setFaqs] = useState(initialValues?.faqs ?? EMPTY_VALUES.faqs);
-  const [modules, setModules] = useState(initialValues?.modules ?? EMPTY_VALUES.modules);
+  const [modules, setModules] = useState(
+    initialValues?.modules ?? EMPTY_VALUES.modules,
+  );
   const [hasCertification, setHasCertification] = useState(
     initialValues?.hasCertification ?? EMPTY_VALUES.hasCertification,
   );
@@ -288,7 +329,8 @@ export function ProgramForm({
       next.whoShouldAttend = "Add at least one point";
     if (prerequisites.filter((v) => v.trim()).length === 0)
       next.prerequisites = "Add at least one prerequisite";
-    if (faqs.filter((f) => f.question.trim()).length === 0) next.faqs = "Add at least one FAQ";
+    if (faqs.filter((f) => f.question.trim()).length === 0)
+      next.faqs = "Add at least one FAQ";
     if (hasCertification && !certification.name.trim())
       next.certification = "Enter a certification name, or turn this off";
     setErrors2(next);
@@ -390,7 +432,9 @@ export function ProgramForm({
           <FileFieldShell
             label="Cover Image"
             hint={
-              coverImageRemoved && !coverImagePreview ? "Cover image will be removed when you save." : undefined
+              coverImageRemoved && !coverImagePreview
+                ? "Cover image will be removed when you save."
+                : undefined
             }
             error={errors1.coverImage}
           >
@@ -421,7 +465,9 @@ export function ProgramForm({
                     className="h-16 w-24 rounded-md border border-gray-100 object-cover"
                   />
                   <div className="flex flex-col gap-1">
-                    <p className="text-xs text-gray-400">Current image: pick a new file to replace it.</p>
+                    <p className="text-xs text-gray-400">
+                      Current image: pick a new file to replace it.
+                    </p>
                     <button
                       type="button"
                       onClick={removeCoverImage}
@@ -440,14 +486,14 @@ export function ProgramForm({
               className="w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-secondary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary hover:file:bg-secondary/20"
             />
           </FileFieldShell>
-          </div>
 
           <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">
             <div>
               <p className="text-sm font-medium text-gray-900">Badge Image</p>
               <p className="text-xs text-gray-400">
-                A custom accreditation seal (e.g. the real PMI/PECB artwork) shown on the program page —
-                separate from the Accreditation Badges checkboxes below.
+                A custom accreditation seal (e.g. the real PMI/PECB artwork)
+                shown on the program page — separate from the Accreditation
+                Badges checkboxes below.
               </p>
             </div>
             <ImageFileField
@@ -475,11 +521,15 @@ export function ProgramForm({
                 </option>
               ))}
             </select>
-            {errors1.programType && <p className="text-xs text-red-500">{errors1.programType}</p>}
+            {errors1.programType && (
+              <p className="text-xs text-red-500">{errors1.programType}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-900">Accreditation Badges</label>
+            <label className="text-sm text-gray-900">
+              Accreditation Badges
+            </label>
             <div className="flex flex-col gap-2 rounded-md border border-gray-200 p-3">
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
@@ -522,10 +572,14 @@ export function ProgramForm({
           </label>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-900">Certificate Provider</label>
+            <label className="text-sm text-gray-900">
+              Certificate Provider
+            </label>
             <select
               value={certificateProvider}
-              onChange={(e) => setCertificateProvider(e.target.value as CertificateProvider)}
+              onChange={(e) =>
+                setCertificateProvider(e.target.value as CertificateProvider)
+              }
               className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
             >
               {CERTIFICATE_PROVIDER_OPTIONS.map((opt) => (
@@ -534,7 +588,10 @@ export function ProgramForm({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-400">Who issues the certificate learners receive — separate from the badges above.</p>
+            <p className="text-xs text-gray-400">
+              Who issues the certificate learners receive — separate from the
+              badges above.
+            </p>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -553,7 +610,9 @@ export function ProgramForm({
                 </option>
               ))}
             </select>
-            {errors1.level && <p className="text-xs text-red-500">{errors1.level}</p>}
+            {errors1.level && (
+              <p className="text-xs text-red-500">{errors1.level}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -574,7 +633,9 @@ export function ProgramForm({
                 </option>
               ))}
             </select>
-            {errors1.audience && <p className="text-xs text-red-500">{errors1.audience}</p>}
+            {errors1.audience && (
+              <p className="text-xs text-red-500">{errors1.audience}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -678,7 +739,9 @@ export function ProgramForm({
               <div className="flex flex-col gap-3">
                 <input
                   value={certification.name}
-                  onChange={(e) => setCertification({ ...certification, name: e.target.value })}
+                  onChange={(e) =>
+                    setCertification({ ...certification, name: e.target.value })
+                  }
                   placeholder="Certification name"
                   className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
                 />
@@ -686,7 +749,10 @@ export function ProgramForm({
                   <input
                     value={certification.examFormat}
                     onChange={(e) =>
-                      setCertification({ ...certification, examFormat: e.target.value })
+                      setCertification({
+                        ...certification,
+                        examFormat: e.target.value,
+                      })
                     }
                     placeholder="Exam format (e.g. Multiple choice)"
                     className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
@@ -694,7 +760,10 @@ export function ProgramForm({
                   <input
                     value={certification.durationMinutes}
                     onChange={(e) =>
-                      setCertification({ ...certification, durationMinutes: e.target.value })
+                      setCertification({
+                        ...certification,
+                        durationMinutes: e.target.value,
+                      })
                     }
                     type="number"
                     placeholder="Duration (minutes)"
@@ -704,34 +773,50 @@ export function ProgramForm({
                 <div className="grid grid-cols-2 gap-3">
                   <input
                     value={certification.delivery}
-                    onChange={(e) => setCertification({ ...certification, delivery: e.target.value })}
+                    onChange={(e) =>
+                      setCertification({
+                        ...certification,
+                        delivery: e.target.value,
+                      })
+                    }
                     placeholder="Delivery (e.g. Online proctored)"
                     className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
                   />
                   <input
                     value={certification.passRate}
-                    onChange={(e) => setCertification({ ...certification, passRate: e.target.value })}
+                    onChange={(e) =>
+                      setCertification({
+                        ...certification,
+                        passRate: e.target.value,
+                      })
+                    }
                     placeholder="Pass rate (e.g. 92%)"
                     className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
                   />
                 </div>
               </div>
             )}
-            {errors2.certification && <p className="text-xs text-red-500">{errors2.certification}</p>}
+            {errors2.certification && (
+              <p className="text-xs text-red-500">{errors2.certification}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">
             <div>
-              <p className="text-sm font-medium text-gray-900">Course Resources</p>
+              <p className="text-sm font-medium text-gray-900">
+                Course Resources
+              </p>
               <p className="text-xs text-gray-400">
-                Upload downloadable files (slides, worksheets, etc.) — enrolled learners can download
-                these from their course page.
+                Upload downloadable files (slides, worksheets, etc.) — enrolled
+                learners can download these from their course page.
               </p>
             </div>
 
             {existingResources && existingResources.length > 0 && (
               <div className="flex flex-col gap-1.5">
-                <p className="text-xs font-medium text-gray-500">Already uploaded</p>
+                <p className="text-xs font-medium text-gray-500">
+                  Already uploaded
+                </p>
                 {existingResources.map((resource) => (
                   <a
                     key={resource.id}
@@ -755,8 +840,13 @@ export function ProgramForm({
             {resourceFiles.length > 0 && (
               <div className="flex flex-col gap-1.5">
                 {resourceFiles.map((file, i) => (
-                  <div key={`${file.name}-${i}`} className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm text-gray-700">{file.name}</span>
+                  <div
+                    key={`${file.name}-${i}`}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span className="truncate text-sm text-gray-700">
+                      {file.name}
+                    </span>
                     <button
                       type="button"
                       onClick={() => removeResourceFile(i)}
@@ -768,7 +858,9 @@ export function ProgramForm({
                 ))}
               </div>
             )}
-            {resourceErrors && <p className="text-xs text-red-500">{resourceErrors}</p>}
+            {resourceErrors && (
+              <p className="text-xs text-red-500">{resourceErrors}</p>
+            )}
           </div>
 
           <div className="mt-2 flex gap-3">
@@ -779,7 +871,12 @@ export function ProgramForm({
             >
               Back
             </button>
-            <Button type="button" loading={isPending} onClick={handleSubmit} className="w-auto px-6">
+            <Button
+              type="button"
+              loading={isPending}
+              onClick={handleSubmit}
+              className="w-auto px-6"
+            >
               {submitLabel}
             </Button>
           </div>
