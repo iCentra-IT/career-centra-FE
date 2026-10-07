@@ -29,7 +29,7 @@ export function ConfirmDeleteModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-md border border-gray-200 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="flex-1 rounded-md border border-gray-300 bg-gray-50 py-3 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-400 hover:bg-gray-100"
           >
             Cancel
           </button>

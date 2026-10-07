@@ -7,6 +7,7 @@ interface ModalProps {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  footer?: React.ReactNode;
   // "sm" (default) matches every existing form/confirm modal in the dashboard — kept as the
   // default so this stays a no-op for them. "lg" is for content-heavy modals (e.g. a facilitator's
   // full details) that read as cramped at max-w-sm on a desktop screen. "xl" is for side-by-side
@@ -20,7 +21,13 @@ const SIZE_CLASSES: Record<NonNullable<ModalProps["size"]>, string> = {
   xl: "max-w-4xl",
 };
 
-export function Modal({ open, onClose, children, size = "sm" }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  children,
+  footer,
+  size = "sm",
+}: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -43,17 +50,22 @@ export function Modal({ open, onClose, children, size = "sm" }: ModalProps) {
         aria-hidden="true"
       />
       <div
-        className={`relative max-h-[90vh] w-full ${SIZE_CLASSES[size]} overflow-y-auto rounded-2xl bg-white p-6 shadow-lg motion-safe:animate-modal-in sm:p-8`}
+        className={`relative flex max-h-[90vh] w-full ${SIZE_CLASSES[size]} flex-col overflow-hidden rounded-2xl bg-white shadow-lg motion-safe:animate-modal-in`}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute -top-4 -right-4 flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md hover:bg-gray-50 hover:text-gray-900"
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-md transition hover:bg-gray-50 hover:text-gray-900"
         >
           ✕
         </button>
-        {children}
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8">{children}</div>
+        {footer && (
+          <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-4 sm:px-8">
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     document.body,

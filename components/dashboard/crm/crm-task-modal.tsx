@@ -98,11 +98,45 @@ export function CrmTaskModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} size="lg">
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="lg"
+      footer={
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-gray-300 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-400 hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <Button
+            type="submit"
+            form="crm-task-form"
+            loading={isPending}
+            className="w-auto px-5"
+          >
+            {isEdit ? "Save" : "Add Task"}
+          </Button>
+        </div>
+      }
+    >
       <div className="text-left">
-        <h2 className="text-lg font-semibold text-gray-900">{isEdit ? "Edit Task" : "New Follow-up Task"}</h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-5 flex flex-col gap-4">
-          <Input label="Title" required error={errors.title?.message} {...register("title")} />
+        <h2 className="text-lg font-semibold text-gray-900">
+          {isEdit ? "Edit Task" : "New Follow-up Task"}
+        </h2>
+        <form
+          id="crm-task-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-5 flex flex-col gap-4"
+        >
+          <Input
+            label="Title"
+            required
+            error={errors.title?.message}
+            {...register("title")}
+          />
           <div className="flex flex-col gap-2">
             <label className="text-sm text-gray-900">Description</label>
             <textarea
@@ -123,7 +157,11 @@ export function CrmTaskModal({
                 </option>
               ))}
             </select>
-            {errors.assignee_id && <p className="text-xs text-red-500">{errors.assignee_id.message}</p>}
+            {errors.assignee_id && (
+              <p className="text-xs text-red-500">
+                {errors.assignee_id.message}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -152,18 +190,6 @@ export function CrmTaskModal({
               <option value="pending">Pending</option>
               <option value="completed">Completed</option>
             </select>
-          </div>
-          <div className="mt-2 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <Button type="submit" loading={isPending} className="w-auto px-5">
-              {isEdit ? "Save" : "Add Task"}
-            </Button>
           </div>
         </form>
       </div>
