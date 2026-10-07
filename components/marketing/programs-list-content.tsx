@@ -135,7 +135,7 @@ function ProgramsPageContent() {
   // their own page-able collection), so this is scoped to "on this page" rather than folded into
   // totalCount — unlike the "Showing X of Y programs" line below, this one carries no "of Y"
   // implication, so a plain add-on count alongside it doesn't read as a mismatch.
-  const pageAddonCount = pageItems.reduce((sum, program) => sum + program.addons.length, 0);
+  const pageAddonCount = pageItems.reduce((sum, program) => sum + (program.addons?.length ?? 0), 0);
 
   const clearFilters = () => {
     setSearch("");
@@ -331,7 +331,7 @@ function ProgramsPageContent() {
                 )}
               />
             </Reveal>,
-            ...program.addons.map((addon) => (
+            ...(program.addons ?? []).map((addon) => (
               <Reveal
                 key={`addon-${addon.id}`}
                 delay={staggerDelay(i)}

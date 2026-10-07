@@ -142,8 +142,11 @@ export interface PublicProgramListing {
   // This program's active add-ons, embedded here the same way they're embedded on the program
   // detail payload — so the add-ons catalog page can read them straight off one GET /api/programs/
   // call instead of firing one further (and, as it happens, authenticated-only) request per
-  // program just to find out which ones have any.
-  addons: ProgramAddonSummary[];
+  // program just to find out which ones have any. Optional: during a rolling deploy where this
+  // frontend build ships before (or the backend rolls back after) the field existed, a cached or
+  // in-flight response can still come back without it — every call site must treat it as possibly
+  // absent, not assume it.
+  addons?: ProgramAddonSummary[];
 }
 
 // The price/currency to display for a given pricing_mode, computed rather than trusted from a
