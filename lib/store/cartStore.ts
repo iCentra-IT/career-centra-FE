@@ -19,10 +19,25 @@ export interface CartItem {
   cohortStartsOn: string;
 }
 
+// A cohort-less add-on picked before sign-in. Snapshot purely for display here (same as CartItem)
+// — the real, cohort-independent price is resolved server-side once /api/cart/merge/ adds it for
+// real after login.
+export interface GuestStandaloneAddon {
+  addonId: number;
+  programSlug: string;
+  programTitle: string;
+  name: string;
+  priceAmount: string;
+  priceCurrency: string;
+}
+
 interface CartState {
   items: CartItem[];
+  standaloneAddons: GuestStandaloneAddon[];
   addItem: (item: CartItem) => void;
   removeItem: (cohortId: number) => void;
+  addStandaloneAddon: (addon: GuestStandaloneAddon) => void;
+  removeStandaloneAddon: (addonId: number) => void;
   clear: () => void;
 }
 
@@ -30,6 +45,7 @@ export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
       items: [],
+      standaloneAddons: [],
       addItem: (item) =>
         set((state) => {
           if (state.items.some((i) => i.cohortId === item.cohortId)) return state;
@@ -37,7 +53,16 @@ export const useCartStore = create<CartState>()(
         }),
       removeItem: (cohortId) =>
         set((state) => ({ items: state.items.filter((item) => item.cohortId !== cohortId) })),
-      clear: () => set({ items: [] }),
+      addStandaloneAddon: (addon) =>
+        set((state) => {
+          if (state.standaloneAddons.some((a) => a.addonId === addon.addonId)) return state;
+          return { standaloneAddons: [...state.standaloneAddons, addon] };
+        }),
+      removeStandaloneAddon: (addonId) =>
+        set((state) => ({
+          standaloneAddons: state.standaloneAddons.filter((a) => a.addonId !== addonId),
+        })),
+      clear: () => set({ items: [], standaloneAddons: [] }),
     }),
     { name: "cart-storage" },
   ),
@@ -45,3 +70,6 @@ export const useCartStore = create<CartState>()(
 
 export const guestCartCohortIds = () =>
   useCartStore.getState().items.map((i) => i.cohortId);
+
+export const guestCartStandaloneAddonIds = () =>
+  useCartStore.getState().standaloneAddons.map((a) => a.addonId);

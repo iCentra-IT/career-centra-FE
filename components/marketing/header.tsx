@@ -30,7 +30,7 @@ function CartIcon() {
 
 function CartLink() {
   const user = useAuthStore((s) => s.user);
-  const guestCount = useCartStore((s) => s.items.length);
+  const guestCount = useCartStore((s) => s.items.length + s.standaloneAddons.length);
   const { data: serverCount } = useCartCount();
   const count = user ? serverCount ?? 0 : guestCount;
 

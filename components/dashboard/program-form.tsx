@@ -387,14 +387,13 @@ export function ProgramForm({
             <p className="text-xs text-gray-400">Max Character: 600 words</p>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-900">Cover Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleCoverImageChange}
-              className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-secondary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary hover:file:bg-secondary/20"
-            />
+          <FileFieldShell
+            label="Cover Image"
+            hint={
+              coverImageRemoved && !coverImagePreview ? "Cover image will be removed when you save." : undefined
+            }
+            error={errors1.coverImage}
+          >
             {coverImagePreview ? (
               <div className="flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element -- a blob: object URL, next/image can't optimize it anyway */}
@@ -422,7 +421,7 @@ export function ProgramForm({
                     className="h-16 w-24 rounded-md border border-gray-100 object-cover"
                   />
                   <div className="flex flex-col gap-1">
-                    <p className="text-xs text-gray-400">Current image — pick a new file to replace it.</p>
+                    <p className="text-xs text-gray-400">Current image: pick a new file to replace it.</p>
                     <button
                       type="button"
                       onClick={removeCoverImage}
@@ -434,10 +433,13 @@ export function ProgramForm({
                 </div>
               )
             )}
-            {coverImageRemoved && !coverImagePreview && (
-              <p className="text-xs text-gray-400">Cover image will be removed when you save.</p>
-            )}
-            {errors1.coverImage && <p className="text-xs text-red-500">{errors1.coverImage}</p>}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCoverImageChange}
+              className="w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-secondary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary hover:file:bg-secondary/20"
+            />
+          </FileFieldShell>
           </div>
 
           <div className="flex flex-col gap-3 rounded-md border border-gray-200 p-3">

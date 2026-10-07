@@ -48,7 +48,7 @@ const StudentOverviewPage = () => {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="flex flex-col gap-6 xl:col-span-2">
-          <Card title="Active courses & progress" action={{ label: "View all", href: "/students/enrolments" }}>
+          <Card title="Active courses & progress" action={{ label: "View all", href: "/students/courses" }}>
             <div className="flex flex-col gap-4">
               {isLoading && <ListRowSkeleton rows={3} />}
               {!isLoading && active.length === 0 && <EmptyState>No active courses yet.</EmptyState>}

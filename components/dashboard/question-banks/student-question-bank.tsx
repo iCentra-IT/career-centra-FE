@@ -171,45 +171,104 @@ function QuizView({ attempt }: { attempt: QuestionBankAttempt }) {
   const submit = useSubmitAttempt(attempt.id, attempt.question_bank);
   const [answers, setAnswers] = useState<Record<number, AnswerLetter>>({});
   const [confirming, setConfirming] = useState(false);
+  const [index, setIndex] = useState(0);
   const questions = attempt.questions ?? [];
   const answeredCount = Object.keys(answers).length;
+  const question = questions[index];
+  const isFirst = index === 0;
+  const isLast = index === questions.length - 1;
 
   const doSubmit = () =>
     submit.mutate(
       {
-        answers: Object.entries(answers).map(([qid, answer]) => ({ question_id: Number(qid), answer })),
+        answers: Object.entries(answers).map(([qid, answer]) => ({
+          question_id: Number(qid),
+          selected_option: answer,
+        })),
       },
       { onError: (err) => toast.error(err.message) },
     );
+
+  if (!question) return null;
 
   return (
     <div className="flex flex-col gap-6">
       <HeroBanner
         eyebrow={`Attempt #${attempt.id}`}
-        title={`${questions.length} questions`}
-        subtitle={`${answeredCount} of ${questions.length} answered. Pick one option per question, then submit.`}
-      >
-        <Button type="button" onClick={() => setConfirming(true)} loading={submit.isPending} className="w-auto px-5">
-          Submit answers
-        </Button>
-      </HeroBanner>
+        title={`Question ${index + 1} of ${questions.length}`}
+        subtitle={`${answeredCount} of ${questions.length} answered. Pick one option per question.`}
+      />
 
-      <ol className="flex flex-col gap-4">
-        {questions.map((q, i) => (
-          <li key={q.id} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-gray-900">
-              <span className="mr-2 text-gray-400">{i + 1}.</span>
-              {q.text}
-            </p>
-            <QuestionOptions
-              question={q}
-              selected={answers[q.id]}
-              onSelect={(letter) => setAnswers((prev) => ({ ...prev, [q.id]: letter }))}
-              disabled={submit.isPending}
-            />
-          </li>
-        ))}
-      </ol>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_220px]">
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <p className="text-sm font-medium text-gray-900">
+            <span className="mr-2 text-gray-400">{index + 1}.</span>
+            {question.text}
+          </p>
+          <QuestionOptions
+            question={question}
+            selected={answers[question.id]}
+            onSelect={(letter) => setAnswers((prev) => ({ ...prev, [question.id]: letter }))}
+            disabled={submit.isPending}
+          />
+
+          <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+            <button
+              type="button"
+              onClick={() => setIndex((i) => i - 1)}
+              disabled={isFirst}
+              className="rounded-md border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              ← Back
+            </button>
+            {isLast ? (
+              <button
+                type="button"
+                onClick={() => setConfirming(true)}
+                disabled={submit.isPending}
+                className="rounded-md bg-main px-5 py-2.5 text-sm font-medium text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submit.isPending ? "Submitting…" : "Submit answers"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIndex((i) => i + 1)}
+                className="rounded-md bg-main px-5 py-2.5 text-sm font-medium text-white hover:bg-deep-blue"
+              >
+                Next →
+              </button>
+            )}
+          </div>
+        </div>
+
+        <aside className="h-fit rounded-2xl border border-gray-100 bg-white p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Questions</p>
+          <div className="mt-3 grid grid-cols-8 gap-2 sm:grid-cols-10 lg:grid-cols-4">
+            {questions.map((q, i) => {
+              const answered = answers[q.id] != null;
+              const current = i === index;
+              return (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => setIndex(i)}
+                  aria-current={current || undefined}
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg text-xs font-semibold transition ${
+                    current
+                      ? "bg-main text-white"
+                      : answered
+                        ? "bg-secondary/10 text-secondary"
+                        : "border border-gray-200 text-gray-500 hover:bg-gray-50"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+      </div>
 
       <ConfirmDeleteModal
         open={confirming}

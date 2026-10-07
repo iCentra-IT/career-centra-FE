@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import {
   OverviewIcon,
+  PlayCircleIcon,
   EnrolmentsIcon,
   ScheduleIcon,
   CertificatesIcon,
@@ -12,6 +13,7 @@ import {
 
 const NAV_ITEMS = [
   { label: "Overview", href: "/students", icon: <OverviewIcon />, exact: true },
+  { label: "My Courses", href: "/students/courses", icon: <PlayCircleIcon /> },
   { label: "My Enrolments", href: "/students/enrolments", icon: <EnrolmentsIcon /> },
   { label: "Class Schedules", href: "/students/schedules", icon: <ScheduleIcon /> },
   { label: "Certificates", href: "/students/certificates", icon: <CertificatesIcon /> },

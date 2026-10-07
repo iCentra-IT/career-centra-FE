@@ -92,7 +92,8 @@ export interface Cart {
   currency: string; // resolved display currency
   country_code: string; // resolved buyer country
   referral: ProgramReferralPricing | null; // null unless a partner referral is pinned
-  item_count: number;
+  item_count: number; // cohort lines only — see total_item_count for the nav-badge figure
+  total_item_count: number; // item_count + standalone_addons.length — matches /api/cart/count/
   subtotal: string; // sum of item amounts, PRE-discount
   subtotal_usd: string | null; // null if any item isn't USD-priced
   discount_amount: string; // "0.00" if no/invalid coupon

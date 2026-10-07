@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FileFieldShell } from "@/components/ui/file-field-shell";
 
 interface ImageFileFieldProps {
   label: string;
@@ -70,15 +71,12 @@ export function ImageFileField({
   const shownUrl = preview ?? (file === undefined ? existingImageUrl : undefined);
 
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm text-gray-900">{label}</label>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleChange}
-        className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-secondary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary hover:file:bg-secondary/20"
-      />
-      {shownUrl ? (
+    <FileFieldShell
+      label={label}
+      hint={file === null && !shownUrl ? "Image will be removed when you save." : undefined}
+      error={error}
+    >
+      {shownUrl && (
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={shownUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
@@ -90,10 +88,13 @@ export function ImageFileField({
             Remove
           </button>
         </div>
-      ) : (
-        file === null && <p className="text-xs text-gray-400">Image will be removed when you save.</p>
       )}
-      {error && <p className="text-xs text-red-500">{error}</p>}
-    </div>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleChange}
+        className="w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-secondary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary hover:file:bg-secondary/20"
+      />
+    </FileFieldShell>
   );
 }

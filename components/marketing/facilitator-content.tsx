@@ -8,7 +8,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { TurnstileWidget } from "@/components/ui/turnstile-widget";
+import { TURNSTILE_ENABLED, TurnstileWidget } from "@/components/ui/turnstile-widget";
 import { TagListField } from "@/components/dashboard/tag-list-field";
 import { FacilitatorAvatar, FacilitatorDetailModal } from "@/components/marketing/facilitator-detail";
 import { useApprovedFacilitators } from "@/hooks/queries/facilitator-profiles";
@@ -139,7 +139,7 @@ export function FacilitatorContent() {
       setCertificationsError("Add at least one credential");
       valid = false;
     }
-    if (!captchaToken) {
+    if (TURNSTILE_ENABLED && !captchaToken) {
       toast.error("Please complete the verification check.");
       valid = false;
     }

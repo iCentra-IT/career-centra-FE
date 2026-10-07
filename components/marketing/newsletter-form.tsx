@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSubscribeNewsletter } from "@/hooks/mutations/blog";
 import { useCaptureCrmLead } from "@/hooks/mutations/crm";
-import { TurnstileWidget } from "@/components/ui/turnstile-widget";
+import { TURNSTILE_ENABLED, TurnstileWidget } from "@/components/ui/turnstile-widget";
 
 // Reused wherever a newsletter signup makes sense (blog landing hero, site footer, bottom of a
 // blog post) — one component so the copy/behavior stays consistent and Turnstile only needs
@@ -25,12 +25,12 @@ export function NewsletterForm({
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    if (!captchaToken) {
+    if (TURNSTILE_ENABLED && !captchaToken) {
       toast.error("Please complete the verification check.");
       return;
     }
     subscribe.mutate(
-      { email: email.trim(), cfTurnstileResponse: captchaToken },
+      { email: email.trim(), cfTurnstileResponse: captchaToken ?? "" },
       {
         onSuccess: () => {
           // Also feed the CRM — the capture endpoint upserts by email, so a repeat signup is harmless.

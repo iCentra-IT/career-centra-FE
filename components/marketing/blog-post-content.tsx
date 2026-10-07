@@ -9,7 +9,7 @@ import { useCreateBlogComment } from "@/hooks/mutations/blog";
 import { useAuthStore } from "@/lib/store/authStore";
 import { BlogPostCard } from "@/components/marketing/blog-post-card";
 import { NewsletterForm } from "@/components/marketing/newsletter-form";
-import { TurnstileWidget } from "@/components/ui/turnstile-widget";
+import { TURNSTILE_ENABLED, TurnstileWidget } from "@/components/ui/turnstile-widget";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
 import { formatShortDate } from "@/lib/format";
@@ -28,7 +28,7 @@ function CommentForm({ slug }: { slug: string }) {
       toast.error("Please enter your name.");
       return;
     }
-    if (!captchaToken) {
+    if (TURNSTILE_ENABLED && !captchaToken) {
       toast.error("Please complete the verification check.");
       return;
     }

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useLogin } from "@/hooks/mutations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { TurnstileWidget } from "@/components/ui/turnstile-widget";
+import { TURNSTILE_ENABLED, TurnstileWidget } from "@/components/ui/turnstile-widget";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email address"),
@@ -54,11 +54,11 @@ const LoginForm = () => {
   }, [error, setError]);
 
   const onSubmit = (values: LoginFormValues) => {
-    if (!captchaToken) {
+    if (TURNSTILE_ENABLED && !captchaToken) {
       toast.error("Please complete the verification check.");
       return;
     }
-    mutate({ ...values, cf_turnstile_response: captchaToken });
+    mutate({ ...values, cf_turnstile_response: captchaToken ?? "" });
   };
 
   return (

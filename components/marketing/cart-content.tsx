@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CartItemLine, CartStandaloneAddon } from "@/types/cart";
 import { AddonPicker } from "@/components/marketing/addon-picker";
+import { StandaloneAddonPicker } from "@/components/marketing/standalone-addon-picker";
+import { Modal } from "@/components/ui/modal";
 import { trackEvent } from "@/lib/analytics";
 
 function TrashIcon() {
@@ -111,28 +113,70 @@ function GuestItemCard({ item, onRemove }: { item: CartItem; onRemove: () => voi
   );
 }
 
+function GuestStandaloneAddonsList() {
+  const addons = useCartStore((s) => s.standaloneAddons);
+  const removeAddon = useCartStore((s) => s.removeStandaloneAddon);
+  if (addons.length === 0) return null;
+
+  return (
+    <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-5">
+      <h2 className="text-sm font-semibold text-gray-900">Add-ons (no cohort)</h2>
+      <ul className="mt-3 flex flex-col divide-y divide-gray-50">
+        {addons.map((addon) => (
+          <li key={addon.addonId} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-gray-900">{addon.name}</p>
+              <p className="truncate text-xs text-gray-400">{displayTitle(addon.programTitle)}</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="text-sm font-semibold text-gray-900">
+                {formatMoney(addon.priceAmount, addon.priceCurrency)}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeAddon(addon.addonId)}
+                aria-label={`Remove ${addon.name}`}
+                className="text-gray-400 hover:text-red-600"
+              >
+                <TrashIcon />
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function GuestCart() {
   const items = useCartStore((s) => s.items);
   const removeItem = useCartStore((s) => s.removeItem);
+  const standaloneAddons = useCartStore((s) => s.standaloneAddons);
 
-  const totalsByCurrency = items.reduce<Record<string, number>>((acc, item) => {
-    acc[item.priceCurrency] = (acc[item.priceCurrency] ?? 0) + (parseFloat(item.priceAmount) || 0);
-    return acc;
-  }, {});
+  const totalsByCurrency = [...items, ...standaloneAddons].reduce<Record<string, number>>(
+    (acc, entry) => {
+      acc[entry.priceCurrency] = (acc[entry.priceCurrency] ?? 0) + (parseFloat(entry.priceAmount) || 0);
+      return acc;
+    },
+    {},
+  );
   const currencies = Object.keys(totalsByCurrency);
 
-  if (items.length === 0) return <EmptyCart />;
+  if (items.length === 0 && standaloneAddons.length === 0) return <EmptyCart />;
 
   return (
     <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {items.map((item) => (
-          <GuestItemCard
-            key={item.cohortId}
-            item={item}
-            onRemove={() => removeItem(item.cohortId)}
-          />
-        ))}
+      <div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((item) => (
+            <GuestItemCard
+              key={item.cohortId}
+              item={item}
+              onRemove={() => removeItem(item.cohortId)}
+            />
+          ))}
+        </div>
+        <GuestStandaloneAddonsList />
       </div>
 
       <div className="h-fit rounded-2xl border border-gray-100 bg-white p-6">
@@ -219,10 +263,21 @@ function StandaloneAddonsList({ addons, currency }: { addons: CartStandaloneAddo
 
 /* ----------------------------------------------------------------- server cart */
 
-function CartLineAddons({ line, currency }: { line: CartItemLine; currency: string }) {
+function CartLineAddons({
+  line,
+  currency,
+  standaloneAddonIds,
+}: {
+  line: CartItemLine;
+  currency: string;
+  // Add-on ids already bought standalone (no cohort) for this same program — see AddonPicker's
+  // inCartIds for why these must be greyed out here instead of silently allowing a duplicate.
+  standaloneAddonIds: number[];
+}) {
   const { data: addons = [], isLoading } = useCohortAddons(line.cohort.id);
   const setAddons = useSetCartItemAddons();
   const selectedIds = line.addons.map((a) => a.id);
+  const [open, setOpen] = useState(false);
 
   // Saving returns the full priced cart, so the totals here update with the selection.
   const onChange = (ids: number[]) =>
@@ -233,15 +288,50 @@ function CartLineAddons({ line, currency }: { line: CartItemLine; currency: stri
 
   if (isLoading || addons.length === 0) return null;
 
+  // A one-line summary that opens the full grouped picker in a modal, rather than expanding it
+  // inline — inline expansion made every card's height depend on how many add-ons its program
+  // happened to have, which is what made the cart look cluttered and jagged card-to-card.
+  // "Available" excludes add-ons already sitting in the cart as a standalone line — those are
+  // greyed out and unselectable in the picker (see AddonPicker's inCartIds), so counting them as
+  // "available" here would overstate what's actually pickable.
+  const availableCount = addons.filter((a) => !standaloneAddonIds.includes(a.id)).length;
+  const summary =
+    line.addons.length > 0 ? line.addons.map((a) => a.name).join(", ") : `${availableCount} available`;
+
   return (
-    <div className="mt-4 rounded-xl bg-white p-3 text-gray-900">
-      <AddonPicker addons={addons} selectedIds={selectedIds} onChange={onChange} disabled={setAddons.isPending} />
-      {parseFloat(line.addon_total) > 0 && (
-        <p className="mt-2 text-xs font-medium text-secondary">
-          Add-ons total {formatCurrency(line.addon_total, currency)}
-        </p>
-      )}
-    </div>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-4 flex w-full items-center justify-between gap-3 rounded-xl bg-white px-3 py-2.5 text-xs text-gray-900 hover:bg-gray-50"
+      >
+        <span className="min-w-0 truncate">
+          <span className="font-semibold text-gray-700">Add-ons</span>{" "}
+          <span className="text-gray-400">· {summary}</span>
+        </span>
+        {parseFloat(line.addon_total) > 0 ? (
+          <span className="shrink-0 font-semibold text-secondary">
+            +{formatCurrency(line.addon_total, currency)}
+          </span>
+        ) : (
+          <span className="shrink-0 font-medium text-secondary">Edit</span>
+        )}
+      </button>
+
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <h3 className="text-lg font-semibold text-gray-900">Add-ons</h3>
+        <p className="mt-1 text-sm text-gray-500">{displayTitle(line.program.title)}</p>
+        <div className="mt-4">
+          <AddonPicker
+            addons={addons}
+            selectedIds={selectedIds}
+            onChange={onChange}
+            disabled={setAddons.isPending}
+            inCartIds={standaloneAddonIds}
+          />
+        </div>
+      </Modal>
+    </>
   );
 }
 
@@ -250,11 +340,13 @@ function ServerItemCard({
   currency,
   onRemove,
   removing,
+  standaloneAddonIds,
 }: {
   line: CartItemLine;
   currency: string;
   onRemove: () => void;
   removing: boolean;
+  standaloneAddonIds: number[];
 }) {
   const badge = certificateProviderLabel(line.program.certificate_provider);
 
@@ -288,7 +380,9 @@ function ServerItemCard({
             {line.unavailable_reason}
           </p>
         )}
-        {line.available && <CartLineAddons line={line} currency={currency} />}
+        {line.available && (
+          <CartLineAddons line={line} currency={currency} standaloneAddonIds={standaloneAddonIds} />
+        )}
       </div>
       <div className="mt-6 flex flex-col items-cente justify-between gap-2">
         <span className="text-lg font-semibold">
@@ -339,6 +433,18 @@ function ServerCart() {
   }
 
   if (!cart || (cart.items.length === 0 && cart.standalone_addons.length === 0)) return <EmptyCart />;
+
+  // Every program with a cohort or a standalone add-on already in the cart — each gets its own
+  // "add another add-on" picker below, deduped by slug since the same program can appear via both
+  // a cart line and a standalone addon, or via two cohort lines.
+  const programsInCart = Array.from(
+    new Map(
+      [...cart.items.map((l) => l.program), ...cart.standalone_addons.map((a) => a.program)].map((p) => [
+        p.slug,
+        p,
+      ]),
+    ).values(),
+  );
 
   const discount = parseFloat(cart.discount_amount) || 0;
   const couponRejected = !!cart.coupon && !cart.coupon.applied;
@@ -399,10 +505,28 @@ function ServerCart() {
               currency={cart.currency}
               removing={removeItem.isPending}
               onRemove={() => removeItem.mutate(line.cohort.id)}
+              standaloneAddonIds={cart.standalone_addons
+                .filter((a) => a.program.id === line.program.id)
+                .map((a) => a.addon_id)}
             />
           ))}
         </div>
         <StandaloneAddonsList addons={cart.standalone_addons} currency={cart.currency} />
+        {programsInCart.length > 0 && (
+          <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-5">
+            <h2 className="text-sm font-semibold text-gray-900">More add-ons</h2>
+            {programsInCart.map((p) => (
+              <StandaloneAddonPicker
+                key={p.slug}
+                programSlug={p.slug}
+                programTitle={p.title}
+                excludeAddonIds={cart.standalone_addons
+                  .filter((a) => a.program.slug === p.slug)
+                  .map((a) => a.addon_id)}
+              />
+            ))}
+          </div>
+        )}
         <button
           type="button"
           onClick={() => emptyCart.mutate()}

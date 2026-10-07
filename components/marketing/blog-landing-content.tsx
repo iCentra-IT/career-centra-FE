@@ -7,7 +7,6 @@ import { BlogPostCard } from "@/components/marketing/blog-post-card";
 import { CardGridSkeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
 import { Reveal, RevealGroup, RevealItem, staggerDelay } from "@/components/motion/reveal";
-import { ActiveLeadMagnetBanner } from "@/components/marketing/active-lead-magnet-banner";
 
 function SearchIcon() {
   return (
@@ -65,8 +64,6 @@ export function BlogLandingContent() {
             <p className="text-sm font-semibold">Get new articles in your inbox</p>
             <NewsletterForm theme="dark" className="mt-4" />
           </div> */}
-
-          <ActiveLeadMagnetBanner className="mx-auto mt-8 max-w-xl text-left" />
         </Reveal>
       </section>
 

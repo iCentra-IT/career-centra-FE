@@ -9,7 +9,34 @@ import { toast } from "sonner";
 import { useCreateLeadMagnet, usePatchLeadMagnet } from "@/hooks/mutations/crm";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FileFieldShell } from "@/components/ui/file-field-shell";
 import type { LeadMagnet } from "@/types/crm";
+
+// The presigned file_url's path ends in the original filename (e.g.
+// ".../lead-magnets/abc123-guide.pdf?X-Amz-..."), so this is just cosmetic best-effort display —
+// never parsed for anything that matters.
+function fileNameFromUrl(url: string): string {
+  try {
+    const path = new URL(url).pathname;
+    return decodeURIComponent(path.slice(path.lastIndexOf("/") + 1)) || "Current file";
+  } catch {
+    return "Current file";
+  }
+}
+
+function FileIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0">
+      <path
+        d="M4 1.5h5l3 3v8.5a1.5 1.5 0 01-1.5 1.5h-6.5a1.5 1.5 0 01-1.5-1.5V3a1.5 1.5 0 011.5-1.5z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path d="M9 1.5V4.5h3" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function slugify(value: string) {
   return value
@@ -108,21 +135,31 @@ export function CrmLeadMagnetForm({ basePath, magnet }: { basePath: string; magn
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-900">
-            File {!isEdit && <span className="text-secondary">*</span>}
-          </label>
+        <FileFieldShell
+          label="File"
+          required={!isEdit}
+          hint={
+            isEdit ? "Leave empty to keep the current file. Choosing a new one replaces it and deletes the old upload." : undefined
+          }
+        >
+          {isEdit && magnet.file_url && !file && (
+            <a
+              href={magnet.file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm font-medium text-secondary hover:underline"
+            >
+              <FileIcon />
+              {fileNameFromUrl(magnet.file_url)}
+            </a>
+          )}
+          {file && <p className="flex items-center gap-2 text-sm font-medium text-gray-900"><FileIcon />{file.name}</p>}
           <input
             type="file"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200"
           />
-          {isEdit && (
-            <p className="text-xs text-gray-400">
-              Leave empty to keep the current file. Choosing a new one replaces it and deletes the old upload.
-            </p>
-          )}
-        </div>
+        </FileFieldShell>
 
         <label className="flex items-center gap-2 text-sm text-gray-700">
           <input

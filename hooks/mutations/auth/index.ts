@@ -32,7 +32,7 @@ import { NormalizedError } from "@/types/api";
 import { dashboardHomeFor } from "@/types/user";
 import { queryKeys } from "@/lib/api/query-keys";
 import { getRefreshToken, useAuthStore } from "@/lib/store/authStore";
-import { useCartStore, guestCartCohortIds } from "@/lib/store/cartStore";
+import { useCartStore, guestCartCohortIds, guestCartStandaloneAddonIds } from "@/lib/store/cartStore";
 import { mergeGuestCart } from "@/lib/api/cart";
 import { useRouter } from "next/navigation";
 
@@ -54,8 +54,9 @@ export function useLogin(next?: string | null) {
 
       // Fold any locally-held guest cart into the server cart. Best-effort — never block login on it.
       const cohortIds = guestCartCohortIds();
-      if (cohortIds.length > 0) {
-        mergeGuestCart({ cohort_ids: cohortIds })
+      const standaloneAddonIds = guestCartStandaloneAddonIds();
+      if (cohortIds.length > 0 || standaloneAddonIds.length > 0) {
+        mergeGuestCart({ cohort_ids: cohortIds, standalone_addon_ids: standaloneAddonIds })
           .catch(() => {})
           .finally(() => {
             useCartStore.getState().clear();

@@ -12,7 +12,7 @@ import { usePersistedFormDraft } from "@/hooks/use-persisted-form-draft";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PasswordStrength } from "@/components/ui/password-strength";
-import { TurnstileWidget } from "@/components/ui/turnstile-widget";
+import { TURNSTILE_ENABLED, TurnstileWidget } from "@/components/ui/turnstile-widget";
 import type { Industry, ReferralSource } from "@/types/student";
 import { trackEvent } from "@/lib/analytics";
 
@@ -109,12 +109,12 @@ const RegistrationPage = () => {
   };
 
   const onSubmit = (values: RegisterFormValues) => {
-    if (!captchaToken) {
+    if (TURNSTILE_ENABLED && !captchaToken) {
       toast.error("Please complete the verification check.");
       return;
     }
     registerMutation.mutate(
-      { ...values, cf_turnstile_response: captchaToken },
+      { ...values, cf_turnstile_response: captchaToken ?? "" },
       {
         onSuccess: () => {
           trackEvent("account_created");

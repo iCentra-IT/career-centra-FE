@@ -329,6 +329,8 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
             <ProgramAddonsPanel
               addons={program.addons ?? []}
               cohortId={currentCohort?.id}
+              programSlug={program.slug}
+              programTitle={program.title}
               selectedIds={addonIds}
               onChange={setAddonIds}
             />

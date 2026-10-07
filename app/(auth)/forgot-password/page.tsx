@@ -14,7 +14,7 @@ import { Modal } from "@/components/ui/modal";
 import { OtpInput } from "@/components/ui/otp-input";
 import { PasswordStrength } from "@/components/ui/password-strength";
 import { IconBadge } from "@/components/ui/icon-badge";
-import { TurnstileWidget } from "@/components/ui/turnstile-widget";
+import { TURNSTILE_ENABLED, TurnstileWidget } from "@/components/ui/turnstile-widget";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 105;
@@ -69,13 +69,13 @@ const ForgotPasswordPage = () => {
   }, [otpOpen, secondsLeft]);
 
   const onRequestSubmit = (values: EmailFormValues) => {
-    if (!captchaToken) {
+    if (TURNSTILE_ENABLED && !captchaToken) {
       toast.error("Please complete the verification check.");
       return;
     }
     setEmail(values.email);
     passwordReset.mutate(
-      { ...values, cf_turnstile_response: captchaToken },
+      { ...values, cf_turnstile_response: captchaToken ?? "" },
       {
         onSuccess: () => {
           setOtp("");

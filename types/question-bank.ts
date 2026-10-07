@@ -115,7 +115,9 @@ export interface StartAttemptRequest {
 }
 
 export interface SubmitAttemptRequest {
-  answers: { question_id: number; answer: AnswerLetter }[];
+  // Field name confirmed against apps.question_bank.serializers.AttemptAnswerSerializer on the
+  // backend — it's selected_option, not answer.
+  answers: { question_id: number; selected_option: AnswerLetter }[];
 }
 
 // GET /api/question-banks/mine/ — banks the signed-in learner can currently open.

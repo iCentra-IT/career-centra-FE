@@ -21,7 +21,11 @@ import type {
   SetCartAddonsRequest,
 } from "@/types/cart";
 
-// Every cart write returns the full priced Cart — push it into cache and keep the nav badge in sync.
+// Every cart write returns the full priced Cart — push it into cache and keep the nav badge in
+// sync via total_item_count, which the backend already computes as item_count +
+// standalone_addons.length (matching /api/cart/count/) — see apps.cart.services.build_cart_payload.
+// Using item_count alone here used to under-count the badge by the number of standalone add-ons in
+// the cart; reading the backend's own total avoids re-deriving that sum (and re-breaking it) here.
 function useCartWrite<TArgs>(mutationFn: (args: TArgs) => Promise<Cart>) {
   const queryClient = useQueryClient();
 
@@ -29,7 +33,7 @@ function useCartWrite<TArgs>(mutationFn: (args: TArgs) => Promise<Cart>) {
     mutationFn,
     onSuccess: (cart) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.root });
-      queryClient.setQueryData(queryKeys.cart.count, cart.item_count);
+      queryClient.setQueryData(queryKeys.cart.count, cart.total_item_count);
     },
   });
 }
@@ -53,7 +57,7 @@ export function useMergeGuestCart() {
     mutationFn: mergeGuestCart,
     onSuccess: (cart) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.root });
-      queryClient.setQueryData(queryKeys.cart.count, cart.item_count);
+      queryClient.setQueryData(queryKeys.cart.count, cart.total_item_count);
     },
   });
 }
