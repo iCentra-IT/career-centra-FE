@@ -14,7 +14,11 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 // img-src stays broad (https: data: blob:) because programs/reviews/badges embed arbitrary
 // admin-supplied image URLs from whatever host the backend hands back (see the
 // no-next/image-domains comments next to those <img> tags) — there's no fixed CDN domain to
-// allowlist instead. frame-src covers youtube-nocookie.com (review video embeds — see
+// allowlist instead. `http:` is added only in dev: the local backend serves media over plain
+// http (e.g. http://localhost:8005/media/...), which `https:` alone silently blocks — confirmed
+// live, the image 404s with a broken-image icon even though curling the URL directly returns
+// 200. Production backends are always https, so prod never needs the http: scheme and stays
+// stricter. frame-src covers youtube-nocookie.com (review video embeds — see
 // components/marketing/review-video.tsx / lib/youtube.ts) and challenges.cloudflare.com
 // (Cloudflare Turnstile's widget iframe — see components/ui/turnstile-widget.tsx). Turnstile's
 // own script also needs an explicit script-src entry, confirmed live: without it the browser
@@ -31,7 +35,7 @@ const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
-  img-src 'self' https: data: blob:;
+  img-src 'self' https: data: blob:${isDev ? " http:" : ""};
   font-src 'self' data:;
   connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com;
   frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com;

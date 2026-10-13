@@ -6,7 +6,7 @@ import { useProgram } from "@/hooks/queries/programs";
 import { useProgramAddons } from "@/hooks/queries/addons";
 import { ProgramAddonDrawer } from "@/components/dashboard/addons/program-addon-drawer";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { TableSkeleton } from "@/components/ui/skeleton";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ADDON_KIND_OPTIONS, type ProgramAddon } from "@/types/addon";
 
@@ -61,7 +61,7 @@ export function ProgramAddonsPage({ programSlug }: { programSlug: string }) {
             </tr>
           </thead>
           <tbody>
-            {isLoading && <TableSkeleton columns={COLUMNS} />}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && list.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-10 text-center text-gray-400">

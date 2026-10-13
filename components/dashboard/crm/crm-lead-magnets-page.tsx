@@ -5,7 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useLeadMagnets } from "@/hooks/queries/crm";
 import { useDeleteLeadMagnet } from "@/hooks/mutations/crm";
-import { TableSkeleton } from "@/components/ui/skeleton";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { ActionsMenu } from "@/components/ui/actions-menu";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -48,7 +48,7 @@ export function CrmLeadMagnetsPage({ basePath }: { basePath: string }) {
             </tr>
           </thead>
           <tbody>
-            {isLoading && <TableSkeleton columns={COLUMNS} />}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && magnets?.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">

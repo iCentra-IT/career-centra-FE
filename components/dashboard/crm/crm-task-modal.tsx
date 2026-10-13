@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useAdminUsers } from "@/hooks/queries/admin-users";
 import { useCreateCrmTask, usePatchCrmTask } from "@/hooks/mutations/crm";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,6 @@ const selectClass =
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  assignee_id: z.string().min(1, "Choose who this is assigned to"),
   due_date: z.string().min(1, "Due date is required"),
   priority: z.enum(["low", "medium", "high"]),
   status: z.enum(["pending", "completed"]),
@@ -31,7 +29,8 @@ function toLocalInput(iso: string): string {
 }
 
 // `leadId` is required to create a task (every task belongs to a lead); editing keeps the task's
-// existing lead untouched.
+// existing lead untouched. There's no assignee field — a task is always assigned to whoever
+// creates it (the backend defaults `assignee` to the requesting user when it's omitted).
 export function CrmTaskModal({
   open,
   onClose,
@@ -44,7 +43,6 @@ export function CrmTaskModal({
   task?: CrmTask;
 }) {
   const isEdit = !!task;
-  const users = useAdminUsers();
   const createTask = useCreateCrmTask();
   const patchTask = usePatchCrmTask();
   const isPending = createTask.isPending || patchTask.isPending;
@@ -59,7 +57,6 @@ export function CrmTaskModal({
       ? {
           title: task.title,
           description: task.description,
-          assignee_id: String(task.assignee.id),
           due_date: toLocalInput(task.due_date),
           priority: task.priority,
           status: task.status,
@@ -67,7 +64,6 @@ export function CrmTaskModal({
       : {
           title: "",
           description: "",
-          assignee_id: "",
           due_date: "",
           priority: "low",
           status: "pending",
@@ -78,7 +74,6 @@ export function CrmTaskModal({
     const common = {
       title: values.title.trim(),
       description: values.description?.trim() ?? "",
-      assignee_id: Number(values.assignee_id),
       due_date: new Date(values.due_date).toISOString(),
       priority: values.priority,
       status: values.status,
@@ -144,24 +139,6 @@ export function CrmTaskModal({
               className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
               {...register("description")}
             />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-900">
-              Assignee <span className="text-secondary">*</span>
-            </label>
-            <select className={selectClass} {...register("assignee_id")}>
-              <option value="">Select a team member</option>
-              {users.data?.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.full_name || u.email}
-                </option>
-              ))}
-            </select>
-            {errors.assignee_id && (
-              <p className="text-xs text-red-500">
-                {errors.assignee_id.message}
-              </p>
-            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input

@@ -134,7 +134,8 @@ export interface CrmTaskWriteRequest {
   lead: string;
   title: string;
   description?: string;
-  assignee_id: number;
+  // Omit to default to whoever's creating the task (backend fills it in).
+  assignee_id?: number;
   due_date: string;
   priority?: CrmTaskPriority;
   status?: CrmTaskStatus;

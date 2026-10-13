@@ -1,15 +1,198 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCrmLeads } from "@/hooks/queries/crm";
-import { useSendCampaign } from "@/hooks/mutations/crm";
+import { useSendCampaign, useUploadCampaignImage } from "@/hooks/mutations/crm";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { crmLeadName } from "@/lib/crm";
 import { textToEmailHtml } from "@/lib/crm-email";
+
+// Prompts for a URL + display text and hands the markdown snippet back via `onInsert`. The caller
+// owns cursor position — this modal only knows how to build `[text](url)`.
+function InsertLinkModal({
+  open,
+  onClose,
+  onInsert,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onInsert: (snippet: string) => void;
+}) {
+  const [url, setUrl] = useState("");
+  const [label, setLabel] = useState("");
+  const [error, setError] = useState("");
+
+  const reset = () => {
+    setUrl("");
+    setLabel("");
+    setError("");
+  };
+
+  const submit = () => {
+    if (!/^https?:\/\//i.test(url.trim())) {
+      setError("Link URL must start with http:// or https://");
+      return;
+    }
+    onInsert(`[${(label.trim() || url.trim())}](${url.trim()})`);
+    reset();
+    onClose();
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={() => {
+        reset();
+        onClose();
+      }}
+      footer={
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              onClose();
+            }}
+            className="rounded-md border border-gray-300 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-400 hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <Button type="button" onClick={submit} className="w-auto px-5">
+            Insert Link
+          </Button>
+        </div>
+      }
+    >
+      <div className="text-left">
+        <h2 className="text-lg font-semibold text-gray-900">Insert Link</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          The display text shows in the email; the URL stays hidden until it's clicked.
+        </p>
+        <div className="mt-5 flex flex-col gap-4">
+          <Input
+            label="Link URL"
+            required
+            placeholder="https://careercentra.icentra.com"
+            value={url}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setError("");
+            }}
+            error={error}
+          />
+          <Input
+            label="Display text"
+            placeholder="e.g. See our programs"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// Picks a file, lets the marketer name alt text, uploads it, and hands the markdown snippet back
+// via `onInsert` once the upload succeeds.
+function InsertImageModal({
+  open,
+  onClose,
+  onInsert,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onInsert: (snippet: string) => void;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadImage = useUploadCampaignImage();
+  const [file, setFile] = useState<File | null>(null);
+  const [alt, setAlt] = useState("");
+
+  const reset = () => {
+    setFile(null);
+    setAlt("");
+  };
+
+  const submit = () => {
+    if (!file) return;
+    uploadImage.mutate(file, {
+      onSuccess: ({ url }) => {
+        onInsert(`![${alt}](${url})`);
+        reset();
+        onClose();
+      },
+      onError: (err) => toast.error(err.message),
+    });
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={() => {
+        reset();
+        onClose();
+      }}
+      footer={
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              onClose();
+            }}
+            className="rounded-md border border-gray-300 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-400 hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <Button type="button" onClick={submit} disabled={!file} loading={uploadImage.isPending} className="w-auto px-5">
+            Insert Image
+          </Button>
+        </div>
+      }
+    >
+      <div className="text-left">
+        <h2 className="text-lg font-semibold text-gray-900">Insert Image</h2>
+        <p className="mt-1 text-sm text-gray-500">The image is embedded and shown directly in the email body.</p>
+        <div className="mt-5 flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-gray-900">
+              Image <span className="text-secondary">*</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-md border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 hover:bg-gray-50"
+            >
+              {file ? file.name : "Click to choose an image"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const picked = e.target.files?.[0] ?? null;
+                setFile(picked);
+                if (picked && !alt) setAlt(picked.name.replace(/\.[^.]+$/, ""));
+              }}
+            />
+          </div>
+          <Input
+            label="Alt text"
+            placeholder="Shown if the image fails to load"
+            value={alt}
+            onChange={(e) => setAlt(e.target.value)}
+          />
+        </div>
+      </div>
+    </Modal>
+  );
+}
 
 // Recipients are picked from the lead list only. Opted-out leads are excluded server-side even
 // if selected here, so the count shown is what was selected, not necessarily what gets emailed.
@@ -17,6 +200,9 @@ export function CrmCampaignCompose({ basePath }: { basePath: string }) {
   const router = useRouter();
   const [subject, setSubject] = useState("");
   const [bodyText, setBodyText] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState(false);
@@ -45,6 +231,19 @@ export function CrmCampaignCompose({ basePath }: { basePath: string }) {
 
   const canSend = subject.trim() && bodyText.trim() && selected.size > 0;
 
+  // Inserts `snippet` at the current cursor position (replacing any selection), then restores
+  // focus with the cursor placed right after what was inserted.
+  const insertAtCursor = (snippet: string) => {
+    const textarea = textareaRef.current;
+    const start = textarea?.selectionStart ?? bodyText.length;
+    const end = textarea?.selectionEnd ?? bodyText.length;
+    setBodyText((current) => `${current.slice(0, start)}${snippet}${current.slice(end)}`);
+    requestAnimationFrame(() => {
+      textarea?.focus();
+      textarea?.setSelectionRange(start + snippet.length, start + snippet.length);
+    });
+  };
+
   const send = () => {
     sendCampaign.mutate(
       { subject: subject.trim(), body_html: textToEmailHtml(bodyText), lead_ids: Array.from(selected) },
@@ -70,7 +269,24 @@ export function CrmCampaignCompose({ basePath }: { basePath: string }) {
             <label className="text-sm text-gray-900">
               Message <span className="text-secondary">*</span>
             </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setImageModalOpen(true)}
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Insert Image
+              </button>
+              <button
+                type="button"
+                onClick={() => setLinkModalOpen(true)}
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Insert Link
+              </button>
+            </div>
             <textarea
+              ref={textareaRef}
               rows={12}
               value={bodyText}
               onChange={(e) => setBodyText(e.target.value)}
@@ -78,7 +294,8 @@ export function CrmCampaignCompose({ basePath }: { basePath: string }) {
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm leading-relaxed outline-none focus:border-secondary focus:ring-1 focus:ring-secondary"
             />
             <p className="text-xs text-gray-400">
-              Plain English is fine — paragraphs, line breaks and web links are formatted for email automatically.
+              Plain English is fine, paragraphs, line breaks and web links are formatted for email automatically.
+              Use "Insert Image" to embed a picture, or "Insert Link" to show text instead of a raw URL.
             </p>
           </div>
           {bodyText.trim() && (
@@ -138,6 +355,9 @@ export function CrmCampaignCompose({ basePath }: { basePath: string }) {
           </div>
         </div>
       </div>
+
+      <InsertLinkModal open={linkModalOpen} onClose={() => setLinkModalOpen(false)} onInsert={insertAtCursor} />
+      <InsertImageModal open={imageModalOpen} onClose={() => setImageModalOpen(false)} onInsert={insertAtCursor} />
 
       <ConfirmDeleteModal
         open={confirming}

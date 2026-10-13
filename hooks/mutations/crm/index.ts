@@ -17,6 +17,7 @@ import {
   patchLeadMagnet,
   sendCampaign,
   unsubscribeByToken,
+  uploadCampaignImage,
 } from "@/lib/api/crm";
 import { queryKeys } from "@/lib/api/query-keys";
 import { NormalizedError } from "@/types/api";
@@ -163,6 +164,13 @@ export function useSendCampaign() {
   return useMutation<Campaign, NormalizedError, SendCampaignRequest>({
     mutationFn: sendCampaign,
     onSuccess: invalidate,
+  });
+}
+
+// No list to invalidate — this just returns a public URL to paste into the composer.
+export function useUploadCampaignImage() {
+  return useMutation<{ url: string }, NormalizedError, File>({
+    mutationFn: uploadCampaignImage,
   });
 }
 

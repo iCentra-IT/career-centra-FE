@@ -1,6 +1,6 @@
 // lib/api/crm/index.ts
 import { apiClient } from "../client";
-import { toRequestBody } from "../form-data";
+import { toRequestBody, MULTIPART_HEADERS } from "../form-data";
 import { PaginatedResponse, ApiResponse, unwrapObject, unwrapList } from "@/types/api";
 import type {
   CaptureLeadRequest,
@@ -225,6 +225,20 @@ export async function sendCampaign(payload: SendCampaignRequest): Promise<Campai
 
 export async function deleteCampaign(id: string): Promise<void> {
   await apiClient.delete(`/api/crm/campaigns/${id}/`);
+}
+
+// Image embedded in a campaign body. Stored as a durable public asset (not a 15-minute presigned
+// URL like lead magnets/blog covers) since a sent campaign's body_html is fixed at send time and
+// may still be opened from an inbox months later.
+export async function uploadCampaignImage(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append("image", file);
+  const { data } = await apiClient.post<{ url: string }>(
+    "/api/crm/campaigns/upload-image/",
+    formData,
+    MULTIPART_HEADERS,
+  );
+  return data;
 }
 
 // ----------------------------------------------------------------------------- unsubscribe

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCampaigns } from "@/hooks/queries/crm";
-import { TableSkeleton } from "@/components/ui/skeleton";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatOrdinalDateTime } from "@/lib/format";
 
@@ -41,7 +41,7 @@ export function CrmCampaignsPage({ basePath }: { basePath: string }) {
             </tr>
           </thead>
           <tbody>
-            {isLoading && <TableSkeleton columns={COLUMNS} />}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && campaigns.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">

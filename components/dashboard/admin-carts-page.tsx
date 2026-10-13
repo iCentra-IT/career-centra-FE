@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAdminCarts } from "@/hooks/queries/admin-carts";
 import { AdminCartModal } from "@/components/dashboard/admin-cart-modal";
 import { Pagination } from "@/components/ui/pagination";
-import { TableSkeleton } from "@/components/ui/skeleton";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { ActionsMenu } from "@/components/ui/actions-menu";
 import { formatOrdinalDateTime } from "@/lib/format";
 import type { AdminCartSummary } from "@/types/admin-cart";
@@ -35,7 +35,7 @@ export function AdminCartsPage() {
             </tr>
           </thead>
           <tbody className={isFetching && !isLoading ? "opacity-60" : undefined}>
-            {isLoading && <TableSkeleton columns={COLUMNS} />}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && carts.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">

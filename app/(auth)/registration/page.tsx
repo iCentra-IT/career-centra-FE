@@ -117,7 +117,7 @@ const RegistrationPage = () => {
       { ...values, cf_turnstile_response: captchaToken ?? "" },
       {
         onSuccess: () => {
-          trackEvent("account_created");
+          trackEvent("complete_registration");
           toast.success("Account created — check your email to verify your address before logging in.");
           clearPersistedState(DRAFT_KEY);
           clearPersistedState(STEP_KEY);

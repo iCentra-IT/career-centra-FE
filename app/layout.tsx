@@ -89,23 +89,27 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
         />
       </head>
-      <GoogleTagManager gtmId={GTM_ID} />
-      <Providers>
-        <body>
-          {/* Noscript fallback for GTM — the GoogleTagManager component above only injects the
-              <script> tags, not this; Google's own snippet calls for it as early in <body> as
-              possible. */}
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-              height="0"
-              width="0"
-              style={{ display: "none", visibility: "hidden" }}
-            />
-          </noscript>
-          {children}
-        </body>
-      </Providers>
+      {/* `body` must be the actual DOM element wrapping everything else — `Providers` renders a
+          `<Toaster>` *after* `{children}`, and neither it nor `QueryClientProvider` render a host
+          element of their own, so when `body` used to be nested inside `Providers` instead of the
+          other way around, that Toaster ended up as a sibling of `<body>` directly under `<html>`
+          (confirmed live: React's hydration warning showed `<section>` — Toaster's live region —
+          as a child of `<html>`, which only ever permits `<head>`/`<body>`). */}
+      <body>
+        <GoogleTagManager gtmId={GTM_ID} />
+        {/* Noscript fallback for GTM — the GoogleTagManager component above only injects the
+            <script> tags, not this; Google's own snippet calls for it as early in <body> as
+            possible. */}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

@@ -8,7 +8,7 @@ import { useDeleteCrmLead } from "@/hooks/mutations/crm";
 import { exportCrmLeads } from "@/lib/api/crm";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
-import { TableSkeleton } from "@/components/ui/skeleton";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { ActionsMenu } from "@/components/ui/actions-menu";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -191,7 +191,7 @@ export function CrmLeadsPage({ basePath }: { basePath: string }) {
             </tr>
           </thead>
           <tbody className={isFetching && !isLoading ? "opacity-60" : undefined}>
-            {isLoading && <TableSkeleton columns={COLUMNS} />}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && leads.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">

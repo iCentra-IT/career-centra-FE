@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useCrmTasks } from "@/hooks/queries/crm";
 import { useDeleteCrmTask } from "@/hooks/mutations/crm";
 import { CrmTaskModal } from "@/components/dashboard/crm/crm-task-modal";
-import { TableSkeleton } from "@/components/ui/skeleton";
+import { TableSkeletonRows } from "@/components/ui/skeleton";
 import { ConfirmDeleteModal } from "@/components/ui/confirm-delete-modal";
 import { ActionsMenu } from "@/components/ui/actions-menu";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -77,7 +77,7 @@ export function CrmTasksPage({ basePath }: { basePath: string }) {
             </tr>
           </thead>
           <tbody>
-            {isLoading && <TableSkeleton columns={COLUMNS} />}
+            {isLoading && <TableSkeletonRows columns={COLUMNS.length} />}
             {!isLoading && tasks.length === 0 && (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-5 py-6 text-center text-gray-400">
