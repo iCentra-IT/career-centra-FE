@@ -117,7 +117,16 @@ const RegistrationPage = () => {
       { ...values, cf_turnstile_response: captchaToken ?? "" },
       {
         onSuccess: () => {
-          trackEvent("complete_registration");
+          // Other tracked events (enrolment_started, programme_view, payment_success) all send
+          // contextual parameters alongside the event name — this one was firing bare, which is
+          // a likely culprit if GTM's tag/variable setup expects any of these to be present.
+          // Non-PII only: industry/referral_source/method, no name/email/phone.
+          trackEvent("complete_registration", {
+            method: "email",
+            industry: values.industry,
+            referral_source: values.referral_source,
+            status: true,
+          });
           toast.success("Account created — check your email to verify your address before logging in.");
           clearPersistedState(DRAFT_KEY);
           clearPersistedState(STEP_KEY);

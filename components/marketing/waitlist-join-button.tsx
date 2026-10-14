@@ -27,9 +27,17 @@ export function WaitlistJoinButton({
   const [justJoined, setJustJoined] = useState(false);
 
   // Signed-in users read membership from the program detail payload (server truth, no extra
-  // request); guests fall back to their browser-local flag. justJoined bridges the gap between a
-  // successful POST and the next program refetch, which is what actually flips `waitlisted`.
-  const joined = justJoined || (user ? Boolean(waitlisted) : guestJoined);
+  // request) — trustworthy, since it's keyed by their actual account. justJoined bridges the gap
+  // between a successful POST and the next program refetch, which is what actually flips
+  // `waitlisted`.
+  const trulyJoined = justJoined || (user ? Boolean(waitlisted) : false);
+
+  // guestJoined is per-browser, not per-person — a shared device (library, family computer) can
+  // carry a *previous* guest's "joined" flag for this program. Treat it as a suggestion, not a
+  // fact: show it, but give whoever's looking at it now a way to prove it's not them by revealing
+  // the form (showForm) instead of permanently blocking them from ever joining under their own
+  // email on this device. Excludes justJoined so we don't second-guess what this visitor just did.
+  const staleGuestJoined = !user && !justJoined && guestJoined;
 
   const handleJoin = (payload: { email?: string; full_name?: string }) => {
     joinWaitlist.mutate(
@@ -48,28 +56,46 @@ export function WaitlistJoinButton({
     );
   };
 
-  if (joined) {
-    return (
-      <div className={`rounded-md border border-gray-200 px-4 py-3 text-center text-sm font-medium text-gray-600 ${className ?? ""}`}>
-        You&apos;re on the waitlist
-      </div>
-    );
-  }
-
-  if (user) {
-    return (
-      <button
-        type="button"
-        onClick={() => handleJoin({})}
-        disabled={joinWaitlist.isPending}
-        className={className ?? "w-full rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"}
-      >
-        {joinWaitlist.isPending ? "Joining..." : "Join Waitlist"}
-      </button>
-    );
-  }
-
+  // showForm takes priority over trulyJoined/staleGuestJoined — it's the deliberate escape hatch
+  // (either a guest who hasn't joined yet clicking the main button, or someone dismissing a stale
+  // guestJoined flag via "Not you?" below) and must always win once set.
   if (!showForm) {
+    if (trulyJoined) {
+      return (
+        <div className={`rounded-md border border-gray-200 px-4 py-3 text-center text-sm font-medium text-gray-600 ${className ?? ""}`}>
+          You&apos;re on the waitlist
+        </div>
+      );
+    }
+
+    if (staleGuestJoined) {
+      return (
+        <div className={`flex flex-col gap-1 rounded-md border border-gray-200 px-4 py-3 text-center ${className ?? ""}`}>
+          <span className="text-sm font-medium text-gray-600">You&apos;re on the waitlist</span>
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="text-xs text-gray-400 underline hover:text-gray-600"
+          >
+            Not you? Join with a different email
+          </button>
+        </div>
+      );
+    }
+
+    if (user) {
+      return (
+        <button
+          type="button"
+          onClick={() => handleJoin({})}
+          disabled={joinWaitlist.isPending}
+          className={className ?? "w-full rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"}
+        >
+          {joinWaitlist.isPending ? "Joining..." : "Join Waitlist"}
+        </button>
+      );
+    }
+
     return (
       <button
         type="button"

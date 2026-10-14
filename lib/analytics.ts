@@ -12,4 +12,10 @@ export function trackEvent(event: string, data: DataLayerEvent = {}) {
   const w = window as typeof window & { dataLayer?: DataLayerEvent[] };
   w.dataLayer = w.dataLayer || [];
   w.dataLayer.push({ event, ...data });
+
+  // Always logged (not gated on NODE_ENV) — GTM/Pixel testing usually happens against a
+  // deployed preview or production build, where NODE_ENV is "production" too, so an env
+  // gate would hide this exactly when it's needed. Lets you confirm an event actually
+  // pushed to dataLayer straight from the browser console.
+  console.log(`[trackEvent] ${event}`, data);
 }
