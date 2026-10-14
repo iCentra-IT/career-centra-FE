@@ -43,7 +43,7 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://scripts.clarity.ms${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' https: data: blob:${isDev ? " http:" : ""};
   font-src 'self' data:;
