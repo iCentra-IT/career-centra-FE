@@ -39,14 +39,15 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 // blocked too. Per Meta's CSP guidance (developers.facebook.com/docs/meta-pixel/advanced):
 // allow script loads from connect.facebook.net. img-src already permits the tracking pixel image
 // via its broad `https:` source.
+//  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://connect.facebook.net https://www.facebook.com;
 
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' https: data: blob:${isDev ? " http:" : ""};
   font-src 'self' data:;
-  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://connect.facebook.net https://www.facebook.com;
+  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://connect.facebook.net https://www.facebook.com https://mpc-prod-23-s6uit34pua-ue.a.run.app https://5z-2b6b7616f94640c2840d1841e1ac24c3.ecs.us-east-1.on.aws;
   frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com;
   object-src 'none';
   base-uri 'self';
