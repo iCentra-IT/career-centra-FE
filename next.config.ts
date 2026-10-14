@@ -47,7 +47,7 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' https: data: blob:${isDev ? " http:" : ""};
   font-src 'self' data:;
-  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://connect.facebook.net https://www.facebook.com https://mpc-prod-23-s6uit34pua-ue.a.run.app https://5z-2b6b7616f94640c2840d1841e1ac24c3.ecs.us-east-1.on.aws;
+  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://connect.facebook.net https://www.facebook.com https://mpc-prod-23-s6uit34pua-ue.a.run.app https://5z-2b6b7616f94640c2840d1841e1ac24c3.ecs.us-east-1.on.aws https://e.clarity.ms;
   frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com;
   object-src 'none';
   base-uri 'self';
