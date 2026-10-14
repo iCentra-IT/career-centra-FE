@@ -120,3 +120,27 @@ export interface CreateCohortRequest {
 
 export type UpdateCohortRequest = CreateCohortRequest; // PUT
 export type PatchCohortRequest = Partial<CreateCohortRequest>; // PATCH
+
+export type WaitlistStatus = "waiting" | "notified" | "converted" | "cancelled";
+
+export interface WaitlistEntry {
+  id: number;
+  email: string;
+  full_name: string;
+  program: number;
+  program_title: string;
+  cohort: number | null;
+  status: WaitlistStatus;
+  created_at: string;
+  notified_at: string | null;
+}
+
+// `email`/`full_name` are only needed for anonymous callers — a logged-in
+// user just sends `program` (and optionally `cohort`) and the backend fills
+// in their account email.
+export interface JoinWaitlistRequest {
+  program: number;
+  cohort?: number;
+  email?: string;
+  full_name?: string;
+}

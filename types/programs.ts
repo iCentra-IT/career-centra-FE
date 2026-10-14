@@ -309,6 +309,11 @@ export interface ProgramResource {
 export interface Program extends ProgramListItem {
   // Embedded add-ons from the detail endpoint — public, so visible without signing in.
   addons?: ProgramAddonSummary[];
+  // True when the requesting authenticated user already has a live waitlist entry for this
+  // program (server-derived per request — never cached). Always false/absent for anonymous
+  // callers, who track "already joined" locally instead. Optional so a response from a rolling
+  // deploy where the field doesn't exist yet still type-checks.
+  waitlist_joined?: boolean;
   outline: string;
   learning_outcomes: string[];
   who_should_attend: string[];

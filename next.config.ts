@@ -30,14 +30,23 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 // region1.google-analytics.com) in connect-src is where the GA4 tag configured inside that GTM
 // container actually sends hits — same "blocked outright, not just a console warning" story as
 // Turnstile above if either is missing.
+//
+// The Meta Pixel is also deployed through that same GTM container, and it loads its own scripts
+// (connect.facebook.net/en_US/fbevents.js and connect.facebook.net/signals/config/{id}) plus
+// beacons events back to facebook.com/tr. GTM alone isn't enough: without connect.facebook.net in
+// script-src the browser blocks fbevents.js (confirmed live — the Pixel never initializes and is
+// undetected), and without facebook.com/connect.facebook.net in connect-src the event beacons are
+// blocked too. Per Meta's CSP guidance (developers.facebook.com/docs/meta-pixel/advanced):
+// allow script loads from connect.facebook.net. img-src already permits the tracking pixel image
+// via its broad `https:` source.
 
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' https: data: blob:${isDev ? " http:" : ""};
   font-src 'self' data:;
-  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com;
+  connect-src 'self' ${apiBaseUrl} https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://connect.facebook.net https://www.facebook.com;
   frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com;
   object-src 'none';
   base-uri 'self';

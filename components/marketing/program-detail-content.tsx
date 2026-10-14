@@ -16,6 +16,7 @@ import { getYouTubeVideoId } from "@/lib/youtube";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import { EnrolButton } from "@/components/marketing/enrol-button";
+import { WaitlistJoinButton } from "@/components/marketing/waitlist-join-button";
 import { AddToCartButton } from "@/components/marketing/add-to-cart-button";
 import { CareerPathProgramCard } from "@/components/marketing/career-path-program-card";
 import { ReviewVideo } from "@/components/marketing/review-video";
@@ -147,6 +148,9 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
     .filter((c) => isBookableCohort(c.starts_on))
     .sort((a, b) => a.starts_on.localeCompare(b.starts_on));
   const [currentCohort, nextCohort] = programCohorts;
+  // currentCohort can still be sold out (programCohorts isn't filtered on that), so check
+  // explicitly rather than just "is there a cohort" before deciding whether to offer the waitlist.
+  const hasOpenCohort = programCohorts.some((c) => c.is_enrollment_open && !c.is_sold_out);
 
   if (isLoading) {
     return <DetailPageSkeleton />;
@@ -336,26 +340,32 @@ export function ProgramDetailContent({ slug }: { slug: string }) {
             />
 
             <div className="mt-5 flex flex-col gap-2">
-              <EnrolButton
-                cohortId={currentCohort?.id}
-                addonIds={addonIds}
-                enrollmentOpen={currentCohort?.is_enrollment_open}
-                withCoupon
-                programId={program.id}
-                programName={program.title}
-                amount={price.amount}
-                currency={price.currency}
-                className="w-full rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Enrol Now
-              </EnrolButton>
+              {hasOpenCohort ? (
+                <>
+                  <EnrolButton
+                    cohortId={currentCohort?.id}
+                    addonIds={addonIds}
+                    enrollmentOpen={currentCohort?.is_enrollment_open}
+                    withCoupon
+                    programId={program.id}
+                    programName={program.title}
+                    amount={price.amount}
+                    currency={price.currency}
+                    className="w-full rounded-md bg-main px-4 py-3 text-center text-sm font-semibold text-white hover:bg-deep-blue disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Enrol Now
+                  </EnrolButton>
+                  {currentCohort && <AddToCartButton item={cartItemFor(currentCohort)} />}
+                </>
+              ) : (
+                <WaitlistJoinButton programId={program.id} waitlisted={program.waitlist_joined} />
+              )}
               <Link
                 href="/contact"
                 className="rounded-md border border-gray-200 px-4 py-3 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Speak to an Advisor
               </Link>
-              {currentCohort && <AddToCartButton item={cartItemFor(currentCohort)} />}
             </div>
           </div>
         </div>

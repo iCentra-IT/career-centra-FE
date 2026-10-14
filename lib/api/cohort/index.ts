@@ -1,7 +1,12 @@
 // lib/api/cohorts/get-cohorts.ts
-import { Cohort, CohortDetail, CreateCohortRequest, UpdateCohortRequest, PatchCohortRequest, CohortSession, CreateCohortSessionRequest, PatchCohortSessionRequest, UpdateCohortSessionRequest } from '@/types/cohort';
+import { Cohort, CohortDetail, CreateCohortRequest, UpdateCohortRequest, PatchCohortRequest, CohortSession, CreateCohortSessionRequest, PatchCohortSessionRequest, UpdateCohortSessionRequest, JoinWaitlistRequest, WaitlistEntry } from '@/types/cohort';
 import { ApiResponse, PaginatedResponse, unwrapObject } from '@/types/api';
 import { apiClient } from '../client';
+
+export async function joinWaitlist(payload: JoinWaitlistRequest): Promise<WaitlistEntry> {
+  const { data } = await apiClient.post<ApiResponse<WaitlistEntry>>('/api/cohorts/waitlist/', payload);
+  return data.data;
+}
 
 // NOTE: assumed paginated like /api/programs/ (confirmed) — same {success, count, results} envelope.
 // Not yet confirmed against a real /api/cohorts/ response; fix this if that turns out wrong.

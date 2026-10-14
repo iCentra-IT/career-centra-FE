@@ -1,9 +1,15 @@
 // lib/api/cohorts/use-create-cohort.ts
-import { createCohort, updateCohort, patchCohort, deleteCohort, createSession, deleteSession, patchSession, updateSession } from '@/lib/api/cohort';
+import { createCohort, updateCohort, patchCohort, deleteCohort, createSession, deleteSession, patchSession, updateSession, joinWaitlist } from '@/lib/api/cohort';
 import { queryKeys } from '@/lib/api/query-keys';
 import { NormalizedError } from '@/types/api';
-import { CohortDetail, CreateCohortRequest, UpdateCohortRequest, PatchCohortRequest, CohortSession, CreateCohortSessionRequest, PatchCohortSessionRequest, UpdateCohortSessionRequest } from '@/types/cohort';
+import { CohortDetail, CreateCohortRequest, UpdateCohortRequest, PatchCohortRequest, CohortSession, CreateCohortSessionRequest, PatchCohortSessionRequest, UpdateCohortSessionRequest, JoinWaitlistRequest, WaitlistEntry } from '@/types/cohort';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+export function useJoinWaitlist() {
+  return useMutation<WaitlistEntry, NormalizedError, JoinWaitlistRequest>({
+    mutationFn: joinWaitlist,
+  });
+}
 
 
 export function useCreateCohort() {
