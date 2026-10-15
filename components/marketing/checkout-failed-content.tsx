@@ -40,7 +40,9 @@ export function CheckoutFailedContent({ reason }: { reason?: string }) {
   }, [orderId, reason]);
 
   if (orderId && Number.isFinite(orderId)) {
-    return <CartOrderConfirm orderId={orderId} status="failed" />;
+    // payment_incomplete means the buyer backed out before finishing — CartOrderConfirm only
+    // shows "Checkout cancelled" (vs. a generic "Payment not completed") for status="cancelled".
+    return <CartOrderConfirm orderId={orderId} status={reason === "payment_incomplete" ? "cancelled" : "failed"} />;
   }
 
   return (
