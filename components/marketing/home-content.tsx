@@ -351,11 +351,17 @@ export function HomeContent() {
                 Explore Career Paths →
               </Link>
               <Link
+                href="/registration"
+                className="rounded-full border border-white/30 px-6 py-3 text-sm font-medium text-white hover:bg-white/10"
+              >
+                Create an Account
+              </Link>
+              {/* <Link
                 href="/contact"
                 className="rounded-full border border-white/30 px-6 py-3 text-sm font-medium text-white hover:bg-white/10"
               >
                 Speak to an Advisor
-              </Link>
+              </Link> */}
             </div>
           </Reveal>
           <Reveal delay={0.2} className="hidden lg:block">
