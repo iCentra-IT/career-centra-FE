@@ -75,7 +75,7 @@ export function CareerPathProgramCard({ program, buttonTone = "cyan", cohort }: 
       <div className="relative mt-6">
         <div className="flex items-center justify-between gap-2">
           <p className="inline-block rounded-md bg-white/10 px-3 py-1.5 text-xs text-white/80">
-            {cohort ? `Starts ${formatShortDate(cohort.starts_on)}` : "Cohort dates coming soon"}
+            {cohort ? `Starts ${formatShortDate(cohort.starts_on)}` : "Join Waitlist"}
           </p>
           <ReferralPrice
             referral={program.referral}
