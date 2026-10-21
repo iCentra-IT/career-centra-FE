@@ -344,17 +344,20 @@ export function HomeContent() {
               and personalised advisor support.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/career-paths"
-                className="rounded-full bg-glass px-6 py-3 text-sm font-medium text-deep-blue hover:opacity-90"
-              >
-                Explore Career Paths →
-              </Link>
+              
               <Link
                 href="/registration"
-                className="rounded-full border border-white/30 px-6 py-3 text-sm font-medium text-white hover:bg-white/10"
+                className="rounded-full bg-glass px-6 py-3 text-sm font-medium text-deep-blue hover:opacity-90"
+                // className="rounded-full border border-white/30 px-6 py-3 text-sm font-medium text-white hover:bg-white/10"
               >
                 Create an Account
+              </Link>
+              <Link
+                href="/career-paths"
+                className="rounded-full border border-white/30 px-6 py-3 text-sm font-medium text-white hover:bg-white/10"
+                // className="rounded-full bg-glass px-6 py-3 text-sm font-medium text-deep-blue hover:opacity-90"
+              >
+                Explore Career Paths →
               </Link>
               {/* <Link
                 href="/contact"
