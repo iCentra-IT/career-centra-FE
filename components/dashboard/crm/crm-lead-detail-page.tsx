@@ -294,16 +294,14 @@ export function CrmLeadDetailPage({ basePath, leadId }: { basePath: string; lead
       {lead.url && (
         <section className="mt-6 rounded-2xl border border-gray-100 bg-white p-6">
           <p className="text-xs uppercase tracking-wide text-gray-400">Page</p>
-          <div className="mt-1 overflow-x-auto">
-            <a
-              href={lead.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block whitespace-nowrap text-sm text-secondary hover:underline"
-            >
-              {lead.url}
-            </a>
-          </div>
+          <a
+            href={lead.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 block break-all text-sm text-secondary hover:underline"
+          >
+            {lead.url}
+          </a>
         </section>
       )}
     </div>
