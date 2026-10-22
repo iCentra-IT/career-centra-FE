@@ -277,14 +277,6 @@ export function CrmLeadDetailPage({ basePath, leadId }: { basePath: string; lead
             <Field label="Next Follow-up" value={lead.next_follow_up_date ? formatShortDate(lead.next_follow_up_date) : null} />
             <Field label="Captured" value={formatOrdinalDateTime(lead.created_at)} />
           </div>
-          {lead.url && (
-            <div className="mt-5">
-              <p className="text-xs uppercase tracking-wide text-gray-400">Page</p>
-              <a href={lead.url} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate text-sm text-secondary hover:underline">
-                {lead.url}
-              </a>
-            </div>
-          )}
           {lead.message && (
             <div className="mt-5">
               <p className="text-xs uppercase tracking-wide text-gray-400">Message</p>
@@ -298,6 +290,22 @@ export function CrmLeadDetailPage({ basePath, leadId }: { basePath: string; lead
           <TasksSection leadId={lead.id} />
         </div>
       </div>
+
+      {lead.url && (
+        <section className="mt-6 rounded-2xl border border-gray-100 bg-white p-6">
+          <p className="text-xs uppercase tracking-wide text-gray-400">Page</p>
+          <div className="mt-1 overflow-x-auto">
+            <a
+              href={lead.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block whitespace-nowrap text-sm text-secondary hover:underline"
+            >
+              {lead.url}
+            </a>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
