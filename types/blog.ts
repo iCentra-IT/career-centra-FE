@@ -1,6 +1,6 @@
 // lib/api/types/blog.ts
 //
-// Confirmed live against the real backend (api-learning.icentra.com already has seeded posts) for
+// Confirmed live against the real backend (api-career.icentra.com already has seeded posts) for
 // every read endpoint below — the Swagger docs for this app are known to sometimes show misleading
 // placeholder shapes (bare arrays, `"string"` fields that are actually arrays), and that was true
 // here too: GET /api/blog/, /api/blog/categories/, /api/blog/posts/ and /api/blog/posts/{slug}/ all

@@ -1,12 +1,30 @@
 // lib/api/admin-users/index.ts
 import { AdminUser, CreateAdminUserRequest, PatchAdminUserRequest } from "@/types/user";
-import { AdminLearner } from "@/types/learner";
+import { AdminLearner, LearnerExportParams, LearnerFilters } from "@/types/learner";
 import { unwrapList, unwrapObject } from "@/types/api";
 import { apiClient } from "../client";
 
-export async function getAdminLearners(): Promise<AdminLearner[]> {
-  const { data } = await apiClient.get("/api/auth/admin/learners/");
+export async function getAdminLearners(filters?: LearnerFilters): Promise<AdminLearner[]> {
+  // Page size pinned to the pagination max — the learners page still loads the whole list and
+  // filters/searches client-side rather than paginating through the UI.
+  const { data } = await apiClient.get("/api/auth/admin/learners/", {
+    params: { ...filters, page_size: 100 },
+  });
   return unwrapList<AdminLearner>(data);
+}
+
+// Streams a CSV of whatever the list endpoint would return for these filters, or of exactly
+// `ids` when the caller passed a user-made row selection.
+export async function exportAdminLearners(params?: LearnerExportParams): Promise<Blob> {
+  const { data } = await apiClient.get<Blob>("/api/auth/admin/learners/export/", {
+    params: {
+      ...params,
+      ids: params?.ids?.join(","),
+      columns: params?.columns?.join(","),
+    },
+    responseType: "blob",
+  });
+  return data;
 }
 
 // /api/auth/admin/users/ — confirmed real shape, scoped to staff/admin accounts (students and
