@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAdminLearners } from "@/hooks/queries/admin-learners";
 import { useAllAdminCarts } from "@/hooks/queries/admin-carts";
@@ -35,6 +36,7 @@ function statusLabel(status: string) {
 // Read-only: marketers see every learner and whether they have items in their cart, but can't
 // deactivate or delete accounts — those stay admin-only on the Users page.
 export function MarketerLearnersPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -113,6 +115,12 @@ export function MarketerLearnersPage() {
     });
   };
 
+  const handleSendEmail = () => {
+    const params = new URLSearchParams({ recipientType: "learners" });
+    if (selected.size > 0) params.set("ids", Array.from(selected).join(","));
+    router.push(`/marketer/crm/campaigns/create?${params.toString()}`);
+  };
+
   const handleExport = async () => {
     if (exportColumns.size === 0) {
       toast.error("Pick at least one column to export.");
@@ -179,6 +187,13 @@ export function MarketerLearnersPage() {
               </div>
             )}
           </div>
+          <button
+            type="button"
+            onClick={handleSendEmail}
+            className="whitespace-nowrap rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            {selected.size > 0 ? `Send Email (${selected.size} selected)` : "Send Email"}
+          </button>
           <Button
             type="button"
             onClick={handleExport}
@@ -289,16 +304,28 @@ export function MarketerLearnersPage() {
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      {cartItems ? (
-                        <ActionsMenu
-                          items={[
-                            {
-                              label: "View cart",
-                              onClick: () => setViewing({ id: learner.id, name: learner.full_name }),
+                      <ActionsMenu
+                        items={[
+                          ...(cartItems
+                            ? [
+                                {
+                                  label: "View cart",
+                                  onClick: () => setViewing({ id: learner.id, name: learner.full_name }),
+                                },
+                              ]
+                            : []),
+                          {
+                            label: "Send Email",
+                            onClick: () => {
+                              const params = new URLSearchParams({
+                                recipientType: "learners",
+                                ids: String(learner.id),
+                              });
+                              router.push(`/marketer/crm/campaigns/create?${params.toString()}`);
                             },
-                          ]}
-                        />
-                      ) : null}
+                          },
+                        ]}
+                      />
                     </td>
                   </tr>
                 );
